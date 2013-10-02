@@ -1,3 +1,3 @@
 """Contain default parameters."""
-MYPARAM1 = "value1"
+MYVAR1 = "value1"
 
