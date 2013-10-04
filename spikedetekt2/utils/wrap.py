@@ -21,10 +21,7 @@ class Wrapped(object):
         
     def __getattr__(self, key):
         val = self._d[key]
-        if isinstance(val, dict):
-            return Wrapped(val)
-        else:
-            return val
+        return wrap(val)
             
     def __getitem__(self, index):
         return WrappedIndexed(self._d, index)
@@ -34,3 +31,12 @@ class Wrapped(object):
 
     def __repr__(self):
         return self._d.__repr__()
+        
+def wrap(d):
+    if isinstance(d, dict):
+        return Wrapped(d)
+    elif isinstance(d, list):
+        return [wrap(k) for k in d]
+    else:
+        return d
+    
