@@ -1,8 +1,28 @@
 """Wrap dictionaries in Python objects for easy access of hierarchical structures."""
 # -----------------------------------------------------------------------------
-# Wrap functions
+# Imports
 # -----------------------------------------------------------------------------
 import numpy as np
+from six import iteritems
+
+
+# -----------------------------------------------------------------------------
+# Utility functions
+# -----------------------------------------------------------------------------
+def append(d, item):
+    if isinstance(d, list):
+        d.append(item)
+        return d
+    elif isinstance(d, np.ndarray):
+        if not hasattr(item, '__iter__'):
+            item = [item]
+        if not isinstance(item, np.ndarray):
+            item = np.array(item)
+        return np.concatenate((d, item))
+
+def select(d, index):
+    # TODO: support NumPy efficient indexing, pandas, etc.
+    return d[index]
 
 
 # -----------------------------------------------------------------------------
@@ -18,6 +38,10 @@ class Wrapped(object):
             
     def __getitem__(self, index):
         return wrap(self._d, index)
+        
+    def append(self, d):
+        for key, val in iteritems(d):
+            self._d[key] = append(self._d[key], val)
         
     def __dir__(self):
         return self._d.__dir__()
@@ -41,20 +65,9 @@ def wrap(d, index=None):
         # Otherwise, just return the list.
         else:
             return d
-    elif isinstance(d, np.ndarray):
-        if index is None:
-            return d
-        else:
-            return d[index]
-        
-    if hasattr(d, '__iter__'):
-        if index is None:
-            return map(wrap, d)
-        else:
-            return d[index]
     else:
         if index is None:
             return d
         else:
-            return d[index]
+            return select(d, index)
     
