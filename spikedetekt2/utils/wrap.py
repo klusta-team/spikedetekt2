@@ -14,8 +14,6 @@ class WrappedIndexed(object):
             return WrappedIndexed(val, self._index)
         else:
             return val[self._index]
-    #def __repr__(self):
-    #    return str(tuple(getattr(self, key) for key in self._d.keys()))
 
 class Wrapped(object):
     def __init__(self, d):
