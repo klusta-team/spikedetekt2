@@ -59,4 +59,12 @@ def test_wrap_4():
     assert dw.key1[1].skey1 == [10, 11]
     assert dw.key1[1].skey2 == [10, 20]
     
+def test_wrap_add():
+    d = dict(key1=[0, 1], key2=[0, 10])
+    dw = wrap(d)
+    
+    dw.key1.append(2)
+    assert dw.key1 == [0, 1, 2]
+    
+    
     
