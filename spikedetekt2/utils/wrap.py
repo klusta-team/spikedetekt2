@@ -13,6 +13,7 @@ class WrappedIndexed(object):
         if isinstance(val, dict):
             return WrappedIndexed(val, self._index)
         else:
+            # TODO: use a select() function here instead
             return val[self._index]
 
 class Wrapped(object):
