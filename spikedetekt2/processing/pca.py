@@ -1,0 +1,30 @@
+"""PCA routines."""
+
+# -----------------------------------------------------------------------------
+# Imports
+# -----------------------------------------------------------------------------
+import numpy as np
+from scipy import signal
+from spikedetekt2.utils.six.moves import range
+
+
+# -----------------------------------------------------------------------------
+# PCA functions
+# -----------------------------------------------------------------------------
+def compute_pcs(x, npcs=None):
+    """Compute the PCs of an array x, where each row is an observation.
+    x can be a 2D or 3D array. In the latter case, the PCs are computed
+    and concatenated iteratively along the last axis."""
+    # If x is a 3D array, compute the PCs by iterating over the last axis.
+    if x.ndim == 3:
+        return np.dstack([compute_pcs(x[..., i]) for i in range(x.shape[-1])])
+    # Now, we assume x is a 2D array.
+    assert x.ndim == 2
+    cov_ss = np.cov(x.astype(np.float64), rowvar=0)
+    vals, vecs = np.linalg.eigh(cov_ss)
+    pcs = vecs.T.astype(np.float32)[np.argsort(vals)[::-1]]
+    if npcs is not None:
+        return pcs[:npcs]
+    else:
+        return pcs
+    

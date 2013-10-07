@@ -12,6 +12,7 @@ from spikedetekt2.processing import apply_filtering, bandpass_filter
 # Tests
 # -----------------------------------------------------------------------------
 def test_apply_filtering():
+    """Test bandpass filtering on a combination of two sinusoids."""
     rate = 10000.
     low, high = 100., 200.
     # Create a signal with small and high frequencies.
