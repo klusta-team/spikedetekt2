@@ -37,7 +37,10 @@ class Wrapped(object):
         return wrap(self._d[key], self._index)
             
     def __getitem__(self, index):
-        return wrap(self._d, index)
+        if isinstance(index, (int, long)):
+            return wrap(self._d, index)
+        else:
+            return wrap(self._d[index], self._index)
         
     def append(self, d):
         for key, val in iteritems(d):
