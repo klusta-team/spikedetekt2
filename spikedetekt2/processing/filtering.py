@@ -26,3 +26,32 @@ def apply_filtering(x, filter=None):
     return signal.filtfilt(b, a, x, axis=0)
 
 
+# -----------------------------------------------------------------------------
+# Whitening
+# -----------------------------------------------------------------------------
+"""
+  * Get the first chunk of data
+  * Detect spikes the usual way
+  * Compute mean on each channel on non-spike data
+  * For every pair of channels:
+      * estimate the covariance on non-spike data
+  * Get the covariance matrix
+  * Get its square root C' (sqrtm)
+  * Get u*C' + (1-u)*s*Id, where u is a parameter, s the std of non-spike data 
+    across all channels
+  * Option to save or not whitened data in FIL
+  * All spike detection is done on whitened data
+  
+"""
+def get_whitening_matrix(x):
+    C = np.cov(x, rowvar=0)
+    # TODO
+
+def whiten(x, matrix=None):
+    if matrix is None:
+        matrix = get_whitening_matrix(x)
+    # TODO
+    
+    
+
+
