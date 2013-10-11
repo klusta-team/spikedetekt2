@@ -69,7 +69,10 @@ This JSON text file contains all metadata related to the experiment, and aesthet
             name
             user_data
             data
-                hdf5_path = '{KWD}/data_raw/recording0'
+                hdf5_path
+                    raw = '{KWD}/data_raw/recording0'
+                    high_pass = '{KWD}/data_high/recording0'
+                    low_pass = '{KWD}/data_low/recording0'
             start_time
             start_sample
             sample_rate
