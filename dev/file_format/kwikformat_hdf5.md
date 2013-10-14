@@ -21,12 +21,12 @@ File format specification
 
 ### KWIK
 
-This JSON text file contains all metadata related to the experiment, and aesthetic information about channel and cluster colors, the cluster groups, the channel positions and scaling, etc.
+This JSON text file contains all metadata related to the experiment, and aesthetic information about channel and cluster colors, the cluster groups, the channel positions and scaling, etc. The probe information is in channel_groups/channels/position, which is in microns relative to the whole multishank probe.
     
     name
     application_data
         spikedetekt
-            concatenation_list
+            [PRM]
             ...
     user_data
     channel_groups
@@ -94,7 +94,7 @@ This JSON text file contains all metadata related to the experiment, and aesthet
 
 The HDF5 **KWX** file contains all spiking information.
  
-  * `/channel_groups/channel_groupX/` ( *X* being the channel_group index, starting from 1): *group* with the spikes detected on that channel_group.
+  * `/channel_groups/channel_groupX/` ( *X* being the channel_group index, starting from 0): *group* with the spikes detected on that channel_group.
 
   * `/channel_groups/channel_groupX/clusters`: *table*, one row = one spike, and the following columns:
       * `cluster_auto`: UInt32, the cluster number (max ~ 10^10), obtained after the automatic clustering stage
@@ -102,6 +102,7 @@ The HDF5 **KWX** file contains all spiking information.
   
   * `/channel_groups/channel_groupX/spikes`: *table*, one row = one spike, and the following columns:
       * `time`: UInt64, spike time, in number of samples (max ~ 10^19)
+      * `recording`: UInt16, recording index
       * `features`: Float32(nfet,), a vector with the spike features, typically nfet=nchannels*fetdim+nextrafet, with fetdim the number of principal components per channel
       * `masks`: UInt8(nfet,), a vector with the masks, 0=totally masked, 255=unmasked
   
@@ -115,13 +116,13 @@ The HDF5 **KWX** file contains all spiking information.
 The HDF5 **KWD** files contain all non-spiking (raw or filtered) information.
 
   * `.raw.KWD`:
-      * `/data_raw`: [EArray](http://pytables.github.io/usersguide/libref/homogenous_storage.html#the-earray-class)(Int16, (duration*freq, nchannels)) with the raw data on all channels
+      * `/data_raw/recordingX`: [EArray](http://pytables.github.io/usersguide/libref/homogenous_storage.html#the-earray-class)(Int16, (duration*freq, nchannels)) with the raw data on all channels
   
   * `.high.KWD`:
-      * `/data_high`: high-pass filered data
+      * `/data_high/recordingX`: high-pass filered data
   
   * `.low.KWD`:
-      * `/data_low`: low-pass filered data
+      * `/data_low/recordingX`: low-pass filered data
 
       
 ### KWE
