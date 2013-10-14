@@ -33,10 +33,10 @@ def get_spikesorting_description(nfeatures=None):
         ('cluster_original', tb.UInt32Col()),
         ])
     
-def get_waveforms_description(nsamples=None, nchannels=None):
+def get_waveforms_description(nwavesamples=None, nchannels=None):
     return OrderedDict([
-        ('waveform_filtered', tb.Int16Col(shape=(nsamples*nchannels))),
-        ('waveform_raw', tb.Int16Col(shape=(nsamples*nchannels))),
+        ('waveform_filtered', tb.Int16Col(shape=(nwavesamples*nchannels))),
+        ('waveform_raw', tb.Int16Col(shape=(nwavesamples*nchannels))),
         ])
 
 def get_events_description():
@@ -50,7 +50,7 @@ def get_events_description():
 # -----------------------------------------------------------------------------
 # HDF5 helper functions
 # -----------------------------------------------------------------------------
-def create_kwx(path, channel_groups=None, nsamples=None, nfeatures=None,
+def create_kwx(path, channel_groups=None, nwavesamples=None, nfeatures=None,
                nchannels=None):
     """Create an empty KWX file.
     
@@ -58,9 +58,9 @@ def create_kwx(path, channel_groups=None, nsamples=None, nfeatures=None,
       * channel_groups: a dictionary 'ichannel_group': 'channel_group_info'
         where channel_group_info is a dictionary with the optional fields:
           * nchannels
-          * nsamples
+          * nwavesamples
           * nfeatures
-      * nsamples (common to all channel groups if set)
+      * nwavesamples (common to all channel groups if set)
       * nfeatures (common to all channel groups if set)
       * nchannels (common to all channel groups if set)
     
@@ -71,7 +71,7 @@ def create_kwx(path, channel_groups=None, nsamples=None, nfeatures=None,
     for ichannel_group, channel_group_info in sorted(iteritems(channel_groups)):
         nchannels_ = channel_group_info.get('nchannels', nchannels)
         nfeatures_ = channel_group_info.get('nfeatures', nfeatures)
-        nsamples_ = channel_group_info.get('nsamples', nsamples)
+        nwavesamples_ = channel_group_info.get('nwavesamples', nwavesamples)
         
         shank_path = '/channel_groups/channel_group{0:d}'.format(ichannel_group)
         
@@ -85,7 +85,7 @@ def create_kwx(path, channel_groups=None, nsamples=None, nfeatures=None,
         file.createTable(shank_path, 'spikesorting',
                          get_spikesorting_description(nfeatures=nfeatures_))
         file.createTable(shank_path, 'waveforms',
-                         get_waveforms_description(nsamples=nsamples_,
+                         get_waveforms_description(nwavesamples=nwavesamples_,
                                                    nchannels=nchannels_))
                                                    
     file.close()
@@ -109,7 +109,7 @@ def create_kwd(path, type='raw', nchannels_tot=None, recordings=None,):
         file.createGroup('/', 'recording{0:d}'.format(irecording))    
         recording_path = '/recording{0:d}'.format(irecording)
         
-        file.createEArray(recording_path, 'data_{0:d}'.format(type), 
+        file.createEArray(recording_path, 'data_{0:s}'.format(type), 
                           tb.Int16Atom(), 
                           (0, nchannels_tot), expectedrows=nsamples_)
     
