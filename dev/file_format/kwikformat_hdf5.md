@@ -48,8 +48,8 @@ This JSON text file contains all metadata related to the experiment, and aesthet
                     user_data
             spikes
                 hdf5_path
-                    main = '{KWX}/channel_groups/channel_groupX/spikes'
-                    clusters = '{KWX}/channel_groups/channel_groupX/clusters'
+                    spiketrain = '{KWX}/channel_groups/channel_groupX/spiketrain'
+                    spikesorting = '{KWX}/channel_groups/channel_groupX/spikesorting'
                     waveforms = '{KWX}/channel_groups/channel_groupX/waveforms'
             clusters
                 []
@@ -70,9 +70,9 @@ This JSON text file contains all metadata related to the experiment, and aesthet
             user_data
             data
                 hdf5_path
-                    raw = '{KWD_RAW}/data_raw/recording0'
-                    high_pass = '{KWD_HIGH}/data_high/recording0'
-                    low_pass = '{KWD_LOW}/data_low/recording0'
+                    raw = '{KWD_RAW}/data_raw/recordingX'
+                    high_pass = '{KWD_HIGH}/data_high/recordingX'
+                    low_pass = '{KWD_LOW}/data_low/recordingX'
             start_time
             start_sample
             sample_rate
@@ -96,15 +96,15 @@ The HDF5 **KWX** file contains all spiking information.
  
   * `/channel_groups/channel_groupX/` ( *X* being the channel_group index, starting from 0): *group* with the spikes detected on that channel_group.
 
-  * `/channel_groups/channel_groupX/clusters`: *table*, one row = one spike, and the following columns:
-      * `cluster_auto`: UInt32, the cluster number (max ~ 10^10), obtained after the automatic clustering stage
-      * `cluster_manual`: UInt32, the cluster number (max ~ 10^10), obtained after the manual stage
-  
-  * `/channel_groups/channel_groupX/spikes`: *table*, one row = one spike, and the following columns:
-      * `time`: UInt64, spike time, in number of samples (max ~ 10^19)
+  * `/channel_groups/channel_groupX/spiketrain`: *table*, one row = one spike, and the following columns:
+      * `sample`: Float64, spike time, in number of samples (can be fractional) (max ~ 10^19)
       * `recording`: UInt16, recording index
+      * `cluster`: UInt32, the cluster number (max ~ 10^10), obtained after the manual stage
+      
+  * `/channel_groups/channel_groupX/spikesorting`: *table*, one row = one spike, and the following columns:
       * `features`: Float32(nfet,), a vector with the spike features, typically nfet=nchannels*fetdim+nextrafet, with fetdim the number of principal components per channel
       * `masks`: UInt8(nfet,), a vector with the masks, 0=totally masked, 255=unmasked
+      * `cluster_original`: UInt32, the cluster number (max ~ 10^10), obtained after the automatic clustering stage
   
   * `/channel_groups/channel_groupX/waveforms`: *table*, one row = one spike, and the following columns:
       * `waveform_filtered`: Int16(nsamples*nchannels,), a vector with the high-pass filtered spike waveform. Stride order: sample first, channel second.
@@ -116,13 +116,13 @@ The HDF5 **KWX** file contains all spiking information.
 The HDF5 **KWD** files contain all non-spiking (raw or filtered) information.
 
   * `.raw.KWD`:
-      * `/data_raw/recordingX`: [EArray](http://pytables.github.io/usersguide/libref/homogenous_storage.html#the-earray-class)(Int16, (duration*freq, nchannels)) with the raw data on all channels
+      * `/recordingX/data_raw`: [EArray](http://pytables.github.io/usersguide/libref/homogenous_storage.html#the-earray-class)(Int16, (duration*freq, nchannels)) with the raw data on all channels
   
   * `.high.KWD`:
-      * `/data_high/recordingX`: high-pass filered data
+      * `/recordingX/data_high`: high-pass filered data
   
   * `.low.KWD`:
-      * `/data_low/recordingX`: low-pass filered data
+      * `/recordingX/data_low`: low-pass filered data
 
       
 ### KWE
@@ -132,7 +132,7 @@ The HDF5 **KWE** file contains the events.
   * `/events`: *table*, one row = one event, and the following columns:
       * `sample`: UInt64, the time sample of the event
       * `event_type`: the ID of the event type, corresponding to the `event_types` table
-      * `recordingID`: the recording ID
+      * `recording`: the recording ID
       
 
 ### PRB
