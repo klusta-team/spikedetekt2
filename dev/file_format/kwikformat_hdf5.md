@@ -97,6 +97,7 @@ The HDF5 **KWX** file contains all spiking information.
 
   * `/channel_groups/channel_groupX/spiketrain`: *table*, one row = one spike, and the following columns:
       * `sample`: Float64, spike time, in number of samples (can be fractional) (max ~ 10^19)
+      * `fractional`: UInt8, fractional time, between 0 and 1
       * `recording`: UInt16, recording index
       * `cluster`: UInt32, the cluster number (max ~ 10^10), obtained after the manual stage
       

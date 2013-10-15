@@ -22,6 +22,7 @@ from spikedetekt2.utils.six import iteritems
 def get_spiketrain_description():
     return OrderedDict([
         ('sample', tb.Float64Col()),
+        ('fractional', tb.UInt8Col()),
         ('recording', tb.UInt16Col()),
         ('cluster', tb.UInt32Col()),
         ])
@@ -55,6 +56,10 @@ def get_event_types_description():
 # -----------------------------------------------------------------------------
 # HDF5 helper functions
 # -----------------------------------------------------------------------------
+def create_kwik():
+    # TODO
+    pass
+
 def create_kwx(path, channel_groups=None, nwavesamples=None, nfeatures=None,
                nchannels=None):
     """Create an empty KWX file.

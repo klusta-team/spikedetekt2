@@ -43,6 +43,7 @@ def test_create_kwx():
     # Group 0
     spiketrain = f.root.channel_groups.channel_group0.spiketrain
     spiketrain.col('sample')
+    spiketrain.col('fractional')
     spiketrain.col('recording')
     spiketrain.col('cluster')
     
