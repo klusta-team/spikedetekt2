@@ -9,7 +9,7 @@ import tempfile
 import numpy as np
 import tables as tb
 
-from spikedetekt2.dataio import create_kwx, create_kwd
+from spikedetekt2.dataio import create_kwx, create_kwd, create_kwe
 
 
 # -----------------------------------------------------------------------------
@@ -92,3 +92,23 @@ def test_create_kwd():
     # Delete the file.
     os.remove(path)
     
+def test_create_kwe():
+    dirpath = tempfile.mkdtemp()
+    path = os.path.join(dirpath, 'myexperiment.kwe')
+    
+    create_kwe(path)
+    
+    # Open the KWX file.
+    f = tb.openFile(path, 'r')
+    
+    # Group 0
+    events = f.root.events
+    events.col('sample')
+    events.col('recording')
+    events.col('event_type')
+    
+    f.close()
+    
+    # Delete the file.
+    os.remove(path)
+  

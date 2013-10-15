@@ -42,8 +42,8 @@ def get_waveforms_description(nwavesamples=None, nchannels=None):
 def get_events_description():
     return OrderedDict([
         ('sample', tb.UInt64Col()),
-        ('event_type', tb.UInt16Col()),
         ('recording', tb.UInt16Col()),
+        ('event_type', tb.UInt16Col()),
         ])
 
 
@@ -114,5 +114,20 @@ def create_kwd(path, type='raw', nchannels_tot=None, recordings=None,):
                           (0, nchannels_tot), expectedrows=nsamples_)
     
     file.close()
+   
+def create_kwe(path, ):
+    """Create an empty KWE file.
     
+    Arguments:
+      * 
+    
+    """
+    file = tb.openFile(path, mode='w')
+    
+    # Create the table.
+    file.createTable('/', 'events',
+                     get_events_description())
+                                                   
+    file.close()
+           
     

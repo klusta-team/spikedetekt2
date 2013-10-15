@@ -124,16 +124,16 @@ The HDF5 **KWD** files contain all non-spiking (raw or filtered) information.
   * `.low.KWD`:
       * `/recordingX/data_low`: low-pass filered data
 
-      
+
 ### KWE
 
 The HDF5 **KWE** file contains the events.
 
   * `/events`: *table*, one row = one event, and the following columns:
       * `sample`: UInt64, the time sample of the event
-      * `event_type`: the ID of the event type, corresponding to the `event_types` table
       * `recording`: the recording ID
-      
+      * `event_type`: the ID of the event type, corresponding to the `event_types` table
+
 
 ### PRB
 
