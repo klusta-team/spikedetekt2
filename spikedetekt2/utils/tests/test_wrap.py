@@ -23,11 +23,6 @@ def test_wrap_2():
     assert dw.key1 == [0, 1]
     assert dw.key2 == [0, 10]
     
-    assert dw.key1[0] == 0
-    assert dw.key1[1] == 1
-    assert dw.key2[0] == 0
-    assert dw.key2[1] == 10
-
 def test_wrap_3():
     d = dict(key1=[0, 1], key2=dict(skey1=['0', '1'], skey2=['0', '10']))
     dw = wrap(d)
@@ -64,29 +59,65 @@ def test_wrap_4():
     assert dw.key1[1].skey1 == [10, 11]
     assert dw.key1[1].skey2 == [10, 20]
     
-def test_wrap_add_1():
-    d = dict(key1=[0, 1], key2=[0, 10], key3={
-        'skey1': [10, 11],
-        'skey2': [20, 21],
-        })
+def test_wrap_5():
+    d = {'key1': 
+            [
+                {
+                    'skey1': [
+                                {'a': 1, 'b': 2},
+                                {'a': 3, 'b': 4},
+                             ], 
+                    'skey2': [
+                                {'a': 10, 'b': 20},
+                                {'a': 30, 'b': 40},
+                             ], 
+                },
+                
+                {
+                    'skey1': [
+                                {'a': 5, 'b': 6},
+                                {'a': 7, 'b': 8},
+                             ], 
+                    'skey2': [
+                                {'a': 50, 'b': 60},
+                                {'a': 70, 'b': 80},
+                             ], 
+                },   
+            ]
+        }
     dw = wrap(d)
+    assert dw.key1[0].skey1.a[0] == 1
+    assert dw.key1[0].skey1.a[1] == 3
+    assert dw.key1[0].skey1.b[0] == 2
+    assert dw.key1[0].skey1.b[1] == 4
     
-    dw.key1.append(2)
-    assert dw.key1 == [0, 1, 2]
+    assert dw.key1.skey2[0].a[0] == 10
+    assert dw.key1.skey2[0].a[1] == 30
     
-    assert dw.key3.skey1 == [10, 11]
-    dw.key3.append({'skey1': 12, 'skey2': 22})
-    assert dw.key3.skey1 == [10, 11, 12]
-    assert dw.key3.skey2 == [20, 21, 22]
+    
+# def test_wrap_add_1():
+    # d = dict(key1=[0, 1], key2=[0, 10], key3={
+        # 'skey1': [10, 11],
+        # 'skey2': [20, 21],
+        # })
+    # dw = wrap(d)
+    
+    # dw.key1.append(2)
+    # assert dw.key1 == [0, 1, 2]
+    
+    # assert dw.key3.skey1 == [10, 11]
+    # dw.key3.append({'skey1': 12, 'skey2': 22})
+    # assert dw.key3.skey1 == [10, 11, 12]
+    # assert dw.key3.skey2 == [20, 21, 22]
 
-def test_wrap_add_2():
-    d = dict(key1=[0, 1], key2=np.zeros(2), key3=np.zeros((2, 10)))
-    dw = wrap(d)
+# def test_wrap_add_2():
+    # d = dict(key1=[0, 1], key2=np.zeros(2), key3=np.zeros((2, 10)))
+    # dw = wrap(d)
     
-    dw.append({'key1': 2, 
-               'key2': 0,
-               'key3': np.zeros((1, 10))})
-    assert dw.key1 == [0, 1, 2]
-    assert np.array_equal(dw.key2, np.zeros(3))
-    assert np.array_equal(dw.key3, np.zeros((3, 10)))
+    # dw.append({'key1': 2, 
+               # 'key2': 0,
+               # 'key3': np.zeros((1, 10))})
+    # assert dw.key1 == [0, 1, 2]
+    # assert np.array_equal(dw.key2, np.zeros(3))
+    # assert np.array_equal(dw.key3, np.zeros((3, 10)))
     
