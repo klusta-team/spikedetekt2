@@ -46,6 +46,11 @@ def get_events_description():
         ('event_type', tb.UInt16Col()),
         ])
 
+def get_event_types_description():
+    return OrderedDict([
+        ('name', tb.StringCol(256)),
+        ])
+
 
 # -----------------------------------------------------------------------------
 # HDF5 helper functions
@@ -124,9 +129,11 @@ def create_kwe(path, ):
     """
     file = tb.openFile(path, mode='w')
     
-    # Create the table.
+    # Create the tables.
     file.createTable('/', 'events',
                      get_events_description())
+    file.createTable('/', 'event_types',
+                     get_event_types_description())
                                                    
     file.close()
            

@@ -83,7 +83,6 @@ This JSON text file contains all metadata related to the experiment, and aesthet
         hdf5_path = '{KWE}/events'
     event_types
         []
-            name
             application_data
                 klustaviewa
                     color
@@ -133,6 +132,9 @@ The HDF5 **KWE** file contains the events.
       * `sample`: UInt64, the time sample of the event
       * `recording`: the recording ID
       * `event_type`: the ID of the event type, corresponding to the `event_types` table
+
+  * `/event_types`: *table*, one row = one event, and the following columns:
+      * `name`: String(256), the name of the event type
 
 
 ### PRB
