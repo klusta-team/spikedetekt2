@@ -15,7 +15,6 @@ def randint(high):
 # -----------------------------------------------------------------------------
 # Functions
 # -----------------------------------------------------------------------------
-
 def random_channel(index=None):
     return {
         'name': 'channel{0:d}'.format(index or randint(10)),

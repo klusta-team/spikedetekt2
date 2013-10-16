@@ -51,12 +51,6 @@ This JSON text file contains all metadata related to the experiment, and aesthet
                     spiketrain = '{KWX}/channel_groups/channel_groupX/spiketrain'
                     spikesorting = '{KWX}/channel_groups/channel_groupX/spikesorting'
                     waveforms = '{KWX}/channel_groups/channel_groupX/waveforms'
-            clusters
-                []
-                    application_data
-                        klustaviewa
-                            cluster_group
-                            color
             cluster_groups
                 []
                     name
@@ -64,6 +58,11 @@ This JSON text file contains all metadata related to the experiment, and aesthet
                         klustaviewa
                             color
                     user_data
+                    clusters
+                        []
+                            application_data
+                                klustaviewa
+                                    color
     recordings
         []
             name

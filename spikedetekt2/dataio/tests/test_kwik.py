@@ -9,15 +9,98 @@ import tempfile
 import numpy as np
 import tables as tb
 
-from spikedetekt2.dataio import create_kwx, create_kwd, create_kwe
+from spikedetekt2.dataio.kwik import *
 
 
 # -----------------------------------------------------------------------------
 # Fixtures
 # -----------------------------------------------------------------------------
 
+
 # -----------------------------------------------------------------------------
-# File creation tests
+# KWIK file creation tests
+# -----------------------------------------------------------------------------
+def test_create_kwik():
+    kwik = create_kwik(
+        name='my experiment',
+        channel_groups=[
+            create_kwik_channel_group(
+                ichannel_group=0,
+                name='my channel group',
+                graph=[[0,1], [1, 2]],
+                channels=[
+                    create_kwik_channel(
+                        name='my first channel',
+                        ignored=False,
+                        position=[0., 0.],
+                        voltage_gain=10.,
+                        display_threshold=None),
+                    create_kwik_channel(
+                        name='my second channel',
+                        ignored=True,
+                        position=[1., 1.],
+                        voltage_gain=20.,
+                        display_threshold=None),
+                    create_kwik_channel(
+                        name='my third channel',
+                        ignored=False,
+                        position=[0., 2.],
+                        voltage_gain=30.,
+                        display_threshold=None),
+                ],
+                cluster_groups=[
+                    create_kwik_cluster_group(color=2, name='my cluster group',
+                        clusters=[
+                             create_kwik_cluster(color=4),
+                        ])
+                ],
+            )
+        ],
+        recordings=[
+            create_kwik_recording(
+                irecording=0,
+                start_time=0.,
+                start_sample=0,
+                sample_rate=20000.,
+                band_low=100.,
+                band_high=3000.,
+                bit_depth=16),
+        ],
+        event_types=[
+            create_kwik_event_type(
+                color=3,
+            ),
+        ],
+    )
+    assert kwik['VERSION'] == 2
+    assert kwik['name'] == 'my experiment'
+    
+    channel_group = kwik['channel_groups'][0]
+    assert channel_group['name'] == 'my channel group'
+    assert channel_group['graph'] == [[0, 1], [1, 2]]
+    
+    channels = channel_group['channels']
+    assert channels[0]['name'] == 'my first channel'
+    assert channels[1]['name'] == 'my second channel'
+    assert channels[2]['name'] == 'my third channel'
+    
+    assert not channels[0]['ignored']
+    assert channels[1]['ignored']
+    assert not channels[2]['ignored']
+    
+    cluster_group = channel_group['cluster_groups'][0]
+    cluster = cluster_group['clusters'][0]
+    assert cluster['application_data']['klustaviewa']['color'] == 4
+    
+    recording = kwik['recordings'][0]
+    assert recording['sample_rate'] == 20000.
+    
+    event_type = kwik['event_types'][0]
+    assert event_type['application_data']['klustaviewa']['color'] == 3
+    
+
+# -----------------------------------------------------------------------------
+# HDF5 helper functions tests
 # -----------------------------------------------------------------------------
 def test_create_kwx():
     dirpath = tempfile.mkdtemp()

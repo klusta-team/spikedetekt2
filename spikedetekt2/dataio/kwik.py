@@ -9,7 +9,7 @@ import os
 import tables as tb
 import time
 import shutil
-from collections import OrderedDict
+from collections import OrderedDict, Iterable
 
 import numpy as np
 
@@ -54,12 +54,137 @@ def get_event_types_description():
 
 
 # -----------------------------------------------------------------------------
+# KWIK file creation
+# -----------------------------------------------------------------------------
+def create_kwik(name=None, channel_groups=None, recordings=None,
+                event_types=None):
+    if channel_groups is None:
+        channel_groups = []
+    if recordings is None:
+        recordings = []
+    if event_types is None:
+        event_types = []
+        
+    assert isinstance(channel_groups, Iterable)
+    assert isinstance(recordings, Iterable)
+    assert isinstance(event_types, Iterable)
+        
+    kwik = OrderedDict()
+    kwik['VERSION'] = 2
+    kwik['name'] = name
+    kwik['application_data'] = {'spikedetekt': {}}
+    kwik['user_data'] = {}
+    kwik['channel_groups'] = channel_groups
+    kwik['recordings'] = recordings
+    kwik['events'] = {'hdf5_path': '{{KWE}}/events'}
+    kwik['event_types'] = event_types
+    return kwik
+    
+def create_kwik_channel_group(ichannel_group=None, name=None, graph=None,
+    channels=None, cluster_groups=None):
+    if channels is None:
+        channels = []
+    if cluster_groups is None:
+        cluster_groups = []
+        
+    assert isinstance(channels, Iterable)
+    assert isinstance(cluster_groups, Iterable)
+    
+    o = OrderedDict()
+    o['name'] = name
+    o['graph'] = graph
+    o['application_data'] = {}
+    o['user_data'] = {}
+    o['channels'] = channels
+    o['spikes'] = {
+    'hdf5_path': {
+    'spiketrain': '{{KWX}}/channel_groups/channel_group{0:d}/spiketrain'. \
+        format(ichannel_group),
+    'spikesorting': '{{KWX}}/channel_groups/channel_group{0:d}/spikesorting'. \
+        format(ichannel_group),
+    'waveforms': '{{KWX}}/channel_groups/channel_group{0:d}/waveforms'. \
+        format(ichannel_group),
+    }}
+    o['cluster_groups'] = cluster_groups
+    return o
+    
+def create_kwik_channel(name=None, ignored=False, position=None,
+                        voltage_gain=None, display_threshold=None):
+    o = OrderedDict()
+    o['name'] = name
+    o['ignored'] = ignored
+    o['position'] = position
+    o['voltage_gain'] = voltage_gain
+    o['display_threshold'] = display_threshold
+    o['application_data'] = {
+        'klustaview': {},
+        'spikedetekt': {},
+    }
+    o['user_data'] = {}
+    return o
+    
+def create_kwik_cluster(color=None):
+    o = OrderedDict()
+    o['application_data'] = {
+        'klustaviewa': {'color': color},
+    }
+    return o
+    
+def create_kwik_cluster_group(color=None, name=None, clusters=None):
+    if clusters is None:
+        clusters = []
+        
+    assert isinstance(clusters, Iterable)
+
+    o = OrderedDict()
+    o['name'] = name
+    o['application_data'] = {
+        'klustaviewa': {'color': color},
+    }
+    o['user_data'] = {}
+    o['clusters'] = clusters
+    return o
+    
+def create_kwik_recording(irecording=None, start_time=None,
+                          name=None,
+                          start_sample=None, sample_rate=None,
+                          band_low=None, band_high=None, bit_depth=None):
+    o = OrderedDict()
+    o['name'] = name
+    o['user_data'] = {}
+    o['data'] = {
+        'hdf5_path': 
+        {
+            'raw': '{{KWD_RAW}}/data_raw/recording{0:d}'. \
+                format(irecording),
+            'high_pass': '{{KWD_HIGH}}/data_high/recording{0:d}'. \
+                format(irecording),
+            'low_pass': '{{KWD_LOW}}/data_low/recording{0:d}'. \
+                format(irecording),
+        }
+    }
+    o['start_time'] = start_time
+    o['start_sample'] = start_sample
+    o['sample_rate'] = sample_rate
+    o['band_low'] = band_low
+    o['band_high'] = band_high
+    o['bit_depth'] = bit_depth
+    return o
+       
+def create_kwik_event_type(color=None):
+    o = OrderedDict()
+    o['application_data'] = {
+        'klustaviewa': {
+            'color': color,
+        }
+    }
+    o['user_data'] = {}
+    return o
+
+    
+# -----------------------------------------------------------------------------
 # HDF5 helper functions
 # -----------------------------------------------------------------------------
-def create_kwik():
-    # TODO
-    pass
-
 def create_kwx(path, channel_groups=None, nwavesamples=None, nfeatures=None,
                nchannels=None):
     """Create an empty KWX file.
