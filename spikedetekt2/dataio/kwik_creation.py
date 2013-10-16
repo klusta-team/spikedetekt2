@@ -181,7 +181,7 @@ def create_kwik_event_type(color=None):
 
     
 # -----------------------------------------------------------------------------
-# HDF5 helper functions
+# HDF5 files creation
 # -----------------------------------------------------------------------------
 def create_kwx(path, channel_groups=None, nwavesamples=None, nfeatures=None,
                nchannels=None):
@@ -249,12 +249,7 @@ def create_kwd(path, type='raw', nchannels_tot=None, recordings=None,):
     file.close()
    
 def create_kwe(path, ):
-    """Create an empty KWE file.
-    
-    Arguments:
-      * 
-    
-    """
+    """Create an empty KWE file."""
     file = tb.openFile(path, mode='w')
     
     # Create the tables.

@@ -9,7 +9,7 @@ import tempfile
 import numpy as np
 import tables as tb
 
-from spikedetekt2.dataio.kwik import *
+from spikedetekt2.dataio.kwik_creation import *
 
 
 # -----------------------------------------------------------------------------
