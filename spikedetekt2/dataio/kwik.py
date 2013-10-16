@@ -7,8 +7,6 @@ format."""
 import json
 import os
 import tables as tb
-import time
-import shutil
 from collections import OrderedDict, Iterable
 
 import numpy as np
