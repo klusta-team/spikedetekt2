@@ -13,7 +13,7 @@ from spikedetekt2.dataio.kwik_creation import *
 def randint(high):
     return np.random.randint(low=0, high=high)
 
-    
+
 # -----------------------------------------------------------------------------
 # Functions
 # -----------------------------------------------------------------------------
