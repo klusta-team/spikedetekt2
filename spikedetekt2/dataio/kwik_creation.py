@@ -11,6 +11,7 @@ from collections import OrderedDict, Iterable
 
 import numpy as np
 
+from spikedetekt2.dataio.utils import save_json
 from spikedetekt2.utils.six import iteritems
 
 
@@ -54,7 +55,12 @@ def get_event_types_description():
 # -----------------------------------------------------------------------------
 # KWIK file creation
 # -----------------------------------------------------------------------------
-def create_kwik(name=None, channel_groups=None, recordings=None,
+def create_kwik(path, kwik=None, **kwargs):
+    if kwik is None:
+        kwik = create_kwik_main(**kwargs)
+    save_json(path, kwik)
+
+def create_kwik_main(name=None, channel_groups=None, recordings=None,
                 event_types=None):
     if channel_groups is None:
         channel_groups = []

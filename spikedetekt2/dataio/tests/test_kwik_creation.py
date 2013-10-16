@@ -10,6 +10,7 @@ import numpy as np
 import tables as tb
 
 from spikedetekt2.dataio.kwik_creation import *
+from spikedetekt2.dataio.tests.mock import mock_kwik
 
 
 # -----------------------------------------------------------------------------
@@ -18,60 +19,15 @@ from spikedetekt2.dataio.kwik_creation import *
 
 
 # -----------------------------------------------------------------------------
+# Utility
+# -----------------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------
 # KWIK file creation tests
 # -----------------------------------------------------------------------------
 def test_create_kwik():
-    kwik = create_kwik(
-        name='my experiment',
-        channel_groups=[
-            create_kwik_channel_group(
-                ichannel_group=0,
-                name='my channel group',
-                graph=[[0,1], [1, 2]],
-                channels=[
-                    create_kwik_channel(
-                        name='my first channel',
-                        ignored=False,
-                        position=[0., 0.],
-                        voltage_gain=10.,
-                        display_threshold=None),
-                    create_kwik_channel(
-                        name='my second channel',
-                        ignored=True,
-                        position=[1., 1.],
-                        voltage_gain=20.,
-                        display_threshold=None),
-                    create_kwik_channel(
-                        name='my third channel',
-                        ignored=False,
-                        position=[0., 2.],
-                        voltage_gain=30.,
-                        display_threshold=None),
-                ],
-                cluster_groups=[
-                    create_kwik_cluster_group(color=2, name='my cluster group',
-                        clusters=[
-                             create_kwik_cluster(color=4),
-                        ])
-                ],
-            )
-        ],
-        recordings=[
-            create_kwik_recording(
-                irecording=0,
-                start_time=0.,
-                start_sample=0,
-                sample_rate=20000.,
-                band_low=100.,
-                band_high=3000.,
-                bit_depth=16),
-        ],
-        event_types=[
-            create_kwik_event_type(
-                color=3,
-            ),
-        ],
-    )
+    kwik = mock_kwik()
     assert kwik['VERSION'] == 2
     assert kwik['name'] == 'my experiment'
     
@@ -98,6 +54,11 @@ def test_create_kwik():
     event_type = kwik['event_types'][0]
     assert event_type['application_data']['klustaviewa']['color'] == 3
     
+    dirpath = tempfile.mkdtemp()
+    path = os.path.join(dirpath, 'myexperiment.kwik')
+    create_kwik(path, kwik=kwik)
+    
+    os.remove(path)
 
 # -----------------------------------------------------------------------------
 # HDF5 helper functions tests
