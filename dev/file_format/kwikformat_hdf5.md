@@ -82,6 +82,7 @@ This JSON text file contains all metadata related to the experiment, and aesthet
         hdf5_path = '{KWE}/events'
     event_types
         []
+            name
             application_data
                 klustaviewa
                     color

@@ -46,10 +46,10 @@ def get_events_description():
         ('event_type', tb.UInt16Col()),
         ])
 
-def get_event_types_description():
-    return OrderedDict([
-        ('name', tb.StringCol(256)),
-        ])
+# def get_event_types_description():
+    # return OrderedDict([
+        # ('name', tb.StringCol(256)),
+        # ])
 
 
 # -----------------------------------------------------------------------------
@@ -95,7 +95,7 @@ def create_kwik_channel_group(ichannel_group=None, name=None, graph=None,
     assert isinstance(cluster_groups, Iterable)
     
     o = OrderedDict()
-    o['name'] = name
+    o['name'] = name or 'channel_group{0:d}'.format(ichannel_group)
     o['graph'] = graph
     o['application_data'] = {}
     o['user_data'] = {}
@@ -121,7 +121,7 @@ def create_kwik_channel(name=None, ignored=False, position=None,
     o['voltage_gain'] = voltage_gain
     o['display_threshold'] = display_threshold
     o['application_data'] = {
-        'klustaview': {},
+        'klustaviewa': {},
         'spikedetekt': {},
     }
     o['user_data'] = {}
@@ -175,8 +175,9 @@ def create_kwik_recording(irecording=None, start_time=None,
     o['bit_depth'] = bit_depth
     return o
        
-def create_kwik_event_type(color=None):
+def create_kwik_event_type(name=None, color=None):
     o = OrderedDict()
+    o['name'] = name
     o['application_data'] = {
         'klustaviewa': {
             'color': color,
@@ -261,8 +262,8 @@ def create_kwe(path, ):
     # Create the tables.
     file.createTable('/', 'events',
                      get_events_description())
-    file.createTable('/', 'event_types',
-                     get_event_types_description())
+    # file.createTable('/', 'event_types',
+                     # get_event_types_description())
                                                    
     file.close()
            

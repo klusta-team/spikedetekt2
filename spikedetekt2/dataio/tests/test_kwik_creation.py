@@ -153,8 +153,8 @@ def test_create_kwe():
     events.col('recording')
     events.col('event_type')
     
-    event_types = f.root.event_types
-    event_types.col('name')
+    # event_types = f.root.event_types
+    # event_types.col('name')
     
     f.close()
     

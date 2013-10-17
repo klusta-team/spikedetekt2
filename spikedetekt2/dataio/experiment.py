@@ -4,12 +4,14 @@
 # Imports
 # -----------------------------------------------------------------------------
 import os
+import json
 
 from spikedetekt2.dataio.kwik_creation import (create_kwik, 
     create_kwik_channel, create_kwik_cluster_group, create_kwik_cluster,
-    create_kwik_recording, create_kwik_event_type)
+    create_kwik_recording, create_kwik_event_type,
+    create_kwik_channel_group, create_kwik_main)
     
-from spikedetekt2.utils.six import iteritems
+from spikedetekt2.utils.six import iteritems, string_types
 
 
 # -----------------------------------------------------------------------------
@@ -32,63 +34,81 @@ class Experiment(object):
 # Experiment creation
 # -----------------------------------------------------------------------------
 def create_experiment(name=None, dir=None, filenames=None,
-    probe_info=None, events_info=None, recordings_info=None):
+    channel_groups_info=None, event_types_info=None, recordings_info=None):
     """Create the JSON/HDF5 files forming an experiment.
     
     Arguments:
+    
       * name: the experiment's name, which will be used to create the filenames
         if they aren't provided
       * dir: the directory where to save the files
       * filenames (optional): the dictionary with the filenames for each file
-      * probe: the probe dictionary
+      * probe_info: info about the probe
+      * events_info: info about the events
+      * recordings_info: info about the recordings
     
     """
     if filenames is None:
         # TODO
-        pass
+        filenames = {}
         
-    # Create the .kwik file.
-    path_kwik = filenames['kwik']
+    assert isinstance(name, string_types), ("You must specify an "
+        "experiment's name.")
+        
+    # Get the filenames.
+    path_kwik = filenames.get('kwik', None)
+    path_kwx = filenames.get('kwx', None)
+    paths_kwd = filenames.get('kwd', None)
+    path_kwe = filenames.get('kwe', None)
     
-    channel_groups = []
-    # TODO
-    # create_kwik_channel_group(
-                # ichannel_group=0,
-                # name='my channel group',
-                # graph=[[0,1], [1, 2]],
-                # channels=[
-                    # create_kwik_channel(
-                        # name='my first channel',
-                        # ignored=False,
-                        # position=[0., 0.],
-                        # voltage_gain=10.,
-                        # display_threshold=None),
-                # ],
+    # Channel groups.
+    channel_groups = [
+        create_kwik_channel_group(
+            ichannel_group=ichannel_group,
+            channels=[
+                create_kwik_channel(**channel_info)
+                    for ichannel, channel_info in enumerate(
+                            channel_group_info.pop('channels', []))
+            ],
+            cluster_groups=[
+                create_kwik_cluster_group(
+                    clusters=[
+                        create_kwik_cluster(**cluster_info)
+                            for icluster, cluster_info in enumerate(
+                                cluster_group_info.pop('clusters', [])
+                                )
+                    ],
+                    **cluster_group_info)
+                    for icluster_group_info, cluster_group_info in enumerate(
+                            channel_group_info.pop('cluster_groups', []))
+            ],
+            **channel_group_info
+            )
+        for ichannel_group, channel_group_info in enumerate(channel_groups_info)
+    ]
     
-    # cluster_groups=[
-                    # create_kwik_cluster_group(color=2, name='my cluster group',
-                        # clusters=[
-                             # create_kwik_cluster(color=4),
-                        # ])
-                # ],
+    # Recordings
+    recordings = [
+        create_kwik_recording(irecording=irecording, **recording_info)
+            for irecording, recording_info in enumerate(recordings_info)
+    ]
     
-    kwik = create_kwik(path_kwik,
+    # Event types
+    event_types = [
+        create_kwik_event_type(**event_type_info)
+            for ievent_type, event_type_info in enumerate(event_types_info)
+    ]
+    
+    # Create the KWIK dict.
+    kwik = create_kwik_main(
         name=name,
         channel_groups=channel_groups,
-        recordings=[  # TODO
-            # create_kwik_recording(
-                # irecording=0,
-                # start_time=0.,
-                # start_sample=0,
-                # sample_rate=20000.,
-                # band_low=100.,
-                # band_high=3000.,
-                # bit_depth=16),
-        ],
-        event_types=[],  # TODO
+        recordings=recordings,
+        event_types=event_types, 
     )
+    # Save the dict in the KWIK file.
+    if path_kwik:
+        create_kwik(path_kwik, kwik=kwik)
     
-    # TODO: create empty HDF5 files
-    pass
     
     
