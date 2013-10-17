@@ -12,6 +12,16 @@ import os
 def generate_filenames(name):
     """Generate a list of filenames for the different files in a given 
     experiment, which name is given."""
-    # TODO
+    name = os.path.splitext(name)[0]
+    return {
+        'kwik': name + '.kwik',
+        'kwx': name + '.kwx',
+        'kwe': name + '.kwe',
+        'kwd': {
+                 'raw': name + '.raw.kwd',
+                 'high': name + '.high.kwd',
+                 'low': name + '.low.kwd',
+                }
+    }
     
     

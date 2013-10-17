@@ -241,6 +241,9 @@ def create_kwd(path, type='raw', nchannels_tot=None, recordings=None,):
           * nsamples: expected number of samples in that recording
     
     """
+    if recordings is None:
+        recordings = []
+        
     file = tb.openFile(path, mode='w')
     
     for irecording, recording_info in enumerate(recordings):

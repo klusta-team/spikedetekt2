@@ -11,6 +11,7 @@ from spikedetekt2.dataio.kwik_creation import (create_kwik,
     create_kwik_recording, create_kwik_event_type,
     create_kwik_channel_group, create_kwik_main, create_kwx, create_kwd,
     create_kwe)
+from spikedetekt2.dataio.files import generate_filenames
     
 from spikedetekt2.utils.six import iteritems, string_types
 
@@ -52,9 +53,11 @@ def create_experiment(name=None, dir=None, filenames=None, nchannels_tot=None,
     """
     if spikedetekt_params is None:
         spikedetekt_params = {}
+    
+    # Generate the filenames from the experiment's name if filenames are
+    # not provided.
     if filenames is None:
-        # TODO
-        filenames = {}
+        filenames = generate_filenames(name)
         
     assert isinstance(name, string_types), ("You must specify an "
         "experiment's name.")
@@ -143,3 +146,4 @@ def create_experiment(name=None, dir=None, filenames=None, nchannels_tot=None,
     # Create the KWE file.
     if path_kwe:
         create_kwe(path_kwe)
+        
