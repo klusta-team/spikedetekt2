@@ -9,7 +9,8 @@ import json
 from spikedetekt2.dataio.kwik_creation import (create_kwik, 
     create_kwik_channel, create_kwik_cluster_group, create_kwik_cluster,
     create_kwik_recording, create_kwik_event_type,
-    create_kwik_channel_group, create_kwik_main)
+    create_kwik_channel_group, create_kwik_main, create_kwx, create_kwd,
+    create_kwe)
     
 from spikedetekt2.utils.six import iteritems, string_types
 
@@ -33,8 +34,9 @@ class Experiment(object):
 # -----------------------------------------------------------------------------
 # Experiment creation
 # -----------------------------------------------------------------------------
-def create_experiment(name=None, dir=None, filenames=None,
-    channel_groups_info=None, event_types_info=None, recordings_info=None):
+def create_experiment(name=None, dir=None, filenames=None, nchannels_tot=None,
+    channel_groups_info=None, event_types_info=None, recordings_info=None,
+    spikedetekt_params=None):
     """Create the JSON/HDF5 files forming an experiment.
     
     Arguments:
@@ -43,11 +45,13 @@ def create_experiment(name=None, dir=None, filenames=None,
         if they aren't provided
       * dir: the directory where to save the files
       * filenames (optional): the dictionary with the filenames for each file
-      * probe_info: info about the probe
-      * events_info: info about the events
+      * channel_groups_info: info about the probe and channel groups
+      * event_types_info: info about the event types
       * recordings_info: info about the recordings
     
     """
+    if spikedetekt_params is None:
+        spikedetekt_params = {}
     if filenames is None:
         # TODO
         filenames = {}
@@ -55,10 +59,16 @@ def create_experiment(name=None, dir=None, filenames=None,
     assert isinstance(name, string_types), ("You must specify an "
         "experiment's name.")
         
+    # Get the number of non-ignored channels per channel group (this is
+    # used as information when creating the waveforms table in HDF5).
+    nchannels_list = [len([ch for ch in channel_group_info['channels']
+                              if not ch.get('ignored', False)]) 
+        for channel_group_info in channel_groups_info]
+        
     # Get the filenames.
     path_kwik = filenames.get('kwik', None)
     path_kwx = filenames.get('kwx', None)
-    paths_kwd = filenames.get('kwd', None)
+    paths_kwd = filenames.get('kwd', {})
     path_kwe = filenames.get('kwe', None)
     
     # Channel groups.
@@ -110,5 +120,22 @@ def create_experiment(name=None, dir=None, filenames=None,
     if path_kwik:
         create_kwik(path_kwik, kwik=kwik)
     
+    # Create the KWX file.
+    channel_groups_kwx = [
+        {
+            'nchannels': nchannels,
+            'nfeatures': nchannels * spikedetekt_params.get('fetdim', 0),
+            'nwavesamples': spikedetekt_params.get('nwavesamples', 0),
+        }
+        for nchannels in nchannels_list
+    ]
+    if path_kwx:
+        create_kwx(path_kwx, 
+                   channel_groups=channel_groups_kwx)
     
-    
+    # Create the KWD files.
+    for type in ('raw', 'high', 'low'):
+        path_kwd = paths_kwd.get(type, None)
+        if path_kwd:
+            # TODO: recordings kwarg with 'nsamples' (expected) for each recording
+            create_kwd(path_kwd, type=type, nchannels_tot=nchannels_tot)

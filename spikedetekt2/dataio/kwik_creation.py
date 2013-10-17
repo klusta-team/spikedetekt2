@@ -201,14 +201,14 @@ def create_kwx(path, channel_groups=None, nwavesamples=None, nfeatures=None,
           * nwavesamples
           * nfeatures
       * nwavesamples (common to all channel groups if set)
-      * nfeatures (common to all channel groups if set)
-      * nchannels (common to all channel groups if set)
+      * nfeatures (total number of features per spike, common to all channel groups if set)
+      * nchannels (number of channels per channel group, common to all channel groups if set)
     
     """
     file = tb.openFile(path, mode='w')
     file.createGroup('/', 'channel_groups')
     
-    for ichannel_group, channel_group_info in sorted(iteritems(channel_groups)):
+    for ichannel_group, channel_group_info in enumerate(channel_groups):
         nchannels_ = channel_group_info.get('nchannels', nchannels)
         nfeatures_ = channel_group_info.get('nfeatures', nfeatures)
         nwavesamples_ = channel_group_info.get('nwavesamples', nwavesamples)
@@ -243,7 +243,7 @@ def create_kwd(path, type='raw', nchannels_tot=None, recordings=None,):
     """
     file = tb.openFile(path, mode='w')
     
-    for irecording, recording_info in sorted(iteritems(recordings)):
+    for irecording, recording_info in enumerate(recordings):
         nsamples_ = recording_info.get('nsamples', None)
         
         file.createGroup('/', 'recording{0:d}'.format(irecording))    

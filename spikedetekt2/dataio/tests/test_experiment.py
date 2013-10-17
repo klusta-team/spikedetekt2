@@ -35,6 +35,7 @@ def test_create_experiment():
     event_types_info = [
         {'name': 'my event type', 'color': 2},
     ]
+    
     recordings_info = [
         {
             'name': 'my first recording',
@@ -47,10 +48,16 @@ def test_create_experiment():
         }
     ]
     
+    spikedetekt_params = {
+        'nwavesamples': 20,
+        'fetdim': 3,
+    }
+    
     exp = create_experiment(name=name, 
         channel_groups_info=channel_groups_info,
         event_types_info=event_types_info,
-        recordings_info=recordings_info)
+        recordings_info=recordings_info,
+        spikedetekt_params=spikedetekt_params)
     
     
     

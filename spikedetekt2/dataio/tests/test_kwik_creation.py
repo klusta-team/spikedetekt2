@@ -73,11 +73,11 @@ def test_create_kwx():
     nchannels = 32
     nchannels2 = 24
     nfeatures = 3*nchannels
-    channel_groups = {
-        0: {},
-        1: {'nchannels': nchannels2, 'nfeatures': 3*nchannels2},
-        2: {'nfeatures': 2*nchannels},
-    }
+    channel_groups = [
+        {},
+        {'nchannels': nchannels2, 'nfeatures': 3*nchannels2},
+        {'nfeatures': 2*nchannels},
+    ]
     
     create_kwx(path, nwavesamples=nwavesamples, nchannels=nchannels, 
                nfeatures=nfeatures, channel_groups=channel_groups)
@@ -117,11 +117,11 @@ def test_create_kwd():
     
     # Create the KWD file.
     nchannels_tot = 32*3
-    recordings = {
-        0: {'nsamples': 100},
-        1: {},
-        2: {'nsamples': 150},
-    }
+    recordings = [
+        {'nsamples': 100},
+        {},
+        {'nsamples': 150},
+    ]
     
     create_kwd(path, type='raw', nchannels_tot=nchannels_tot, 
                recordings=recordings,)
