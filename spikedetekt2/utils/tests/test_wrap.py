@@ -3,7 +3,7 @@
 # Imports
 # -----------------------------------------------------------------------------
 import numpy as np
-from spikedetekt2.utils import wrap
+from spikedetekt2.utils import wrap, wrap_pd
 
 
 # -----------------------------------------------------------------------------
@@ -94,30 +94,13 @@ def test_wrap_5():
     assert dw.key1.skey2[0].a[0] == 10
     assert dw.key1.skey2[0].a[1] == 30
     
+def test_wrap_pd_1():
+    d = [{'key1': {'index': i}} for i in range(100)]
+    dw = wrap_pd(d)
     
-# def test_wrap_add_1():
-    # d = dict(key1=[0, 1], key2=[0, 10], key3={
-        # 'skey1': [10, 11],
-        # 'skey2': [20, 21],
-        # })
-    # dw = wrap(d)
+    assert dw.key1.index[10] == 10
+    assert np.array_equal(dw.key1.index[::2].values, np.arange(0, 100, 2))
+    assert np.array_equal(dw.key1.index.values, np.arange(0, 100, 1))
     
-    # dw.key1.append(2)
-    # assert dw.key1 == [0, 1, 2]
     
-    # assert dw.key3.skey1 == [10, 11]
-    # dw.key3.append({'skey1': 12, 'skey2': 22})
-    # assert dw.key3.skey1 == [10, 11, 12]
-    # assert dw.key3.skey2 == [20, 21, 22]
-
-# def test_wrap_add_2():
-    # d = dict(key1=[0, 1], key2=np.zeros(2), key3=np.zeros((2, 10)))
-    # dw = wrap(d)
-    
-    # dw.append({'key1': 2, 
-               # 'key2': 0,
-               # 'key3': np.zeros((1, 10))})
-    # assert dw.key1 == [0, 1, 2]
-    # assert np.array_equal(dw.key2, np.zeros(3))
-    # assert np.array_equal(dw.key3, np.zeros((3, 10)))
     

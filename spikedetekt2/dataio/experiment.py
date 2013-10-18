@@ -6,14 +6,16 @@
 import os
 import json
 
+import pandas as pd
+
 from spikedetekt2.dataio.kwik_creation import (create_kwik, 
     create_kwik_channel, create_kwik_cluster_group, create_kwik_cluster,
     create_kwik_recording, create_kwik_event_type,
     create_kwik_channel_group, create_kwik_main, create_kwx, create_kwd,
     create_kwe)
-from spikedetekt2.dataio.files import generate_filenames
-    
+from spikedetekt2.dataio.files import generate_filenames    
 from spikedetekt2.utils.six import iteritems, string_types
+from spikedetekt2.utils.wrap import wrap
 
 
 # -----------------------------------------------------------------------------
@@ -28,8 +30,13 @@ class Experiment(object):
     the data. To update the data, one needs to use one of the existing
     update functions.
     """
-    # TODO
-    pass
+    def __init__(self, name=None, dir=None):
+        pass
+        
+class Channels(object):
+    def __init__(self, **kwargs):
+        pass
+    
 
 
 # -----------------------------------------------------------------------------

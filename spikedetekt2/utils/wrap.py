@@ -3,6 +3,8 @@
 # Imports
 # -----------------------------------------------------------------------------
 import numpy as np
+import pandas as pd
+
 from six import iteritems
 
 
@@ -46,7 +48,6 @@ def get_node(obj, path):
         try:
             subobj = subobj[item]
         except Exception as e:
-            # print e
             indices.append(item)
         subobj, indices = _select(subobj, indices)
     if isinstance(subobj, dict) or (isinstance(subobj, list) and 
@@ -76,4 +77,49 @@ class Wrapped(object):
 
 def wrap(obj):
     return Wrapped(obj)
+    
+
+# -----------------------------------------------------------------------------
+# DataFrame Wrap functions
+# -----------------------------------------------------------------------------
+def flatten_dicts(dicts):
+    if isinstance(dicts, list):
+        return map(flatten_dicts, dicts)
+    if isinstance(dicts, dict):
+        d = {}
+        for k, v in iteritems(dicts):
+            if isinstance(v, dict):
+                for kk, vv in iteritems(v):
+                    d[k + '_' + kk] = vv
+            else:
+                d[k] = v
+        return d
+
+def get_node_pd(obj, path, indices=slice(None, None, None)):
+    try:
+        return obj[indices][path]
+    except:
+        return WrappedPandas(obj, path, indices)
+
+class WrappedPandas(object):
+    def __init__(self, obj, path='', indices=slice(None, None, None)):
+        self._obj = obj
+        self._path = path
+        self._indices = indices
+        
+    def __getattr__(self, key):
+        if not self._path:
+            path = key
+        else:
+            path = self._path + '_' + key
+        return get_node_pd(self._obj, path, self._indices)
+    
+    def __getitem__(self, indices):
+        return get_node_pd(self._obj, self._path, indices)
+    
+    def __repr__(self):
+        return "<wrapped object at '{0:s}'>".format(self._path)
+    
+def wrap_pd(obj):
+    return WrappedPandas(pd.DataFrame.from_dict(flatten_dicts(obj)))
     
