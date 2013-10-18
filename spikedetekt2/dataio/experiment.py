@@ -9,6 +9,7 @@ import json
 import numpy as np
 import pandas as pd
 
+from selection import select
 from spikedetekt2.dataio.kwik_creation import (create_kwik, 
     create_kwik_channel, create_kwik_cluster_group, create_kwik_cluster,
     create_kwik_recording, create_kwik_event_type,
@@ -37,31 +38,6 @@ class ChannelGroup(object):
                  application_data=None, user_data=None,):
         pass
     
-def get_index(item, n):
-    if isinstance(item, slice):
-        return np.arange(item.start or 0,
-                          item.stop or n,
-                          item.step or 1)
-    else:
-        return item
-    
-def pandaize(values, indices):
-    """Convert a NumPy array to a Pandas object, with the indices indices."""
-    # Get the spike indices.
-    if isinstance(indices, slice):
-        indices = np.arange(indices.start, indices.stop, indices.step)
-    elif indices.dtype == np.bool:
-        indices = np.nonzero(indices)[0]
-    
-    # Create the Pandas object with the spike indices.
-    if values.ndim == 1:
-        pd_arr = pd.Series(values, index=indices)
-    elif values.ndim == 2:
-        pd_arr = pd.DataFrame(values, index=indices)
-    elif values.ndim == 3:
-        pd_arr = pd.Panel(values, items=indices)
-    return pd_arr
-    
 class ChildProxy(object):
     def __init__(self, parent, name,):
         self._parent = parent
@@ -77,15 +53,20 @@ class ChildProxy(object):
         return "<Child proxy to '{0:s}.{1:s}'>".format(self._parent, self._name)
     
 class SelectionProxy(object):
-    def __init__(self, parent, item,):
+    def __init__(self, parent, selection=None, item=None):
         self._parent = parent
+        self._fields = parent._fields
+        self._selection = selection
         self._item = item
         
     def __getattr__(self, name):
-        return self._parent.__selection_getattr__(name, self._item)
+        table = self._fields[name]
+        table_selected = self._selection[table]
+        return select((table_selected, name), self._item, doselect=False)
     
     def __repr__(self):
-        return "<Selection proxy to '{0:s}[{1:s}]'>".format(self._parent, self._item)
+        return "<Selection proxy to '{0:s}[{1:s}]'>".format(
+            self._parent, self._item)
     
 class HDF5Proxy(object):
     def __init__(self, **fields):
@@ -105,24 +86,20 @@ class HDF5Proxy(object):
         """Called when self.%name%[item] is called."""
         # Find the table containing the requested field.
         table = self._fields[name]
-        # Select the requested rows in this table.
-        table_sel = table[item]
-        # Get the requested column.
-        col = table_sel[name]
-        # Create the index.
-        index = get_index(item, len(table))
-        # return pd.Series(col, index=index)
-        return pandaize(col, index)
+        return select((table, name), item)
         
     def __child_getattr__(self, name, item):
         """Called when self.%name%.%item% is called."""
         pass
 
-    def __selection_getattr__(self, name, item):
-        return self.__child_getitem__(name, item)
+    # def __selection_getattr__(self, name, item):
+        # return self.__child_getitem__(name, item)
         
     def __getitem__(self, item):
-        return SelectionProxy(self, item)
+        # Make the selection for each table.
+        selection = {table: table[item] 
+            for table in set(itervalues(self._fields))}
+        return SelectionProxy(self, selection=selection, item=item)
         
     def __repr__(self):
         return "<Proxy object>"

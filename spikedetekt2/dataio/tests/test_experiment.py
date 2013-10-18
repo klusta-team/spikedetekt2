@@ -29,11 +29,6 @@ def test_create_experiment():
 # -----------------------------------------------------------------------------
 # Experiment class tests
 # -----------------------------------------------------------------------------
-# def test_experiment_spikes():
-    # spikes = Spikes()
-    # spikes.features[::2]
-    # spikes.features[::2]
-
 def test_experiment_class():
     dir = tempfile.mkdtemp()
     name = 'myexperiment'
@@ -88,6 +83,15 @@ def test_experiment_class():
         assert isinstance(clusters, pd.Series)
         assert np.array_equal(clusters.index, np.arange(1, 10, 2))
         assert np.array_equal(clusters.values, np.ones(5))
+    
+    for fractionals in (spikes.fractional[1:-2:3], spikes[1:-2:3].fractional):
+        assert isinstance(fractionals, pd.Series)
+        assert np.array_equal(fractionals.index, [1, 4, 7])
+        assert np.array_equal(fractionals.values, [0., 0., 0.])
+    
+    features = spikes.features[:]
+    assert isinstance(features, pd.DataFrame)
+    assert features.values.shape == (10, 6)
     
     f.close()
     shutil.rmtree(dir)
