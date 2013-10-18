@@ -59,6 +59,9 @@ def create_experiment(name=None, dir=None, filenames=None, nchannels_tot=None,
     if filenames is None:
         filenames = generate_filenames(name)
         
+    if dir is None:
+        dir = os.path.abspath(os.getcwd())
+        
     assert isinstance(name, string_types), ("You must specify an "
         "experiment's name.")
         
@@ -69,10 +72,11 @@ def create_experiment(name=None, dir=None, filenames=None, nchannels_tot=None,
         for channel_group_info in channel_groups_info]
         
     # Get the filenames.
-    path_kwik = filenames.get('kwik', None)
-    path_kwx = filenames.get('kwx', None)
-    paths_kwd = filenames.get('kwd', {})
-    path_kwe = filenames.get('kwe', None)
+    path_kwik = os.path.join(dir, filenames.get('kwik', None))
+    path_kwx = os.path.join(dir, filenames.get('kwx', None))
+    paths_kwd = {key: os.path.join(dir, val) 
+        for key, val in iteritems(filenames.get('kwd', {}))}
+    path_kwe = os.path.join(dir, filenames.get('kwe', None))
     
     # Channel groups.
     channel_groups = [

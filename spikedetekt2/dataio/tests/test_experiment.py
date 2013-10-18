@@ -4,6 +4,8 @@
 # Imports
 # -----------------------------------------------------------------------------
 import os
+import shutil
+import tempfile
 
 from spikedetekt2.dataio.experiment import create_experiment
 
@@ -53,12 +55,15 @@ def test_create_experiment():
         'fetdim': 3,
     }
     
-    exp = create_experiment(name=name, 
+    dir = tempfile.mkdtemp()
+    exp = create_experiment(
+        name=name, 
+        dir=dir,
         channel_groups_info=channel_groups_info,
         event_types_info=event_types_info,
         recordings_info=recordings_info,
         spikedetekt_params=spikedetekt_params)
     
     
-    
+    shutil.rmtree(dir)
     
