@@ -6,6 +6,7 @@
 import os
 import json
 
+import numpy as np
 import pandas as pd
 
 from spikedetekt2.dataio.kwik_creation import (create_kwik, 
@@ -14,7 +15,8 @@ from spikedetekt2.dataio.kwik_creation import (create_kwik,
     create_kwik_channel_group, create_kwik_main, create_kwx, create_kwd,
     create_kwe)
 from spikedetekt2.dataio.files import generate_filenames    
-from spikedetekt2.utils.six import iteritems, string_types
+from spikedetekt2.utils.six import (iteritems, string_types, iterkeys, 
+    itervalues)
 from spikedetekt2.utils.wrap import wrap
 
 
@@ -25,22 +27,109 @@ class Experiment(object):
     """An Experiment instance holds all information related to an
     experiment. One can access any information using a logical structure
     that is somewhat independent from the physical representation on disk.
-    
-    This class is read-only. It does not define any method modifying
-    the data. To update the data, one needs to use one of the existing
-    update functions.
     """
     def __init__(self, name=None, dir=None):
-        pass
+        # Read the
+        exp = read_experiment(name=name, dir=dir)
         
-class Channels(object):
-    def __init__(self, **kwargs):
+class ChannelGroup(object):
+    def __init__(self, name=None, graph=None, 
+                 application_data=None, user_data=None,):
         pass
     
+def get_index(item, n):
+    if isinstance(item, slice):
+        return np.arange(item.start or 0,
+                          item.stop or n,
+                          item.step or 1)
+    else:
+        return item
+    
+def pandaize(values, indices):
+    """Convert a NumPy array to a Pandas object, with the indices indices."""
+    # Get the spike indices.
+    if isinstance(indices, slice):
+        indices = np.arange(indices.start, indices.stop, indices.step)
+    elif indices.dtype == np.bool:
+        indices = np.nonzero(indices)[0]
+    
+    # Create the Pandas object with the spike indices.
+    if values.ndim == 1:
+        pd_arr = pd.Series(values, index=indices)
+    elif values.ndim == 2:
+        pd_arr = pd.DataFrame(values, index=indices)
+    elif values.ndim == 3:
+        pd_arr = pd.Panel(values, items=indices)
+    return pd_arr
+    
+class ChildProxy(object):
+    def __init__(self, parent, name,):
+        self._parent = parent
+        self._name = name
+        
+    def __getitem__(self, item):
+        return self._parent.__child_getitem__(self._name, item)
+        
+    def __getattr__(self, item):
+        return self._parent.__child_getattr__(self._name, item)
+    
+    def __repr__(self):
+        return "<Child proxy to '{0:s}.{1:s}'>".format(self._parent, self._name)
+    
+class SelectionProxy(object):
+    def __init__(self, parent, item,):
+        self._parent = parent
+        self._item = item
+        
+    def __getattr__(self, name):
+        return self._parent.__selection_getattr__(name, self._item)
+    
+    def __repr__(self):
+        return "<Selection proxy to '{0:s}[{1:s}]'>".format(self._parent, self._item)
+    
+class HDF5Proxy(object):
+    def __init__(self, **fields):
+        """Create a proxy object to easily access HDF5 tables.
+        
+        Arguments:
+          * fields: a dictionary {field_name: <pytables.Table object>}
+        
+        """
+        self._fields = fields
+        # self.%field% is an object that can be __getitem__ and __getattr__
+        # with the callback methods being defined in this parent class.
+        for field in iterkeys(self._fields):
+            setattr(self, field, ChildProxy(self, field))
+        
+    def __child_getitem__(self, name, item):
+        """Called when self.%name%[item] is called."""
+        # Find the table containing the requested field.
+        table = self._fields[name]
+        # Select the requested rows in this table.
+        table_sel = table[item]
+        # Get the requested column.
+        col = table_sel[name]
+        # Create the index.
+        index = get_index(item, len(table))
+        # return pd.Series(col, index=index)
+        return pandaize(col, index)
+        
+    def __child_getattr__(self, name, item):
+        """Called when self.%name%.%item% is called."""
+        pass
 
-
+    def __selection_getattr__(self, name, item):
+        return self.__child_getitem__(name, item)
+        
+    def __getitem__(self, item):
+        return SelectionProxy(self, item)
+        
+    def __repr__(self):
+        return "<Proxy object>"
+        
+        
 # -----------------------------------------------------------------------------
-# Experiment creation
+# Create experiment
 # -----------------------------------------------------------------------------
 def create_experiment(name=None, dir=None, filenames=None, nchannels_tot=None,
     channel_groups_info=None, event_types_info=None, recordings_info=None,
@@ -158,3 +247,22 @@ def create_experiment(name=None, dir=None, filenames=None, nchannels_tot=None,
     if path_kwe:
         create_kwe(path_kwe)
         
+
+# -----------------------------------------------------------------------------
+# Read experiment
+# -----------------------------------------------------------------------------
+def read_experiment(name=None, dir=None, filenames=None):
+    if filenames is None:
+        filenames = generate_filenames(name)
+        
+    if dir is None:
+        dir = os.path.abspath(os.getcwd())
+        
+    # Get the filenames.
+    path_kwik = os.path.join(dir, filenames.get('kwik', None))
+    path_kwx = os.path.join(dir, filenames.get('kwx', None))
+    paths_kwd = {key: os.path.join(dir, val) 
+        for key, val in iteritems(filenames.get('kwd', {}))}
+    path_kwe = os.path.join(dir, filenames.get('kwe', None))
+    
+    # TODO: read the files and return an Experiment object.
