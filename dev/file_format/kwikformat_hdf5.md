@@ -10,20 +10,20 @@ All files are in HDF5.
           * all metadata
           * spike times
           * clusters
-          * cluster_groups
+          * recording for each spike time
           * probe-related information
           * information about channels
+          * information about cluster groups
           * events, event_types
-          * recording for each spike time
           * aesthetic information, user data, application data
       * the **KWX** file contains the **spiking data**: features, masks, waveforms
       * the **KWD** files contain the **raw/filtered recordings**
   
   * Once spike sorting is finished, one can discard the KWX and KWD files and just keep the KWIK file which contains everything.
 
-  * All files contain a **version number** in `/` (kwik_version attribute), which is an integer equal to 2 now.
+  * All files contain a **version number** in `/` (`kwik_version` attribute), which is an integer equal to 2 now.
 
-  * The name field is always compulsory.
+  * The `name` field is always compulsory (defaults to something like `cluster_group_X`).
   
   * The input files the user provides to the programs to generate these data are:
   
@@ -33,9 +33,7 @@ All files are in HDF5.
 
 ### KWIK
 
-This HDF5 file contains all metadata related to the experiment, the spike times, clusters, events and aesthetic information about channel and cluster colors, the cluster groups, the channel positions and scaling, etc. The probe information is in channel_groups/channels/position, which is in microns relative to the whole multishank probe.
-
-Below is the structure of the KWIK file. Everything is a group, except fields with a star (*) which are attributes of their parents unless stated otherwise.
+Below is the structure of the KWIK file. Everything is a group, except fields with a star (*) which are either leaves (datasets: arrays or tables) or attributes of their parents.
     
     /kwik_version* [=2]
     /name*
@@ -54,7 +52,7 @@ Below is the structure of the KWIK file. Everything is a group, except fields wi
                 [X]
                     name*
                     ignored*
-                    position*
+                    position* (in microns relative to the whole multishank probe)
                     voltage_gain*
                     display_threshold*
                     application_data
@@ -66,9 +64,7 @@ Below is the structure of the KWIK file. Everything is a group, except fields wi
                 fractionals* [N-long EArray of UInt8]
                 recordings* [N-long EArray of UInt16]
                 clusters* [N-long EArray of UInt32]
-                hdf5_path
-                    features_masks* [='{KWX}/channel_groups/channel_group_X/features_masks']
-                    waveforms* [='{KWX}/channel_groups/channel_group_X/waveforms']
+                hdf5_path* [='{KWX}/channel_groups/X/']
             cluster_groups
                 [X]
                     name*
@@ -86,9 +82,9 @@ Below is the structure of the KWIK file. Everything is a group, except fields wi
             name*
             user_data
             hdf5_path
-                raw* [='{KWD_RAW}/recordings/X']
-                high_pass* [='{KWD_HIGH}/recordings/X']
-                low_pass* [='{KWD_LOW}/recordings/X']
+                raw* [='{KWD_RAW}/recordings/X/data']
+                high_pass* [='{KWD_HIGH}/recordings/X/data']
+                low_pass* [='{KWD_LOW}/recordings/X/data']
             start_time*
             start_sample*
             sample_rate*
@@ -110,7 +106,7 @@ Below is the structure of the KWIK file. Everything is a group, except fields wi
 
 ### KWX
 
-The HDF5 **KWX** file contains all spike-sorting-related information.
+The **KWX** file contains spike-sorting-related information.
 
     /channel_groups
         [X]
@@ -121,7 +117,7 @@ The HDF5 **KWX** file contains all spike-sorting-related information.
 
 ### KWD
 
-The HDF5 **KWD** files contain the original recordings (raw and filtered). Each file among the .raw, .high and .low contains:
+The **KWD** files contain the original recordings (raw and filtered). Each file among the `.raw`, `.high` and `.low` contains:
 
     /recordings
         [X]
