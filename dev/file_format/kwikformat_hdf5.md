@@ -53,6 +53,7 @@ Below is the structure of the KWIK file.Everything is a group, except fields wit
             channels
                 [X]
                     name*
+                    kwd_index*
                     ignored*
                     position* (in microns relative to the whole multishank probe)
                     voltage_gain*
@@ -74,7 +75,15 @@ Below is the structure of the KWIK file.Everything is a group, except fields wit
                         klustaviewa
                             color*
                     cluster_group*
-                    ?? (mean waveform; isolation quality; cell type...)
+                    mean_waveform_raw
+                    mean_waveform_filtered
+                    quality_measures
+                        isolation_distance
+                        matrix_isolation
+                        refractory_violation
+                        amplitude
+                    user_data
+                        ...
             cluster_groups
                 [X]
                     name*
@@ -102,6 +111,8 @@ Below is the structure of the KWIK file.Everything is a group, except fields wit
                 hdf5_path* [='{KWD_LOW}/recordings/X/data']
                 filter
             bit_depth*
+            bandhigh
+            bandlow
     /events
         samples* [N-long EArray of UInt64]
         recordings* [N-long EArray of UInt16]
@@ -177,4 +188,9 @@ This text file (written in a tiny subset of Python) contains all parameters nece
     
     # SpikeDetekt parameters file
     # ...
+
+
+
+
+
 
