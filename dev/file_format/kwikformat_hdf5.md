@@ -33,7 +33,9 @@ All files are in HDF5.
 
 ### KWIK
 
-Below is the structure of the KWIK file. Everything is a group, except fields with a star (*) which are either leaves (datasets: arrays or tables) or attributes of their parents.
+Below is the structure of the KWIK file.Everything is a group, except fields with a star (*) which are either leaves (datasets: arrays or tables) or attributes of their parents.
+
+[X] is 0, 1, 2...
     
     /kwik_version* [=2]
     /name*
@@ -64,7 +66,15 @@ Below is the structure of the KWIK file. Everything is a group, except fields wi
                 fractionals* [N-long EArray of UInt8]
                 recordings* [N-long EArray of UInt16]
                 clusters* [N-long EArray of UInt32]
+                clusters_original* [N-long EArray of UInt32]
                 hdf5_path* [='{KWX}/channel_groups/X/']
+            clusters
+                [X]
+                    application_data
+                        klustaviewa
+                            color*
+                    cluster_group*
+                    ?? (mean waveform; isolation quality; cell type...)
             cluster_groups
                 [X]
                     name*
@@ -72,24 +82,25 @@ Below is the structure of the KWIK file. Everything is a group, except fields wi
                         klustaviewa
                             color*
                     user_data
-                    clusters
-                        [X]
-                            application_data
-                                klustaviewa
-                                    color*
     /recordings
         [X]
             name*
             user_data
-            hdf5_path
-                raw* [='{KWD_RAW}/recordings/X/data']
-                high_pass* [='{KWD_HIGH}/recordings/X/data']
-                low_pass* [='{KWD_LOW}/recordings/X/data']
             start_time*
             start_sample*
             sample_rate*
-            band_low*
-            band_high*
+            raw
+                hdf5_path* [='{KWD_RAW}/recordings/X/data']
+                filter
+                    name*
+                    param1*
+                    ...
+            high
+                hdf5_path* [='{KWD_HIGH}/recordings/X/data']
+                filter
+            low
+                hdf5_path* [='{KWD_LOW}/recordings/X/data']
+                filter
             bit_depth*
     /events
         samples* [N-long EArray of UInt64]
@@ -111,7 +122,6 @@ The **KWX** file contains spike-sorting-related information.
     /channel_groups
         [X]
             features_masks* [(N x NFEATURES x 2) EArray of Float32]
-            clusters_original* [N-long EArray of UInt32]
             waveforms_raw* [(N x NWAVESAMPLES x NCHANNELS) EArray of Int16]
             waveforms_filtered* [(N x NWAVESAMPLES x NCHANNELS) EArray of Int16]
 
