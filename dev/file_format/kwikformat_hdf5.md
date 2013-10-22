@@ -47,7 +47,7 @@ Below is the structure of the KWIK file.Everything is a group, except fields wit
     /channel_groups
         [X]
             name*
-            adjacency_graph [Kx2 array of integers]
+            adjacency_graph* [Kx2 array of integers]
             application_data
             user_data
             channels
@@ -63,12 +63,17 @@ Below is the structure of the KWIK file.Everything is a group, except fields wit
                         spikedetekt
                     user_data
             spikes
-                samples* [N-long EArray of UInt64]
-                fractionals* [N-long EArray of UInt8]
-                recordings* [N-long EArray of UInt16]
-                clusters* [N-long EArray of UInt32]
-                clusters_original* [N-long EArray of UInt32]
-                hdf5_path* [='{KWX}/channel_groups/X/']
+                time_samples* [N-long EArray of UInt64]
+                time_fractional* [N-long EArray of UInt8]
+                recording* [N-long EArray of UInt16]
+                cluster* [N-long EArray of UInt32]
+                cluster_original* [N-long EArray of UInt32]
+                features_masks
+                    hdf5_path* [='{KWX}/channel_groups/X/features_masks']
+                waveforms_raw
+                    hdf5_path* [='{KWX}/channel_groups/X/waveforms_raw']
+                waveforms_filtered
+                    hdf5_path* [='{KWX}/channel_groups/X/waveforms_filtered']
             clusters
                 [X]
                     application_data
@@ -99,32 +104,24 @@ Below is the structure of the KWIK file.Everything is a group, except fields wit
             start_sample*
             sample_rate*
             raw
-                hdf5_path* [='{KWD_RAW}/recordings/X/data']
-                filter
-                    name*
-                    param1*
-                    ...
+                hdf5_path* [='{KWD_RAW}/recordings/X']
             high
-                hdf5_path* [='{KWD_HIGH}/recordings/X/data']
-                filter
+                hdf5_path* [='{KWD_HIGH}/recordings/X']
             low
-                hdf5_path* [='{KWD_LOW}/recordings/X/data']
-                filter
+                hdf5_path* [='{KWD_LOW}/recordings/X']
             bit_depth*
             bandhigh
             bandlow
-    /events
-        samples* [N-long EArray of UInt64]
-        recordings* [N-long EArray of UInt16]
-        event_types* [N-long EArray of UInt16]
     /event_types
         [X]
-            name*
+            user_data
             application_data
                 klustaviewa
                     color*
-            user_data
-
+            events
+                time_samples* [N-long EArray of UInt64]
+                recording* [N-long EArray of UInt16]
+                user_data [group or EArray]
 
 ### KWX
 
@@ -144,6 +141,16 @@ The **KWD** files contain the original recordings (raw and filtered). Each file 
         [X]
             data* [(NSAMPLES x NCHANNELS) EArray of Int16]
 
+                filter
+                    hdf5_path* [='{KWD_LOW}/recordings/X/filter']
+                downsample_factor*
+                
+                
+                
+                
+                
+                
+                
 **NOTE**: right now, the only way to find out whether a KWD file contains raw or filtered data is with its extension: if this extension is lost, the type of data is lost too.
 
 

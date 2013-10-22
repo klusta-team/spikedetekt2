@@ -10,7 +10,6 @@ import numpy as np
 import tables as tb
 
 from spikedetekt2.dataio.kwik_creation import *
-from spikedetekt2.dataio.tests.mock import mock_kwik
 
 
 # -----------------------------------------------------------------------------
@@ -27,36 +26,19 @@ from spikedetekt2.dataio.tests.mock import mock_kwik
 # KWIK file creation tests
 # -----------------------------------------------------------------------------
 def test_create_kwik():
-    kwik = mock_kwik()
-    assert kwik['VERSION'] == 2
-    assert kwik['name'] == 'my experiment'
-    
-    channel_group = kwik['channel_groups'][0]
-    assert channel_group['name'] == 'my channel group'
-    assert channel_group['graph'] == [[0, 1], [1, 2]]
-    
-    channels = channel_group['channels']
-    assert channels[0]['name'] == 'my first channel'
-    assert channels[1]['name'] == 'my second channel'
-    assert channels[2]['name'] == 'my third channel'
-    
-    assert not channels[0]['ignored']
-    assert channels[1]['ignored']
-    assert not channels[2]['ignored']
-    
-    cluster_group = channel_group['cluster_groups'][0]
-    cluster = cluster_group['clusters'][0]
-    assert cluster['application_data']['klustaviewa']['color'] == 4
-    
-    recording = kwik['recordings'][0]
-    assert recording['sample_rate'] == 20000.
-    
-    event_type = kwik['event_types'][0]
-    assert event_type['application_data']['klustaviewa']['color'] == 3
-    
     dirpath = tempfile.mkdtemp()
     path = os.path.join(dirpath, 'myexperiment.kwik')
-    create_kwik(path, kwik=kwik)
+    
+    prm = {}
+    prb = {'channel_groups': [
+        {
+            'channels': [4, 6, 8],
+            'graph': [[4, 6], [8, 4]],
+            'geometry': {4: [0.4, 0.6], 6: [0.6, 0.8], 8: [0.8, 0.0]},
+        }
+    ]}
+    
+    create_kwik(path, prm=prm, prb=prb)
     
     os.remove(path)
 

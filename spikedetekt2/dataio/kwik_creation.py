@@ -23,137 +23,101 @@ warnings.simplefilter('ignore', tb.NaturalNameWarning)
 # -----------------------------------------------------------------------------
 # KWIK file creation
 # -----------------------------------------------------------------------------
-def create_kwik(path, kwik=None, **kwargs):
-    if kwik is None:
-        kwik = create_kwik_main(**kwargs)
-    save_json(path, kwik)
+def create_kwik(path, experiment_name=None, prm=None, prb=None):
+    """Create a KWIK file.
+    
+    Arguments:
+      * path: path to the .kwik file.
+      * experiment_name
+      * prm: a dictionary representing the contents of the PRM file (used for
+        SpikeDetekt)
+    
+    """
+    if experiment_name is None:
+        experiment_name = ''
+    if prm is None:
+        prm = {}
+    if prb is None:
+        prb = {}
+    
+    file = tb.openFile(path, mode='w')
+    
+    file.root._v_attrs.kwik_version = 2
+    file.root._v_attrs.name = experiment_name
 
-def create_kwik_main(name=None, channel_groups=None, recordings=None,
-                event_types=None):
-    if channel_groups is None:
-        channel_groups = []
-    if recordings is None:
-        recordings = []
-    if event_types is None:
-        event_types = []
+    file.createGroup('/', 'application_data')
+    
+    # Set the SpikeDetekt parameters
+    file.createGroup('/application_data', 'spikedetekt')
+    for prm_name, prm_value in iteritems(prm):
+        setattr(file.root.application_data.spikedetekt,
+                prm_name,
+                prm_value)
+    
+    file.createGroup('/', 'user_data')
+    
+    # Create channel groups.
+    file.createGroup('/', 'channel_groups')
+    for igroup, group_info in enumerate(prb.get('channel_groups', [])):
+        group = file.createGroup('/channel_groups', str(igroup))
+        # group_info: channel, graph, geometry
+        group._v_attrs.name = 'channel_group_{0:d}'.format(igroup)
+        group._v_attrs.adjacency_graph = group_info.get('graph', np.zeros((0, 2)))
+        file.createGroup(group, 'application_data')
+        file.createGroup(group, 'user_data')
         
-    assert isinstance(channel_groups, Iterable)
-    assert isinstance(recordings, Iterable)
-    assert isinstance(event_types, Iterable)
+        # Create channels.
+        file.createGroup(group, 'channels')
+        channels = group_info.get('channels', [])
+        for channel_idx in channels:
+            # channel is the absolute channel index.
+            channel = file.createGroup(group.channels, str(channel_idx))
+            channel._v_attrs.name = 'channel_{0:d}'.format(channel_idx)
+            
+            ############### TODO
+            channel._v_attrs.kwd_index = 0
+            channel._v_attrs.ignored = False
+            channel._v_attrs.position = group_info.get('geometry', {}). \
+                get(channel_idx, None)
+            channel._v_attrs.voltage_gain = 0.
+            channel._v_attrs.display_threshold = 0.
+            file.createGroup(channel, 'application_data')
+            file.createGroup(channel.application_data, 'spikedetekt')
+            file.createGroup(channel.application_data, 'klustaviewa')
+            file.createGroup(channel, 'user_data')
+            
+        # Create spikes.
+        spikes = file.createGroup(group, 'spikes')
+        file.createEArray(spikes, 'time_samples', tb.UInt64Atom(), (0,))
+        file.createEArray(spikes, 'time_fractional', tb.UInt8Atom(), (0,))
+        file.createEArray(spikes, 'recording', tb.UInt16Atom(), (0,))
+        file.createEArray(spikes, 'cluster', tb.UInt32Atom(), (0,))
+        file.createEArray(spikes, 'cluster_original', tb.UInt32Atom(), (0,))
         
-    kwik = OrderedDict()
-    kwik['VERSION'] = 2
-    kwik['name'] = name
-    kwik['application_data'] = {'spikedetekt': {}}
-    kwik['user_data'] = {}
-    kwik['channel_groups'] = channel_groups
-    kwik['recordings'] = recordings
-    kwik['events'] = {'hdf5_path': '{{KWE}}/events'}
-    kwik['event_types'] = event_types
-    return kwik
-    
-def create_kwik_channel_group(ichannel_group=None, name=None, graph=None,
-    channels=None, cluster_groups=None):
-    if channels is None:
-        channels = []
-    if cluster_groups is None:
-        cluster_groups = []
+        fm = file.createGroup(spikes, 'features_masks')
+        fm._v_attrs.hdf5_path = '{{KWX}}/channel_groups/{0:d}/features_masks'. \
+            format(igroup)
+        wr = file.createGroup(spikes, 'waveforms_raw')
+        wr._v_attrs.hdf5_path = '{{KWX}}/channel_groups/{0:d}/waveforms_raw'. \
+            format(igroup)
+        wf = file.createGroup(spikes, 'waveforms_filtered')
+        wf._v_attrs.hdf5_path = '{{KWX}}/channel_groups/{0:d}/waveforms_filtered'. \
+            format(igroup)
         
-    assert isinstance(channels, Iterable)
-    assert isinstance(cluster_groups, Iterable)
-    
-    o = OrderedDict()
-    o['name'] = name or 'channel_group{0:d}'.format(ichannel_group)
-    o['graph'] = graph
-    o['application_data'] = {}
-    o['user_data'] = {}
-    o['channels'] = channels
-    o['spikes'] = {
-    'hdf5_path': {
-    'spiketrain': '{{KWX}}/channel_groups/channel_group{0:d}/spiketrain'. \
-        format(ichannel_group),
-    'spikesorting': '{{KWX}}/channel_groups/channel_group{0:d}/spikesorting'. \
-        format(ichannel_group),
-    'waveforms': '{{KWX}}/channel_groups/channel_group{0:d}/waveforms'. \
-        format(ichannel_group),
-    }}
-    o['cluster_groups'] = cluster_groups
-    return o
-    
-def create_kwik_channel(name=None, ignored=False, position=None,
-                        voltage_gain=None, display_threshold=None):
-    o = OrderedDict()
-    o['name'] = name
-    o['ignored'] = ignored
-    o['position'] = position
-    o['voltage_gain'] = voltage_gain
-    o['display_threshold'] = display_threshold
-    o['application_data'] = {
-        'klustaviewa': {},
-        'spikedetekt': {},
-    }
-    o['user_data'] = {}
-    return o
-    
-def create_kwik_cluster(color=None):
-    o = OrderedDict()
-    o['application_data'] = {
-        'klustaviewa': {'color': color},
-    }
-    return o
-    
-def create_kwik_cluster_group(color=None, name=None, clusters=None):
-    if clusters is None:
-        clusters = []
+        # Create clusters.
+        file.createGroup(group, 'clusters')
         
-    assert isinstance(clusters, Iterable)
-
-    o = OrderedDict()
-    o['name'] = name
-    o['application_data'] = {
-        'klustaviewa': {'color': color},
-    }
-    o['user_data'] = {}
-    o['clusters'] = clusters
-    return o
+        # Create cluster groups.
+        file.createGroup(group, 'cluster_groups')
+        
+    # Create recordings.
+    file.createGroup('/', 'recordings')
     
-def create_kwik_recording(irecording=None, start_time=None,
-                          name=None,
-                          start_sample=None, sample_rate=None,
-                          band_low=None, band_high=None, bit_depth=None):
-    o = OrderedDict()
-    o['name'] = name
-    o['user_data'] = {}
-    o['data'] = {
-        'hdf5_path': 
-        {
-            'raw': '{{KWD_RAW}}/data_raw/recording{0:d}'. \
-                format(irecording),
-            'high_pass': '{{KWD_HIGH}}/data_high/recording{0:d}'. \
-                format(irecording),
-            'low_pass': '{{KWD_LOW}}/data_low/recording{0:d}'. \
-                format(irecording),
-        }
-    }
-    o['start_time'] = start_time
-    o['start_sample'] = start_sample
-    o['sample_rate'] = sample_rate
-    o['band_low'] = band_low
-    o['band_high'] = band_high
-    o['bit_depth'] = bit_depth
-    return o
-       
-def create_kwik_event_type(name=None, color=None):
-    o = OrderedDict()
-    o['name'] = name
-    o['application_data'] = {
-        'klustaviewa': {
-            'color': color,
-        }
-    }
-    o['user_data'] = {}
-    return o
-
+    # Create event types.
+    file.createGroup('/', 'event_types')
+            
+    file.close()
+    
     
 # -----------------------------------------------------------------------------
 # HDF5 files creation
