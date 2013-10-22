@@ -6,50 +6,18 @@ format."""
 # -----------------------------------------------------------------------------
 import json
 import os
-import tables as tb
+import warnings
 from collections import OrderedDict, Iterable
 
 import numpy as np
+import tables as tb
 
 from spikedetekt2.dataio.utils import save_json
 from spikedetekt2.utils.six import iteritems
 
-
-# -----------------------------------------------------------------------------
-# Table descriptions
-# -----------------------------------------------------------------------------
-def get_spiketrain_description():
-    return OrderedDict([
-        ('sample', tb.Float64Col()),
-        ('fractional', tb.UInt8Col()),
-        ('recording', tb.UInt16Col()),
-        ('cluster', tb.UInt32Col()),
-        ])
-        
-def get_spikesorting_description(nfeatures=None):
-    return OrderedDict([
-        ('features', tb.Float32Col(shape=(nfeatures,))),
-        ('masks', tb.UInt8Col(shape=(nfeatures,))),
-        ('cluster_original', tb.UInt32Col()),
-        ])
-    
-def get_waveforms_description(nwavesamples=None, nchannels=None):
-    return OrderedDict([
-        ('waveform_filtered', tb.Int16Col(shape=(nwavesamples*nchannels))),
-        ('waveform_raw', tb.Int16Col(shape=(nwavesamples*nchannels))),
-        ])
-
-def get_events_description():
-    return OrderedDict([
-        ('sample', tb.UInt64Col()),
-        ('recording', tb.UInt16Col()),
-        ('event_type', tb.UInt16Col()),
-        ])
-
-# def get_event_types_description():
-    # return OrderedDict([
-        # ('name', tb.StringCol(256)),
-        # ])
+# Disable PyTables' NaturalNameWarning due to nodes which have names starting 
+# with an integer.
+warnings.simplefilter('ignore', tb.NaturalNameWarning)
 
 
 # -----------------------------------------------------------------------------
@@ -191,7 +159,7 @@ def create_kwik_event_type(name=None, color=None):
 # HDF5 files creation
 # -----------------------------------------------------------------------------
 def create_kwx(path, channel_groups=None, nwavesamples=None, nfeatures=None,
-               nchannels=None):
+               nchannels=None, has_masks=True):
     """Create an empty KWX file.
     
     Arguments:
@@ -213,20 +181,25 @@ def create_kwx(path, channel_groups=None, nwavesamples=None, nfeatures=None,
         nfeatures_ = channel_group_info.get('nfeatures', nfeatures)
         nwavesamples_ = channel_group_info.get('nwavesamples', nwavesamples)
         
-        shank_path = '/channel_groups/channel_group{0:d}'.format(ichannel_group)
+        channel_group_path = '/channel_groups/{0:d}'.format(ichannel_group)
         
         # Create the HDF5 group for each channel group.
         file.createGroup('/channel_groups', 
-                         'channel_group{0:d}'.format(ichannel_group))
+                         '{0:d}'.format(ichannel_group))
                          
         # Create the tables.
-        file.createTable(shank_path, 'spiketrain',
-                         get_spiketrain_description())
-        file.createTable(shank_path, 'spikesorting',
-                         get_spikesorting_description(nfeatures=nfeatures_))
-        file.createTable(shank_path, 'waveforms',
-                         get_waveforms_description(nwavesamples=nwavesamples_,
-                                                   nchannels=nchannels_))
+        if has_masks:
+            # Features + masks.
+            file.createEArray(channel_group_path, 'features_masks',
+                              tb.Float32Atom(), (0, nfeatures_, 2))
+        else:
+            file.createEArray(channel_group_path, 'features_masks',
+                              tb.Float32Atom(), (0, nfeatures_))
+        
+        file.createEArray(channel_group_path, 'waveforms_raw',
+                          tb.Int16Atom(), (0, nwavesamples_, nchannels_))
+        file.createEArray(channel_group_path, 'waveforms_filtered',
+                          tb.Int16Atom(), (0, nwavesamples_, nchannels_))
                                                    
     file.close()
             

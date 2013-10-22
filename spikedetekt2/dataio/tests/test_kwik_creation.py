@@ -85,26 +85,21 @@ def test_create_kwx():
     # Open the KWX file.
     f = tb.openFile(path, 'r')
     
-    # Group 0
-    spiketrain = f.root.channel_groups.channel_group0.spiketrain
-    spiketrain.col('sample')
-    spiketrain.col('fractional')
-    spiketrain.col('recording')
-    spiketrain.col('cluster')
-    
     # Group 1
-    spikesorting = f.root.channel_groups.channel_group1.spikesorting
-    waveforms = f.root.channel_groups.channel_group1.waveforms
-    assert spikesorting.col('features').shape[1] == 3*nchannels2
-    assert spikesorting.col('masks').shape[1] == 3*nchannels2
-    assert waveforms.col('waveform_raw').shape[1] == nwavesamples*nchannels2
+    fm1 = f.root.channel_groups.__getattr__('1').features_masks
+    wr1 = f.root.channel_groups.__getattr__('1').waveforms_raw
+    wf1 = f.root.channel_groups.__getattr__('1').waveforms_filtered
+    assert fm1.shape[1:] == (3*nchannels2, 2)
+    assert wr1.shape[1:] == (nwavesamples, nchannels2)
+    assert wf1.shape[1:] == (nwavesamples, nchannels2)
 
     # Group 2
-    spikesorting = f.root.channel_groups.channel_group2.spikesorting
-    waveforms = f.root.channel_groups.channel_group2.waveforms
-    assert spikesorting.col('features').shape[1] == 2*nchannels
-    assert spikesorting.col('masks').shape[1] == 2*nchannels
-    assert waveforms.col('waveform_raw').shape[1] == nwavesamples*nchannels
+    fm2 = f.root.channel_groups.__getattr__('2').features_masks
+    wr2 = f.root.channel_groups.__getattr__('2').waveforms_raw
+    wf2 = f.root.channel_groups.__getattr__('2').waveforms_filtered
+    assert fm2.shape[1:] == (2*nchannels, 2)
+    assert wr2.shape[1:] == (nwavesamples, nchannels)
+    assert wf2.shape[1:] == (nwavesamples, nchannels)
     
     f.close()
     
@@ -138,26 +133,3 @@ def test_create_kwd():
     # Delete the file.
     os.remove(path)
     
-def test_create_kwe():
-    dirpath = tempfile.mkdtemp()
-    path = os.path.join(dirpath, 'myexperiment.kwe')
-    
-    create_kwe(path)
-    
-    # Open the KWX file.
-    f = tb.openFile(path, 'r')
-    
-    # Group 0
-    events = f.root.events
-    events.col('sample')
-    events.col('recording')
-    events.col('event_type')
-    
-    # event_types = f.root.event_types
-    # event_types.col('name')
-    
-    f.close()
-    
-    # Delete the file.
-    os.remove(path)
-  
