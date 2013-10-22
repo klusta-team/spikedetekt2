@@ -16,7 +16,6 @@ def generate_filenames(name):
     return {
         'kwik': name + '.kwik',
         'kwx': name + '.kwx',
-        'kwe': name + '.kwe',
         'kwd': {
                  'raw': name + '.raw.kwd',
                  'high': name + '.high.kwd',

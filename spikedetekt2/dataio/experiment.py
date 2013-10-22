@@ -83,7 +83,6 @@ def create_experiment(name=None, dir=None, filenames=None, nchannels_tot=None,
     path_kwx = os.path.join(dir, filenames.get('kwx', None))
     paths_kwd = {key: os.path.join(dir, val) 
         for key, val in iteritems(filenames.get('kwd', {}))}
-    path_kwe = os.path.join(dir, filenames.get('kwe', None))
     
     # Channel groups.
     channel_groups = [
@@ -153,10 +152,6 @@ def create_experiment(name=None, dir=None, filenames=None, nchannels_tot=None,
         if path_kwd:
             # TODO: recordings kwarg with 'nsamples' (expected) for each recording
             create_kwd(path_kwd, type=type, nchannels_tot=nchannels_tot)
-
-    # Create the KWE file.
-    if path_kwe:
-        create_kwe(path_kwe)
         
 
 # -----------------------------------------------------------------------------

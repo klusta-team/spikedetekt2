@@ -18,6 +18,5 @@ def test_generate_filenames():
     assert filenames['kwd']['raw'] == 'myexperiment.raw.kwd'
     assert filenames['kwd']['low'] == 'myexperiment.low.kwd'
     assert filenames['kwd']['high'] == 'myexperiment.high.kwd'
-    assert filenames['kwe'] == 'myexperiment.kwe'
     
     
