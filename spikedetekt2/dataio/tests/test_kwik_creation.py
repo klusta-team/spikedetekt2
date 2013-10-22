@@ -13,17 +13,7 @@ from spikedetekt2.dataio.kwik_creation import *
 
 
 # -----------------------------------------------------------------------------
-# Fixtures
-# -----------------------------------------------------------------------------
-
-
-# -----------------------------------------------------------------------------
-# Utility
-# -----------------------------------------------------------------------------
-
-
-# -----------------------------------------------------------------------------
-# KWIK file creation tests
+# HDF5 creation functions tests
 # -----------------------------------------------------------------------------
 def test_create_kwik():
     dirpath = tempfile.mkdtemp()
@@ -40,12 +30,13 @@ def test_create_kwik():
     
     create_kwik(path, prm=prm, prb=prb)
     
+    f = tb.openFile(path, 'r')
+    channel = f.root.channel_groups.__getattr__('0').channels.__getattr__('4')
+    assert channel._v_attrs.name == 'channel_4'
+    
+    f.close()
     os.remove(path)
-
-
-# -----------------------------------------------------------------------------
-# HDF5 helper functions tests
-# -----------------------------------------------------------------------------
+    
 def test_create_kwx():
     dirpath = tempfile.mkdtemp()
     path = os.path.join(dirpath, 'myexperiment.kwx')

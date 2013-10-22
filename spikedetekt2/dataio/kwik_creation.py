@@ -31,6 +31,7 @@ def create_kwik(path, experiment_name=None, prm=None, prb=None):
       * experiment_name
       * prm: a dictionary representing the contents of the PRM file (used for
         SpikeDetekt)
+      * prb: a dictionary with the contents of the PRB file
     
     """
     if experiment_name is None:
