@@ -7,12 +7,13 @@ from collections import Counter
 
 import numpy as np
 import pandas as pd
+import tables as tb
 
 
 # -----------------------------------------------------------------------------
 # Selection functions
 # -----------------------------------------------------------------------------
-def select_numpy(data, indices, doselect=True):
+def select_numpy(data, indices):
     """Select a portion of an array with the corresponding indices.
     The first axis of data corresponds to the indices."""
     
@@ -25,9 +26,6 @@ def select_numpy(data, indices, doselect=True):
     assert isinstance(data, np.ndarray)
     assert isinstance(indices, np.ndarray)
     
-    if not doselect:
-        return data
-    
     # indices can contain boolean masks...
     if indices.dtype == np.bool:
         data_selection = np.compress(indices, data, axis=0)
@@ -36,7 +34,7 @@ def select_numpy(data, indices, doselect=True):
         data_selection = np.take(data, indices, axis=0)
     return data_selection
 
-def select_pandas(data, indices, drop_empty_rows=True, doselect=True):
+def select_pandas(data, indices, drop_empty_rows=True):
     if isinstance(indices, slice):
         return np.array(data.iloc[indices]).squeeze()
     elif not hasattr(indices, '__len__'):
@@ -46,9 +44,6 @@ def select_pandas(data, indices, drop_empty_rows=True, doselect=True):
             raise IndexError("Index {0:d} is not in the data.".format(
                 indices))
     
-    if not doselect:
-        return data
-        
     try:
         # Remove empty rows.
         data_selected = data.ix[indices]
@@ -77,6 +72,10 @@ def slice_to_indices(indices, stop=None, lenindices=None):
 def pandaize(values, indices):
     """Convert a NumPy array to a Pandas object, with the indices indices.
     values contains already selected data."""
+    if isinstance(indices, (int, long)):
+        indices = [indices]
+    if isinstance(indices, list):
+        indices = np.array(indices)
     # Get the indices.
     if isinstance(indices, slice):
         indices = slice_to_indices(indices, lenindices=len(values))
@@ -92,24 +91,14 @@ def pandaize(values, indices):
         pd_arr = pd.Panel(values, items=indices)
     return pd_arr
     
-def select_pytables(data, indices, doselect=True):
-    if len(data) == 2:
-        table, column = data
-        process_fun = None
-    elif len(data) == 3:
-        table, column, process_fun = data
-    
-    if not doselect:
-        values = table[column]
-    else:
-        values = table[indices][column]
-        
+def select_pytables(data, indices, process_fun=None):
+    values = data[indices,...]
     # Process the NumPy array.
     if process_fun:
         values = process_fun(values)
     return pandaize(values, indices)
     
-def select(data, indices=None, doselect=True):
+def select(data, indices=None):
     """Select portion of the data, with the only assumption that indices are
     along the first axis.
     
@@ -123,9 +112,9 @@ def select(data, indices=None, doselect=True):
         else:
             return data
         
-    indices_argument = indices
     if not hasattr(indices, '__len__') and not isinstance(indices, slice):
         indices = [indices]
+    indices_argument = indices
         
     # Ensure indices is an array of indices or boolean masks.
     if not isinstance(indices, np.ndarray) and not isinstance(indices, slice):
@@ -149,10 +138,15 @@ def select(data, indices=None, doselect=True):
     if type(data) == np.ndarray:
         if data.size == 0:
             return data
-        return select_numpy(data, indices_argument, doselect=doselect)
-    elif type(data) == tuple:
-        return select_pytables(data, indices_argument, doselect=doselect)
+        return select_numpy(data, indices_argument)
+    elif type(data) in (tuple, tb.EArray):
+        if type(data) == tuple:
+            data, process_fun = data
+        else:
+            process_fun=None
+        return select_pytables(data, indices_argument,
+                               process_fun=process_fun)
     else:
         if data.values.size == 0:
             return data
-        return select_pandas(data, indices_argument, doselect=doselect)
+        return select_pandas(data, indices_argument)
