@@ -283,8 +283,44 @@ def add_recording(fd, id=None, name=None, sample_rate=None, start_time=None,
             # TODO
             pass
     
-def add_event_type(f, ):
-    pass
+def add_event_type(fd, id=None, evt=None):
+    """
+    /event_types
+        [X]
+            user_data
+            application_data
+                klustaviewa
+                    color*
+            events
+                time_samples* [N-long EArray of UInt64]
+                recording* [N-long EArray of UInt16]
+                user_data [group or EArray]
+                """
+    """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""
+    kwik = fd.get('kwik', None)
+    # The KWIK needs to be there.
+    assert kwik is not None
+    if id is None:
+        # If id is None, take the maximum integer index among the existing
+        # recording names, + 1.
+        event_types = sorted([n._v_name 
+                             for n in kwik.listNodes('/event_types')])
+        if event_types:
+            id = str(max([int(r) for r in event_types if r.isdigit()]) + 1)
+        else:
+            id = '0'
+    event_type = kwik.createGroup('/event_types', id)
+    
+    kwik.createGroup(event_type, 'user_data')
+    
+    app = kwik.createGroup(event_type, 'application_data')
+    kv = kwik.createGroup(app, 'klustaviewa')
+    kv._v_attrs.color = None
+    
+    events = kwik.createGroup(event_type, 'events')
+    kwik.createEArray(events, 'time_samples', tb.UInt64Atom(), (0,))
+    kwik.createEArray(events, 'recording', tb.UInt16Atom(), (0,))
+    kwik.createGroup(events, 'user_data')
     
 def add_cluster_group(f, ):
     pass

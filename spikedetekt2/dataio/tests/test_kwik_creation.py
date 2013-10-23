@@ -155,4 +155,15 @@ def test_add_recording():
     
     close_files(files)
     
+@with_setup(setup_create, teardown_create)
+def test_add_recording():
+    files = open_files('myexperiment', dir=DIRPATH, mode='a')
+    add_event_type(files, 'myevents')
+    events = files['kwik'].root.event_types.myevents.events
+    
+    assert isinstance(events.time_samples, tb.EArray)
+    assert isinstance(events.recording, tb.EArray)
+    events.user_data
+    
+    close_files(files)
 
