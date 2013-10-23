@@ -140,18 +140,10 @@ The **KWD** files contain the original recordings (raw and filtered). Each file 
     /recordings
         [X]
             data* [(NSAMPLES x NCHANNELS) EArray of Int16]
-
-                filter
-                    hdf5_path* [='{KWD_LOW}/recordings/X/filter']
-                downsample_factor*
-                
-                
-                
-                
-                
-                
-                
-**NOTE**: right now, the only way to find out whether a KWD file contains raw or filtered data is with its extension: if this extension is lost, the type of data is lost too.
+            filter
+                name*
+                param1*
+            downsample_factor*
 
 
 ## User files
