@@ -39,9 +39,5 @@ def test_basename_2():
     assert get_basename(kwx) == 'experiment'
     assert get_basename(kwdhigh) == 'experiment'
     
-def test_get_file():
-    # TODO
-    pass
-    
     
     

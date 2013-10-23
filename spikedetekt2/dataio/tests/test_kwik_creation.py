@@ -8,6 +8,7 @@ import tempfile
 
 import numpy as np
 import tables as tb
+from nose import with_setup
 
 from spikedetekt2.utils.six import itervalues
 from spikedetekt2.dataio.kwik_creation import *
@@ -23,7 +24,7 @@ def setup_create():
 
 def teardown_create():
     files = get_filenames('myexperiment', dir=DIRPATH)
-    [os.remove(path) for path in files]
+    [os.remove(path) for path in itervalues(files)]
 
 
 # -----------------------------------------------------------------------------
@@ -125,12 +126,33 @@ def test_create_empty():
 # -----------------------------------------------------------------------------
 # Item creation functions tests
 # -----------------------------------------------------------------------------
+@with_setup(setup_create, teardown_create)
 def test_add_recording():
-    # Create mock data files.
+    files = open_files('myexperiment', dir=DIRPATH, mode='a')
     
-    pass
+    sample_rate = 20000.
+    start_time = 10.
+    start_sample = 200000.
+    bit_depth = 16
+    band_high = 100.
+    band_low = 500.
     
-    # f.close()
-    # os.remove(path)
+    add_recording(files, 
+                  sample_rate=sample_rate,
+                  start_time=start_time, 
+                  start_sample=start_sample,
+                  bit_depth=bit_depth,
+                  band_high=band_high,
+                  band_low=band_low)
+    
+    rec = files['kwik'].root.recordings.__getattr__('0')
+    assert rec._v_attrs.sample_rate == sample_rate
+    assert rec._v_attrs.start_time == start_time
+    assert rec._v_attrs.start_sample == start_sample
+    assert rec._v_attrs.bit_depth == bit_depth
+    assert rec._v_attrs.band_high == band_high
+    assert rec._v_attrs.band_low == band_low
+    
+    close_files(files)
     
 

@@ -12,13 +12,38 @@ from collections import OrderedDict, Iterable
 import numpy as np
 import tables as tb
 
-from spikedetekt2.dataio.files import get_filenames, RAW_TYPES, open_files
-from spikedetekt2.utils.six import iteritems
+from spikedetekt2.dataio.files import get_filenames, RAW_TYPES, FILE_TYPES
+from spikedetekt2.utils.six import itervalues, iteritems, string_types
 
 # Disable PyTables' NaturalNameWarning due to nodes which have names starting 
 # with an integer.
 warnings.simplefilter('ignore', tb.NaturalNameWarning)
 
+
+# -----------------------------------------------------------------------------
+# Opening functions
+# -----------------------------------------------------------------------------
+def open_file(path, mode=None):
+    if mode is None:
+        mode = 'r'
+    try:
+        return tb.openFile(path, mode)
+    except:
+        return None
+
+def open_files(name, dir=None, mode=None):
+    filenames = get_filenames(name, dir=dir)
+    return {type: open_file(filename, mode=mode) 
+            for type, filename in iteritems(filenames)}
+
+def close_files(name, dir=None):
+    if isinstance(name, string_types):
+        filenames = get_filenames(name, dir=dir)
+        files = [open_file(filename) for filename in itervalues(filenames)]
+    else:
+        files = itervalues(name)
+    [file.close() for file in files]
+    
 
 # -----------------------------------------------------------------------------
 # HDF5 file creation
@@ -223,7 +248,10 @@ def add_recording(fd, id=None, name=None, sample_rate=None, start_time=None,
         # recording names, + 1.
         recordings = sorted([n._v_name 
                              for n in kwik.listNodes('/recordings')])
-        id = str(max([int(r) for r in recordings if r.isdigit()]) + 1)
+        if recordings:
+            id = str(max([int(r) for r in recordings if r.isdigit()]) + 1)
+        else:
+            id = '0'
     # Default name: recording_X if X is an integer, or the id.
     if name is None:
         if id.isdigit():
@@ -254,7 +282,6 @@ def add_recording(fd, id=None, name=None, sample_rate=None, start_time=None,
         if kwd:
             # TODO
             pass
-    
     
 def add_event_type(f, ):
     pass
