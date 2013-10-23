@@ -20,7 +20,16 @@ from spikedetekt2.dataio.kwik_creation import *
 DIRPATH = tempfile.mkdtemp()
 
 def setup_create():
-    create_files('myexperiment', dir=DIRPATH)
+    prm = {}
+    prb = {'channel_groups': [
+        {
+            'channels': [4, 6, 8],
+            'graph': [[4, 6], [8, 4]],
+            'geometry': {4: [0.4, 0.6], 6: [0.6, 0.8], 8: [0.8, 0.0]},
+        }
+    ]}
+    
+    create_files('myexperiment', dir=DIRPATH, prm=prm, prb=prb)
 
 def teardown_create():
     files = get_filenames('myexperiment', dir=DIRPATH)
@@ -156,7 +165,7 @@ def test_add_recording():
     close_files(files)
     
 @with_setup(setup_create, teardown_create)
-def test_add_recording():
+def test_add_event_type():
     files = open_files('myexperiment', dir=DIRPATH, mode='a')
     add_event_type(files, 'myevents')
     events = files['kwik'].root.event_types.myevents.events
@@ -164,6 +173,18 @@ def test_add_recording():
     assert isinstance(events.time_samples, tb.EArray)
     assert isinstance(events.recording, tb.EArray)
     events.user_data
+    
+    close_files(files)
+
+@with_setup(setup_create, teardown_create)
+def test_add_cluster_group():
+    files = open_files('myexperiment', dir=DIRPATH, mode='a')
+    add_cluster_group(files, channel_group_id='0', id='noise', name='Noise')
+    noise = files['kwik'].root.channel_groups.__getattr__('0').cluster_groups.noise
+    
+    assert noise._v_attrs.name == 'Noise'
+    noise.application_data.klustaviewa._v_attrs.color
+    noise.user_data
     
     close_files(files)
 

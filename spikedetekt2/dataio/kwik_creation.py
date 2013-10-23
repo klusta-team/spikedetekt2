@@ -220,10 +220,10 @@ def create_kwd(path, type='raw', nchannels_tot=None, recordings=None,):
     
     file.close()
 
-def create_files(name, dir=None):
+def create_files(name, dir=None, prm=None, prb=None):
     filenames = get_filenames(name, dir=dir)
     
-    create_kwik(filenames['kwik'])
+    create_kwik(filenames['kwik'], prm=prm, prb=prb)
     create_kwx(filenames['kwx'])
     
     create_kwd(filenames['raw.kwd'], 'raw')
@@ -284,18 +284,6 @@ def add_recording(fd, id=None, name=None, sample_rate=None, start_time=None,
             pass
     
 def add_event_type(fd, id=None, evt=None):
-    """
-    /event_types
-        [X]
-            user_data
-            application_data
-                klustaviewa
-                    color*
-            events
-                time_samples* [N-long EArray of UInt64]
-                recording* [N-long EArray of UInt16]
-                user_data [group or EArray]
-                """
     """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""
     kwik = fd.get('kwik', None)
     # The KWIK needs to be there.
@@ -322,6 +310,36 @@ def add_event_type(fd, id=None, evt=None):
     kwik.createEArray(events, 'recording', tb.UInt16Atom(), (0,))
     kwik.createGroup(events, 'user_data')
     
-def add_cluster_group(f, ):
-    pass
+def add_cluster_group(fd, channel_group_id=None, id=None, name=None):
+    """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""
+    kwik = fd.get('kwik', None)
+    # The KWIK needs to be there.
+    assert kwik is not None
+    # The channel group id containing the new cluster group must be specified.
+    assert channel_group_id is not None
+    cluster_groups_path = '/channel_groups/{0:s}/cluster_groups'.format(channel_group_id)
+    if id is None:
+        # If id is None, take the maximum integer index among the existing
+        # recording names, + 1.
+        cluster_groups = sorted([n._v_name 
+                             for n in kwik.listNodes(cluster_groups_path)])
+        if cluster_groups:
+            id = str(max([int(r) for r in cluster_groups if r.isdigit()]) + 1)
+        else:
+            id = '0'
+    # Default name: cluster_group_X if X is an integer, or the id.
+    if name is None:
+        if id.isdigit():
+            name = 'cluster_group_{0:s}'.format(id)
+        else:
+            name = id
+    cluster_group = kwik.createGroup(cluster_groups_path, id)
+    cluster_group._v_attrs.name = name
+    
+    kwik.createGroup(cluster_group, 'user_data')
+    
+    app = kwik.createGroup(cluster_group, 'application_data')
+    kv = kwik.createGroup(app, 'klustaviewa')
+    kv._v_attrs.color = None
+    
     
