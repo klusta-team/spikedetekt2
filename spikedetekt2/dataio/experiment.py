@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from selection import select
-from spikedetekt2.dataio.files import get_filenames    
+from spikedetekt2.dataio.kwik import get_filenames    
 from spikedetekt2.utils.six import (iteritems, string_types, iterkeys, 
     itervalues)
 from spikedetekt2.utils.wrap import wrap
