@@ -23,4 +23,10 @@ def generate_filenames(name):
                 }
     }
     
-    
+def get_basename(path):
+    bn = os.path.basename(path)
+    bn = os.path.splitext(bn)[0]
+    if bn.split('.')[-1] in ('raw', 'high', 'low'):
+        return os.path.splitext(bn)[0]
+    else:
+        return bn
