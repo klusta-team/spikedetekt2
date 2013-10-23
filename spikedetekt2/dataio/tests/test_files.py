@@ -5,26 +5,26 @@
 # -----------------------------------------------------------------------------
 import os
 
-from spikedetekt2.dataio.files import generate_filenames, get_basename
+from spikedetekt2.dataio.files import get_filenames, get_basename
 
 
 # -----------------------------------------------------------------------------
 # Files tests
 # -----------------------------------------------------------------------------
-def test_generate_filenames():
-    filenames = generate_filenames('myexperiment')
+def test_get_filenames():
+    filenames = get_filenames('myexperiment')
     assert filenames['kwik'] == 'myexperiment.kwik'
     assert filenames['kwx'] == 'myexperiment.kwx'
-    assert filenames['kwd']['raw'] == 'myexperiment.raw.kwd'
-    assert filenames['kwd']['low'] == 'myexperiment.low.kwd'
-    assert filenames['kwd']['high'] == 'myexperiment.high.kwd'
+    assert filenames['raw.kwd'] == 'myexperiment.raw.kwd'
+    assert filenames['low.kwd'] == 'myexperiment.low.kwd'
+    assert filenames['high.kwd'] == 'myexperiment.high.kwd'
     
 def test_basename_1():
     bn = 'myexperiment'
-    filenames = generate_filenames(bn)
+    filenames = get_filenames(bn)
     kwik = filenames['kwik']
     kwx = filenames['kwx']
-    kwdraw = filenames['kwd']['raw']
+    kwdraw = filenames['raw.kwd']
     
     assert get_basename(kwik) == bn
     assert get_basename(kwx) == bn

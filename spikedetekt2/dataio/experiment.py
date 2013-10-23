@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from selection import select
-from spikedetekt2.dataio.files import generate_filenames    
+from spikedetekt2.dataio.files import get_filenames    
 from spikedetekt2.utils.six import (iteritems, string_types, iterkeys, 
     itervalues)
 from spikedetekt2.utils.wrap import wrap
@@ -49,7 +49,7 @@ def create_experiment(name=None, dir=None, filenames=None,):
     # Generate the filenames from the experiment's name if filenames are
     # not provided.
     if filenames is None:
-        filenames = generate_filenames(name)
+        filenames = get_filenames(name)
         
     if dir is None:
         dir = os.path.abspath(os.getcwd())
@@ -69,7 +69,7 @@ def create_experiment(name=None, dir=None, filenames=None,):
 # -----------------------------------------------------------------------------
 def read_experiment(name=None, dir=None, filenames=None):
     if filenames is None:
-        filenames = generate_filenames(name)
+        filenames = get_filenames(name)
         
     if dir is None:
         dir = os.path.abspath(os.getcwd())
