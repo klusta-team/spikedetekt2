@@ -9,15 +9,28 @@ import tempfile
 import numpy as np
 import tables as tb
 
+from spikedetekt2.utils.six import itervalues
 from spikedetekt2.dataio.kwik_creation import *
+
+
+# -----------------------------------------------------------------------------
+# Fixtures
+# -----------------------------------------------------------------------------
+DIRPATH = tempfile.mkdtemp()
+
+def setup_create():
+    create_files('myexperiment', dir=DIRPATH)
+
+def teardown_create():
+    files = get_filenames('myexperiment', dir=DIRPATH)
+    [os.remove(path) for path in files]
 
 
 # -----------------------------------------------------------------------------
 # HDF5 creation functions tests
 # -----------------------------------------------------------------------------
 def test_create_kwik():
-    dirpath = tempfile.mkdtemp()
-    path = os.path.join(dirpath, 'myexperiment.kwik')
+    path = os.path.join(DIRPATH, 'myexperiment.kwik')
     
     prm = {}
     prb = {'channel_groups': [
@@ -38,8 +51,7 @@ def test_create_kwik():
     os.remove(path)
     
 def test_create_kwx():
-    dirpath = tempfile.mkdtemp()
-    path = os.path.join(dirpath, 'myexperiment.kwx')
+    path = os.path.join(DIRPATH, 'myexperiment.kwx')
     
     # Create the KWX file.
     nwavesamples = 20
@@ -80,8 +92,7 @@ def test_create_kwx():
     os.remove(path)
     
 def test_create_kwd():
-    dirpath = tempfile.mkdtemp()
-    path = os.path.join(dirpath, 'myexperiment.raw.kwd')
+    path = os.path.join(DIRPATH, 'myexperiment.raw.kwd')
     
     # Create the KWD file.
     nchannels_tot = 32*3
@@ -106,3 +117,20 @@ def test_create_kwd():
     # Delete the file.
     os.remove(path)
     
+def test_create_empty():
+    files = create_files('myexperiment')
+    [os.remove(path) for path in itervalues(files)]
+    
+    
+# -----------------------------------------------------------------------------
+# Item creation functions tests
+# -----------------------------------------------------------------------------
+def test_add_recording():
+    # Create mock data files.
+    
+    pass
+    
+    # f.close()
+    # os.remove(path)
+    
+

@@ -12,7 +12,7 @@ from collections import OrderedDict, Iterable
 import numpy as np
 import tables as tb
 
-from spikedetekt2.dataio.utils import save_json
+from spikedetekt2.dataio.files import get_filenames, RAW_TYPES, open_files
 from spikedetekt2.utils.six import iteritems
 
 # Disable PyTables' NaturalNameWarning due to nodes which have names starting 
@@ -21,7 +21,7 @@ warnings.simplefilter('ignore', tb.NaturalNameWarning)
 
 
 # -----------------------------------------------------------------------------
-# KWIK file creation
+# HDF5 file creation
 # -----------------------------------------------------------------------------
 def create_kwik(path, experiment_name=None, prm=None, prb=None):
     """Create a KWIK file.
@@ -118,11 +118,7 @@ def create_kwik(path, experiment_name=None, prm=None, prb=None):
     file.createGroup('/', 'event_types')
             
     file.close()
-    
-    
-# -----------------------------------------------------------------------------
-# HDF5 files creation
-# -----------------------------------------------------------------------------
+
 def create_kwx(path, channel_groups=None, nwavesamples=None, nfeatures=None,
                nchannels=None, has_masks=True):
     """Create an empty KWX file.
@@ -138,6 +134,9 @@ def create_kwx(path, channel_groups=None, nwavesamples=None, nfeatures=None,
       * nchannels (number of channels per channel group, common to all channel groups if set)
     
     """
+    if channel_groups is None:
+        channel_groups = []
+        
     file = tb.openFile(path, mode='w')
     file.createGroup('/', 'channel_groups')
     
@@ -195,17 +194,71 @@ def create_kwd(path, type='raw', nchannels_tot=None, recordings=None,):
                           (0, nchannels_tot), expectedrows=nsamples_)
     
     file.close()
-   
-def create_kwe(path, ):
-    """Create an empty KWE file."""
-    file = tb.openFile(path, mode='w')
+
+def create_files(name, dir=None):
+    filenames = get_filenames(name, dir=dir)
     
-    # Create the tables.
-    file.createTable('/', 'events',
-                     get_events_description())
-    # file.createTable('/', 'event_types',
-                     # get_event_types_description())
-                                                   
-    file.close()
-           
+    create_kwik(filenames['kwik'])
+    create_kwx(filenames['kwx'])
+    
+    create_kwd(filenames['raw.kwd'], 'raw')
+    create_kwd(filenames['high.kwd'], 'high')
+    create_kwd(filenames['low.kwd'], 'low')
+    
+    return filenames
+
+    
+# -----------------------------------------------------------------------------
+# Adding items in the files
+# -----------------------------------------------------------------------------
+def add_recording(fd, id=None, name=None, sample_rate=None, start_time=None, 
+                  start_sample=None, bit_depth=None, band_high=None,
+                  band_low=None):
+    """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""
+    kwik = fd.get('kwik', None)
+    # The KWIK needs to be there.
+    assert kwik is not None
+    if id is None:
+        # If id is None, take the maximum integer index among the existing
+        # recording names, + 1.
+        recordings = sorted([n._v_name 
+                             for n in kwik.listNodes('/recordings')])
+        id = str(max([int(r) for r in recordings if r.isdigit()]) + 1)
+    # Default name: recording_X if X is an integer, or the id.
+    if name is None:
+        if id.isdigit():
+            name = 'recording_{0:s}'.format(id)
+        else:
+            name = id
+    recording = kwik.createGroup('/recordings', id)
+    recording._v_attrs.name = name
+    recording._v_attrs.start_time = start_time
+    recording._v_attrs.start_sample = start_sample
+    recording._v_attrs.sample_rate = sample_rate
+    recording._v_attrs.bit_depth = bit_depth
+    recording._v_attrs.band_high = band_high
+    recording._v_attrs.band_low = band_low
+    
+    kwik_raw = kwik.createGroup('/recordings/' + id, 'raw')
+    kwik_high = kwik.createGroup('/recordings/' + id, 'high')
+    kwik_low = kwik.createGroup('/recordings/' + id, 'low')
+    
+    kwik_raw._v_attrs.hdf5_path = '{{KWD_RAW}}/recordings/' + id
+    kwik_high._v_attrs.hdf5_path = '{{KWD_HIGH}}/recordings/' + id
+    kwik_low._v_attrs.hdf5_path = '{{KWD_LOW}}/recordings/' + id
+    
+    kwik.createGroup('/recordings/' + id, 'user_data')
+        
+    for type in RAW_TYPES:
+        kwd = fd.get(type, None)
+        if kwd:
+            # TODO
+            pass
+    
+    
+def add_event_type(f, ):
+    pass
+    
+def add_cluster_group(f, ):
+    pass
     

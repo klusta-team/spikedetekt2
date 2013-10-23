@@ -13,11 +13,11 @@ from spikedetekt2.dataio.files import get_filenames, get_basename
 # -----------------------------------------------------------------------------
 def test_get_filenames():
     filenames = get_filenames('myexperiment')
-    assert filenames['kwik'] == 'myexperiment.kwik'
-    assert filenames['kwx'] == 'myexperiment.kwx'
-    assert filenames['raw.kwd'] == 'myexperiment.raw.kwd'
-    assert filenames['low.kwd'] == 'myexperiment.low.kwd'
-    assert filenames['high.kwd'] == 'myexperiment.high.kwd'
+    assert os.path.basename(filenames['kwik']) == 'myexperiment.kwik'
+    assert os.path.basename(filenames['kwx']) == 'myexperiment.kwx'
+    assert os.path.basename(filenames['raw.kwd']) == 'myexperiment.raw.kwd'
+    assert os.path.basename(filenames['low.kwd']) == 'myexperiment.low.kwd'
+    assert os.path.basename(filenames['high.kwd']) == 'myexperiment.high.kwd'
     
 def test_basename_1():
     bn = 'myexperiment'
@@ -38,4 +38,10 @@ def test_basename_2():
     assert get_basename(kwik) == 'experiment'
     assert get_basename(kwx) == 'experiment'
     assert get_basename(kwdhigh) == 'experiment'
+    
+def test_get_file():
+    # TODO
+    pass
+    
+    
     

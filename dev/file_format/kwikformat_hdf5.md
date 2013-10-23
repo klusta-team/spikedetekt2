@@ -110,8 +110,8 @@ Below is the structure of the KWIK file.Everything is a group, except fields wit
             low
                 hdf5_path* [='{KWD_LOW}/recordings/X']
             bit_depth*
-            bandhigh
-            bandlow
+            band_high
+            band_low
     /event_types
         [X]
             user_data
