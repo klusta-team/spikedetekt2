@@ -12,7 +12,8 @@ import pandas as pd
 import tables as tb
 
 from spikedetekt2.dataio.kwik import (add_recording, create_files, open_files,
-    close_files, add_event_type, add_cluster_group, get_filenames,)
+    close_files, add_event_type, add_cluster_group, get_filenames,
+    add_cluster)
 from spikedetekt2.dataio.experiment import (Experiment, _resolve_hdf5_path,)
 from spikedetekt2.utils.six import itervalues
 
@@ -47,6 +48,7 @@ def setup():
                   band_low=500.)
     add_event_type(files, 'myevents')
     add_cluster_group(files, channel_group_id='0', id='noise', name='Noise')
+    add_cluster(files, channel_group_id='0',)
     
     # Close the files
     close_files(files)
@@ -73,15 +75,18 @@ def test_experiment_1():
         assert exp.application_data
         assert exp.user_data
         
+        # Channel group.
         chgrp = exp.channel_groups[0]
         assert chgrp.name == 'channel_group_0'
         assert chgrp.adjacency_graph == [[4, 6], [8, 4]]
         assert chgrp.application_data
         assert chgrp.user_data
         
+        # Channels.
         channels = chgrp.channels
         assert list(sorted(channels.keys())) == [4, 6, 8]
         
+        # Channel.
         ch = channels[4]
         assert ch.name == 'channel_4'
         ch.kwd_index 
@@ -92,6 +97,7 @@ def test_experiment_1():
         assert ch.application_data
         assert ch.user_data
         
+        # Spikes.
         spikes = chgrp.spikes
         assert isinstance(spikes.time_samples, tb.EArray)
         assert spikes.time_samples.dtype == np.uint64
@@ -125,4 +131,23 @@ def test_experiment_1():
         assert spikes.waveforms_filtered.dtype == np.int16
         assert spikes.waveforms_filtered.ndim == 3
         
-        cluster = chgrp.clusters
+        # Cluster.
+        cluster = chgrp.clusters[0]
+        
+        assert cluster.application_data
+        assert cluster.user_data
+        assert cluster.quality_measures
+        
+        cluster.cluster_group
+        cluster.mean_waveform_raw
+        cluster.mean_waveform_filtered
+        
+        # Cluster group.
+        cluster_group = chgrp.cluster_groups['noise']
+        assert cluster_group.name == 'Noise'
+        
+        assert cluster_group.application_data
+        assert cluster_group.user_data
+        
+        
+        

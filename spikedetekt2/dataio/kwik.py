@@ -365,7 +365,6 @@ def add_cluster(fd, channel_group_id=None, id=None,
         else:
             id = '0'
     cluster = kwik.createGroup(clusters_path, id)
-    cluster
     
     cluster._f_setattr('cluster_group', cluster_group)
     cluster._f_setattr('mean_waveform_raw', mean_waveform_raw)
