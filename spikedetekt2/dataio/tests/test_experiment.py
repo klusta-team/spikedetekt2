@@ -165,5 +165,17 @@ def test_experiment_1():
         assert rd.shape == (0, 10)
         assert rd.dtype == np.int16
         
+        # Event types
+        evtp = exp.event_types['myevents']
+        evtp.application_data
+        evtp.user_data
         
+        samples = evtp.events.time_samples
+        assert isinstance(samples, tb.EArray)
+        assert samples.dtype == np.uint64
         
+        recordings = evtp.events.recording
+        assert isinstance(recordings, tb.EArray)
+        assert recordings.dtype == np.uint16
+        
+        evtp.events.user_data
