@@ -43,7 +43,7 @@ def get_basename(path):
 
 
 # -----------------------------------------------------------------------------
-# Opening functions
+# Opening/closing functions
 # -----------------------------------------------------------------------------
 def open_file(path, mode=None):
     if mode is None:
@@ -243,6 +243,11 @@ def create_kwd(path, type='raw', nchannels_tot=None, recordings=None,):
     file.close()
 
 def create_files(name, dir=None, prm=None, prb=None):
+    
+    # TODO: retrieve nwavesamples, nfeatures, nchannels
+    # nchannels_tot
+    # from PRM/PRB to pass them to the create_* functions.
+    
     filenames = get_filenames(name, dir=dir)
     
     create_kwik(filenames['kwik'], prm=prm, prb=prb)
