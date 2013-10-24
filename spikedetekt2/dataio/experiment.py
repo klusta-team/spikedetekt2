@@ -8,6 +8,7 @@ import re
 
 import numpy as np
 import pandas as pd
+import tables as tb
 
 from selection import select
 from spikedetekt2.dataio.kwik import (get_filenames, open_files, close_files
@@ -81,7 +82,31 @@ class Node(object):
         except AttributeError:
             # No HDF5 external link: just return the normal child.
             return child
+
+class NodeWrapper(object):
+    """Like a PyTables node, but supports in addition: `node.attr`."""
+    def __init__(self, node):
+        self._node = node
         
+    def __getitem__(self, key):
+        return self._node[key]
+        
+    def __getattr__(self, key):
+        try:
+            attr = getattr(self._node, key)
+            if isinstance(attr, tb.Group):
+                return NodeWrapper(attr)
+            else:
+                return attr
+        except:
+            return self._node._f_getAttr(key)
+            
+    def __dir__(self):
+        return self._node.__dir__()
+        
+    def __repr__(self):
+        return self._node.__repr__()
+
 class Experiment(Node):
     """An Experiment instance holds all information related to an
     experiment. One can access any information using a logical structure
@@ -99,8 +124,8 @@ class Experiment(Node):
         super(Experiment, self).__init__(self._files)
         self._root = self._node
         
-        self.application_data = self._root.application_data
-        self.user_data = self._root.user_data
+        self.application_data = NodeWrapper(self._root.application_data)
+        self.user_data = NodeWrapper(self._root.user_data)
         
         self.channel_groups = self._gen_children('channel_groups', ChannelGroup)
         self.recordings = self._gen_children('recordings', Recording)
@@ -122,8 +147,8 @@ class ChannelGroup(Node):
         
         self.name = self._node._v_attrs.name
         self.adjacency_graph = self._node._v_attrs.adjacency_graph
-        self.application_data = self._node.application_data
-        self.user_data = self._node.user_data
+        self.application_data = NodeWrapper(self._node.application_data)
+        self.user_data = NodeWrapper(self._node.user_data)
         
         self.channels = self._gen_children('channels', Channel)
         self.clusters = self._gen_children('clusters', Cluster)
@@ -157,8 +182,8 @@ class Channel(Node):
         self.voltage_gain = self._node._v_attrs.voltage_gain
         self.display_threshold = self._node._v_attrs.display_threshold
         
-        self.application_data = self._node.application_data
-        self.user_data = self._node.user_data
+        self.application_data = NodeWrapper(self._node.application_data)
+        self.user_data = NodeWrapper(self._node.user_data)
     
 class Cluster(Node):
     def __init__(self, files, node=None):
@@ -168,17 +193,17 @@ class Cluster(Node):
         self.mean_waveform_raw = self._node._v_attrs.mean_waveform_raw
         self.mean_waveform_filtered = self._node._v_attrs.mean_waveform_filtered
         
-        self.application_data = self._node.application_data
-        self.user_data = self._node.user_data
-        self.quality_measures = self._node.quality_measures
+        self.application_data = NodeWrapper(self._node.application_data)
+        self.user_data = NodeWrapper(self._node.user_data)
+        self.quality_measures = NodeWrapper(self._node.quality_measures)
 
 class ClusterGroup(Node):
     def __init__(self, files, node=None):
         super(ClusterGroup, self).__init__(files, node)
         self.name = self._node._v_attrs.name
         
-        self.application_data = self._node.application_data
-        self.user_data = self._node.user_data
+        self.application_data = NodeWrapper(self._node.application_data)
+        self.user_data = NodeWrapper(self._node.user_data)
     
 class Recording(Node):
     def __init__(self, files, node=None):
@@ -196,7 +221,7 @@ class Recording(Node):
         self.high = self._get_child('high')
         self.low = self._get_child('low')
         
-        self.user_data = self._node.user_data
+        self.user_data = NodeWrapper(self._node.user_data)
     
 class EventType(Node):
     def __init__(self, files, node=None):
@@ -204,8 +229,8 @@ class EventType(Node):
     
         self.events = Events(self._files, self._node.events)
         
-        self.application_data = self._node.application_data
-        self.user_data = self._node.user_data
+        self.application_data = NodeWrapper(self._node.application_data)
+        self.user_data = NodeWrapper(self._node.user_data)
     
 class Events(Node):
     def __init__(self, files, node=None):
@@ -214,4 +239,4 @@ class Events(Node):
         self.time_samples = self._node.time_samples
         self.recording = self._node.recording
         
-        self.user_data = self._node.user_data
+        self.user_data = NodeWrapper(self._node.user_data)

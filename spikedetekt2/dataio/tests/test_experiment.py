@@ -75,6 +75,9 @@ def test_experiment_1():
         assert exp.name == 'myexperiment'
         assert exp.application_data
         assert exp.user_data
+        assert exp.application_data.spikedetekt.nchannels == 10
+        assert exp.application_data.spikedetekt.nwavesamples == 10
+        assert exp.application_data.spikedetekt.nfeatures == 3
         
         # Channel group.
         chgrp = exp.channel_groups[0]

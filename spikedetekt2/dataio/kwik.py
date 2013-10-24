@@ -98,9 +98,7 @@ def create_kwik(path, experiment_name=None, prm=None, prb=None):
     # Set the SpikeDetekt parameters
     file.createGroup('/application_data', 'spikedetekt')
     for prm_name, prm_value in iteritems(prm):
-        setattr(file.root.application_data.spikedetekt,
-                prm_name,
-                prm_value)
+        file.root.application_data.spikedetekt._f_setattr(prm_name, prm_value)
     
     file.createGroup('/', 'user_data')
     
