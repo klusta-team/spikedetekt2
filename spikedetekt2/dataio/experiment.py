@@ -34,7 +34,7 @@ def _resolve_hdf5_path(files, path):
     path_ext = '/' + '/'.join(nodes[1:])
     type = nodes[0]
     pattern = r'\{([a-zA-Z\._]+)\}'
-    assert re.match(pattern, type), type
+    assert re.match(pattern, type)
     r = re.search(pattern, type)
     assert r
     type = r.group(1)
@@ -45,6 +45,13 @@ def _resolve_hdf5_path(files, path):
     else:
         return None
     
+def _get_child_id(child):
+    id = child._v_name
+    if id.isdigit():
+        return int(id)
+    else:
+        return id
+
 class Node(object):
     def __init__(self, files, node=None):
         self._files = files
@@ -57,7 +64,7 @@ class Node(object):
     def _gen_children(self, container_name, child_class):
         """Return a dictionary {child_id: child_instance}."""
         return {
-            child._v_name: child_class(self._files, child)
+            _get_child_id(child): child_class(self._files, child)
                 for child in self._node._f_getChild(container_name)
             }
     

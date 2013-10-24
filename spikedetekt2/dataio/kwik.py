@@ -343,6 +343,47 @@ def add_event_type(fd, id=None, evt=None):
     kwik.createEArray(events, 'recording', tb.UInt16Atom(), (0,))
     kwik.createGroup(events, 'user_data')
     
+def add_cluster(fd, channel_group_id=None, id=None, 
+    cluster_group=None,
+    mean_waveform_raw=None,
+    mean_waveform_filtered=None,
+    ):
+    """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""
+    kwik = fd.get('kwik', None)
+    # The KWIK needs to be there.
+    assert kwik is not None
+    # The channel group id containing the new cluster group must be specified.
+    assert channel_group_id is not None
+    clusters_path = '/channel_groups/{0:s}/clusters'.format(channel_group_id)
+    if id is None:
+        # If id is None, take the maximum integer index among the existing
+        # recording names, + 1.
+        clusters = sorted([n._v_name 
+                             for n in kwik.listNodes(clusters_path)])
+        if clusters:
+            id = str(max([int(r) for r in clusters if r.isdigit()]) + 1)
+        else:
+            id = '0'
+    cluster = kwik.createGroup(clusters_path, id)
+    cluster
+    
+    cluster._f_setattr('cluster_group', cluster_group)
+    cluster._f_setattr('mean_waveform_raw', mean_waveform_raw)
+    cluster._f_setattr('mean_waveform_filtered', mean_waveform_filtered)
+    
+    # TODO
+    quality = kwik.createGroup(cluster, 'quality_measures')
+    quality._f_setattr('isolation_distance', None)
+    quality._f_setattr('matrix_isolation', None)
+    quality._f_setattr('refractory_violation', None)
+    quality._f_setattr('amplitude', None)
+    
+    kwik.createGroup(cluster, 'user_data')
+    
+    app = kwik.createGroup(cluster, 'application_data')
+    kv = kwik.createGroup(app, 'klustaviewa')
+    kv._f_setattr('color', None)
+    
 def add_cluster_group(fd, channel_group_id=None, id=None, name=None):
     """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""
     kwik = fd.get('kwik', None)

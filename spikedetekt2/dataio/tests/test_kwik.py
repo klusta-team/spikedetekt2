@@ -234,3 +234,19 @@ def test_add_cluster_group():
     
     close_files(files)
 
+@with_setup(setup_create, teardown_create)
+def test_add_cluster():
+    files = open_files('myexperiment', dir=DIRPATH, mode='a')
+    add_cluster(files, channel_group_id='0',)
+    cluster = files['kwik'].root.channel_groups.__getattr__('0').clusters.__getattr__('0')
+    
+    cluster._v_attrs.cluster_group
+    cluster._v_attrs.mean_waveform_raw
+    cluster._v_attrs.mean_waveform_filtered
+    
+    cluster.quality_measures
+    cluster.application_data.klustaviewa._v_attrs.color
+    cluster.user_data
+    
+    close_files(files)
+

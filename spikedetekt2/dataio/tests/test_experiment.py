@@ -69,5 +69,60 @@ def test_resolve_hdf5_path():
 
 def test_experiment_1():
     with Experiment('myexperiment', dir=DIRPATH) as exp:
-        pass
-    
+        assert exp.name == 'myexperiment'
+        assert exp.application_data
+        assert exp.user_data
+        
+        chgrp = exp.channel_groups[0]
+        assert chgrp.name == 'channel_group_0'
+        assert chgrp.adjacency_graph == [[4, 6], [8, 4]]
+        assert chgrp.application_data
+        assert chgrp.user_data
+        
+        channels = chgrp.channels
+        assert list(sorted(channels.keys())) == [4, 6, 8]
+        
+        ch = channels[4]
+        assert ch.name == 'channel_4'
+        ch.kwd_index 
+        ch.ignored 
+        assert ch.position == [.4, .6]
+        ch.voltage_gain 
+        ch.display_threshold 
+        assert ch.application_data
+        assert ch.user_data
+        
+        spikes = chgrp.spikes
+        assert isinstance(spikes.time_samples, tb.EArray)
+        assert spikes.time_samples.dtype == np.uint64
+        assert spikes.time_samples.ndim == 1
+        
+        assert isinstance(spikes.time_fractional, tb.EArray)
+        assert spikes.time_fractional.dtype == np.uint8
+        assert spikes.time_fractional.ndim == 1
+        
+        assert isinstance(spikes.recording, tb.EArray)
+        assert spikes.recording.dtype == np.uint16
+        assert spikes.recording.ndim == 1
+        
+        assert isinstance(spikes.cluster, tb.EArray)
+        assert spikes.cluster.dtype == np.uint32
+        assert spikes.cluster.ndim == 1
+        
+        assert isinstance(spikes.cluster_original, tb.EArray)
+        assert spikes.cluster_original.dtype == np.uint32
+        assert spikes.cluster_original.ndim == 1
+        
+        assert isinstance(spikes.features_masks, tb.EArray)
+        assert spikes.features_masks.dtype == np.float32
+        assert spikes.features_masks.ndim == 3
+        
+        assert isinstance(spikes.waveforms_raw, tb.EArray)
+        assert spikes.waveforms_raw.dtype == np.int16
+        assert spikes.waveforms_raw.ndim == 3
+        
+        assert isinstance(spikes.waveforms_filtered, tb.EArray)
+        assert spikes.waveforms_filtered.dtype == np.int16
+        assert spikes.waveforms_filtered.ndim == 3
+        
+        cluster = chgrp.clusters
