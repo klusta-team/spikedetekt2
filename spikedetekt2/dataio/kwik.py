@@ -28,8 +28,9 @@ FILE_TYPES = ('kwik', 'kwx') + RAW_TYPES
 def get_filenames(name, dir=None):
     """Generate a list of filenames for the different files in a given 
     experiment, which name is given."""
+    # Default directory: working directory.
     if dir is None:
-        dir = os.path.dirname(os.path.realpath(__file__))
+        dir = os.getcwd()
     name = os.path.splitext(name)[0]
     return {type: os.path.join(dir, name + '.' + type) for type in FILE_TYPES}
     
@@ -49,7 +50,8 @@ def open_file(path, mode=None):
     if mode is None:
         mode = 'r'
     try:
-        return tb.openFile(path, mode)
+        f = tb.openFile(path, mode)
+        return f
     except:
         return None
 

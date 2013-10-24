@@ -19,7 +19,7 @@ from spikedetekt2.utils.wrap import wrap
 
 
 # -----------------------------------------------------------------------------
-# Experiment class
+# Utility functions
 # -----------------------------------------------------------------------------
 def _resolve_hdf5_path(files, path):
     """Resolve a HDF5 external link. Return the referred node (group or 
@@ -53,6 +53,10 @@ def _get_child_id(child):
     else:
         return id
 
+        
+# -----------------------------------------------------------------------------
+# Node wrappers
+# -----------------------------------------------------------------------------
 class Node(object):
     def __init__(self, files, node=None):
         self._files = files
@@ -107,6 +111,10 @@ class NodeWrapper(object):
     def __repr__(self):
         return self._node.__repr__()
 
+        
+# -----------------------------------------------------------------------------
+# Experiment class and sub-classes.
+# -----------------------------------------------------------------------------
 class Experiment(Node):
     """An Experiment instance holds all information related to an
     experiment. One can access any information using a logical structure
@@ -120,7 +128,8 @@ class Experiment(Node):
         self._files = files
         if self._files is None:
             self._files = open_files(self.name, dir=self._dir, mode=self._mode)
-            
+        self._filenames = {type: os.path.realpath(file.filename)
+            for type, file in iteritems(self._files)}
         super(Experiment, self).__init__(self._files)
         self._root = self._node
         
