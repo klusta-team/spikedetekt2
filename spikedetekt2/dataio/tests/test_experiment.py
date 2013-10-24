@@ -25,7 +25,7 @@ DIRPATH = tempfile.mkdtemp()
 
 def setup():
     # Create files.
-    prm = {'nfeatures': 3, 'nwavesamples': 10}
+    prm = {'nfeatures': 3, 'nwavesamples': 10, 'nchannels': 10}
     prb = {'channel_groups': [
         {
             'channels': [4, 6, 8],
@@ -45,7 +45,8 @@ def setup():
                   start_sample=200000.,
                   bit_depth=16,
                   band_high=100.,
-                  band_low=500.)
+                  band_low=500.,
+                  nchannels=10,)
     add_event_type(files, 'myevents')
     add_cluster_group(files, channel_group_id='0', id='noise', name='Noise')
     add_cluster(files, channel_group_id='0',)
@@ -148,6 +149,21 @@ def test_experiment_1():
         
         assert cluster_group.application_data
         assert cluster_group.user_data
+        
+        # Recordings.
+        rec = exp.recordings[0]
+        assert rec.name == 'recording_0'
+        assert rec.sample_rate == 20000.
+        assert rec.start_time == 10.
+        assert rec.start_sample == 200000.
+        assert rec.bit_depth == 16
+        assert rec.band_high == 100.
+        assert rec.band_low == 500.
+        
+        rd = rec.raw.data
+        assert isinstance(rd, tb.EArray)
+        assert rd.shape == (0, 10)
+        assert rd.dtype == np.int16
         
         
         

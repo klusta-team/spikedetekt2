@@ -220,48 +220,32 @@ def create_kwx(path, prb=None, prm=None, has_masks=True):
                                                    
     file.close()
             
-def create_kwd(path, type='raw', nchannels_tot=None, recordings=None,):
+def create_kwd(path, type='raw', prm=None,):#recordings=None,):
     """Create an empty KWD file.
     
     Arguments:
       * type: 'raw', 'high', or 'low'
-      * nchannels_tot: total number of channels
-      * recordings: a dictionary irecording: recording_info where 
-        recording_info is a dictionary with the optional fields:
-          * nsamples: expected number of samples in that recording
     
     """
-    if recordings is None:
-        recordings = []
+        
+    if prm is None:
+        prm = {}
         
     file = tb.openFile(path, mode='w')
-    
-    for irecording, recording_info in enumerate(recordings):
-        nsamples_ = recording_info.get('nsamples', None)
-        
-        file.createGroup('/', 'recording{0:d}'.format(irecording))    
-        recording_path = '/recording{0:d}'.format(irecording)
-        
-        file.createEArray(recording_path, 'data_{0:s}'.format(type), 
-                          tb.Int16Atom(), 
-                          (0, nchannels_tot), expectedrows=nsamples_)
+    file.createGroup('/', 'recordings')
     
     file.close()
 
 def create_files(name, dir=None, prm=None, prb=None):
-    
-    # TODO: retrieve nwavesamples, nfeatures, nchannels
-    # nchannels_tot
-    # from PRM/PRB to pass them to the create_* functions.
     
     filenames = get_filenames(name, dir=dir)
     
     create_kwik(filenames['kwik'], prm=prm, prb=prb)
     create_kwx(filenames['kwx'], prb=prb, prm=prm)
     
-    create_kwd(filenames['raw.kwd'], 'raw')
-    create_kwd(filenames['high.kwd'], 'high')
-    create_kwd(filenames['low.kwd'], 'low')
+    create_kwd(filenames['raw.kwd'], 'raw', prm=prm)
+    create_kwd(filenames['high.kwd'], 'high', prm=prm)
+    create_kwd(filenames['low.kwd'], 'low', prm=prm)
     
     return filenames
 
@@ -271,9 +255,11 @@ def create_files(name, dir=None, prm=None, prb=None):
 # -----------------------------------------------------------------------------
 def add_recording(fd, id=None, name=None, sample_rate=None, start_time=None, 
                   start_sample=None, bit_depth=None, band_high=None,
-                  band_low=None):
+                  band_low=None, downsample_factor=1., nchannels=None,
+                  nsamples=None):
     """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""
     kwik = fd.get('kwik', None)
+    assert nchannels
     # The KWIK needs to be there.
     assert kwik is not None
     if id is None:
@@ -313,8 +299,14 @@ def add_recording(fd, id=None, name=None, sample_rate=None, start_time=None,
     for type in RAW_TYPES:
         kwd = fd.get(type, None)
         if kwd:
-            # TODO
-            pass
+            recording = kwd.createGroup('/recordings', id)    
+            recording._f_setattr('downsample_factor', downsample_factor)
+            
+            kwd.createEArray(recording, 'data', 
+                              tb.Int16Atom(), 
+                              (0, nchannels), expectedrows=nsamples)
+            kwd.createGroup(recording, 'filter')
+            # TODO: filter
     
 def add_event_type(fd, id=None, evt=None):
     """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""

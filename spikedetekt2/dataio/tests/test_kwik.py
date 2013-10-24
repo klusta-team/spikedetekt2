@@ -152,21 +152,14 @@ def test_create_kwd():
     
     # Create the KWD file.
     nchannels_tot = 32*3
-    recordings = [
-        {'nsamples': 100},
-        {},
-        {'nsamples': 150},
-    ]
+    prm = {'nchannels': nchannels_tot}
     
-    create_kwd(path, type='raw', nchannels_tot=nchannels_tot, 
-               recordings=recordings,)
+    create_kwd(path, type='raw', prm=prm,)
     
     # Open the KWX file.
     f = tb.openFile(path, 'r')
     
-    assert f.root.recording0.data_raw.shape[1] == nchannels_tot
-    assert f.root.recording1.data_raw.shape[1] == nchannels_tot
-    assert f.root.recording2.data_raw.shape[1] == nchannels_tot
+    assert f.root.recordings
     
     f.close()
     
@@ -191,6 +184,8 @@ def test_add_recording():
     bit_depth = 16
     band_high = 100.
     band_low = 500.
+    nchannels = 32
+    nsamples = 0
     
     add_recording(files, 
                   sample_rate=sample_rate,
@@ -198,7 +193,10 @@ def test_add_recording():
                   start_sample=start_sample,
                   bit_depth=bit_depth,
                   band_high=band_high,
-                  band_low=band_low)
+                  band_low=band_low,
+                  nchannels=nchannels,
+                  nsamples=nsamples,
+                  )
     
     rec = files['kwik'].root.recordings.__getattr__('0')
     assert rec._v_attrs.sample_rate == sample_rate
