@@ -22,7 +22,7 @@ def test_compute_pcs():
     # Compute the PCs.
     pcs = compute_pcs(x)
     assert pcs.ndim == 2
-    assert (np.abs(pcs) - a).max() < 1e-3
+    assert (np.abs(pcs) - a).max() < 1e-2
     
 def test_compute_pcs_3d():
     """Test PCA on a 3D array."""

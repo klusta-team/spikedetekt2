@@ -167,7 +167,7 @@ def test_create_kwd():
     os.remove(path)
     
 def test_create_empty():
-    files = create_files('myexperiment')
+    files = create_files('myexperiment', dir=DIRPATH)
     [os.remove(path) for path in itervalues(files)]
     
     

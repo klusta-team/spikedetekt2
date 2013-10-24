@@ -109,10 +109,13 @@ class Experiment(Node):
     def __enter__(self):
         return self
     
-    def __exit__ (self, type, value, tb):
+    def close(self):
         if self._files is not None:
             close_files(self._files)
- 
+    
+    def __exit__ (self, type, value, tb):
+        self.close()
+        
 class ChannelGroup(Node):
     def __init__(self, files, node=None):
         super(ChannelGroup, self).__init__(files, node)

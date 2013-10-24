@@ -256,10 +256,15 @@ def create_files(name, dir=None, prm=None, prb=None):
 def add_recording(fd, id=None, name=None, sample_rate=None, start_time=None, 
                   start_sample=None, bit_depth=None, band_high=None,
                   band_low=None, downsample_factor=1., nchannels=None,
-                  nsamples=None):
+                  nsamples=None, data=None):
     """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""
     kwik = fd.get('kwik', None)
+    
+    if data is not None:
+        nsamples, nchannels = data.shape
+    
     assert nchannels
+    
     # The KWIK needs to be there.
     assert kwik is not None
     if id is None:
@@ -302,9 +307,15 @@ def add_recording(fd, id=None, name=None, sample_rate=None, start_time=None,
             recording = kwd.createGroup('/recordings', id)    
             recording._f_setattr('downsample_factor', downsample_factor)
             
-            kwd.createEArray(recording, 'data', 
+            dataset = kwd.createEArray(recording, 'data', 
                               tb.Int16Atom(), 
                               (0, nchannels), expectedrows=nsamples)
+            
+            # Add raw data.
+            if type == 'kwd' and data is not None:
+                assert data.shape[1] == nchannels
+                dataset.append(data)
+                              
             kwd.createGroup(recording, 'filter')
             # TODO: filter
     
