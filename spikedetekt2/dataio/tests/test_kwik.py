@@ -20,7 +20,7 @@ from spikedetekt2.dataio.kwik import *
 DIRPATH = tempfile.mkdtemp()
 
 def setup_create():
-    prm = {}
+    prm = {'nfeatures': 3, 'nwavesamples': 10}
     prb = {'channel_groups': [
         {
             'channels': [4, 6, 8],
@@ -74,7 +74,10 @@ def test_basename_2():
 def test_create_kwik():
     path = os.path.join(DIRPATH, 'myexperiment.kwik')
     
-    prm = {}
+    prm = {
+        'nwavesamples': 20,
+        'nfeatures': 3*32,
+    }
     prb = {'channel_groups': [
         {
             'channels': [4, 6, 8],
@@ -100,14 +103,25 @@ def test_create_kwx():
     nchannels = 32
     nchannels2 = 24
     nfeatures = 3*nchannels
-    channel_groups = [
-        {},
-        {'nchannels': nchannels2, 'nfeatures': 3*nchannels2},
-        {'nfeatures': 2*nchannels},
-    ]
+    prm = {
+        'nwavesamples': 20,
+        'nfeatures': 3*nchannels,
+    }
+    prb = {'channel_groups': [
+        {
+            'channels': np.arange(nchannels),
+        },
+        {
+            'channels': nchannels + np.arange(nchannels2),
+            'nfeatures': 3*nchannels2
+        },
+        {
+            'channels': nchannels + nchannels2 + np.arange(nchannels),
+            'nfeatures': 2*nchannels
+        },
+    ]}
     
-    create_kwx(path, nwavesamples=nwavesamples, nchannels=nchannels, 
-               nfeatures=nfeatures, channel_groups=channel_groups)
+    create_kwx(path, prb=prb, prm=prm)
     
     # Open the KWX file.
     f = tb.openFile(path, 'r')

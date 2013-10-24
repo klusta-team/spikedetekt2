@@ -11,8 +11,9 @@ import numpy as np
 import pandas as pd
 import tables as tb
 
-from spikedetekt2.dataio import (add_recording, create_files, open_files,
-    close_files, add_event_type, add_cluster_group, get_filenames)
+from spikedetekt2.dataio.kwik import (add_recording, create_files, open_files,
+    close_files, add_event_type, add_cluster_group, get_filenames,)
+from spikedetekt2.dataio.experiment import (Experiment, _resolve_hdf5_path,)
 from spikedetekt2.utils.six import itervalues
 
 
@@ -23,7 +24,7 @@ DIRPATH = tempfile.mkdtemp()
 
 def setup():
     # Create files.
-    prm = {}
+    prm = {'nfeatures': 3, 'nwavesamples': 10}
     prb = {'channel_groups': [
         {
             'channels': [4, 6, 8],
@@ -58,7 +59,15 @@ def teardown():
 # -----------------------------------------------------------------------------
 # Experiment creation tests
 # -----------------------------------------------------------------------------
+def test_resolve_hdf5_path():
+    path = "{kwx}/channel_groups/0"
+    
+    files = open_files('myexperiment', dir=DIRPATH)
+    assert _resolve_hdf5_path(files, path)
+    
+    close_files(files)
+
 def test_experiment_1():
-    pass
-
-
+    with Experiment('myexperiment', dir=DIRPATH) as exp:
+        pass
+    

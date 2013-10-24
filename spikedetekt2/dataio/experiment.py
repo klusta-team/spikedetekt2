@@ -4,13 +4,14 @@
 # Imports
 # -----------------------------------------------------------------------------
 import os
-import json
+import re
 
 import numpy as np
 import pandas as pd
 
 from selection import select
-from spikedetekt2.dataio.kwik import get_filenames    
+from spikedetekt2.dataio.kwik import (get_filenames, open_files, close_files
+    )
 from spikedetekt2.utils.six import (iteritems, string_types, iterkeys, 
     itervalues)
 from spikedetekt2.utils.wrap import wrap
@@ -19,66 +20,188 @@ from spikedetekt2.utils.wrap import wrap
 # -----------------------------------------------------------------------------
 # Experiment class
 # -----------------------------------------------------------------------------
-class Experiment(object):
+def _resolve_hdf5_path(files, path):
+    """Resolve a HDF5 external link. Return the referred node (group or 
+    dataset), or None if it does not exist.
+    
+    Arguments:
+      * files: a dict {type: file_handle}.
+      * path: a string like "{type}/path/to/node" where `type` is one of
+        `kwx`, `raw.kwd`, etc.
+      
+    """  
+    nodes = path.split('/')
+    path_ext = '/' + '/'.join(nodes[1:])
+    type = nodes[0]
+    pattern = r'\{([a-zA-Z\._]+)\}'
+    assert re.match(pattern, type), type
+    r = re.search(pattern, type)
+    assert r
+    type = r.group(1)
+    # Resolve the link.
+    file = files.get(type, None)
+    if file:
+        return file.getNode(path_ext)
+    else:
+        return None
+    
+class Node(object):
+    def __init__(self, files, node=None):
+        self._files = files
+        self._kwik = self._files.get('kwik', None)
+        assert self._kwik is not None
+        if node is None:
+            node = self._kwik.root
+        self._node = node
+        
+    def _gen_children(self, container_name, child_class):
+        """Return a dictionary {child_id: child_instance}."""
+        return {
+            child._v_name: child_class(self._files, child)
+                for child in self._node._f_getChild(container_name)
+            }
+    
+    def _get_child(self, child_name):
+        """Return the child specified by its name.
+        If this child has a `hdf5_path` special, then the path is resolved,
+        and the referred child in another file is returned.
+        """
+        child = self._node._f_getChild(child_name)
+        try:
+            # There's a link that needs to be resolved: return it.
+            path = child._f_getattr('hdf5_path')
+            return _resolve_hdf5_path(self._files, path)
+        except AttributeError:
+            # No HDF5 external link: just return the normal child.
+            return child
+        
+class Experiment(Node):
     """An Experiment instance holds all information related to an
     experiment. One can access any information using a logical structure
     that is somewhat independent from the physical representation on disk.
     """
-    def __init__(self, name=None, dir=None):
-        # Read the
-        exp = read_experiment(name=name, dir=dir)
+    def __init__(self, name=None, dir=None, files=None, mode='r'):
+        """`name` must correspond to the basename of the files."""
+        self.name = name
+        self._dir = dir
+        self._mode = mode
+        self._files = files
+        if self._files is None:
+            self._files = open_files(self.name, dir=self._dir, mode=self._mode)
+            
+        super(Experiment, self).__init__(self._files)
+        self._root = self._node
         
-class ChannelGroup(object):
-    def __init__(self, name=None, graph=None, 
-                 application_data=None, user_data=None,):
-        pass
+        self.application_data = self._root.application_data
+        self.user_data = self._root.user_data
+        
+        self.channel_groups = self._gen_children('channel_groups', ChannelGroup)
+        self.recordings = self._gen_children('recordings', Recording)
+        self.event_types = self._gen_children('event_types', EventType)
+        
+    def __enter__(self):
+        return self
     
+    def __exit__ (self, type, value, tb):
+        if self._files is not None:
+            close_files(self._files)
+ 
+class ChannelGroup(Node):
+    def __init__(self, files, node=None):
+        super(ChannelGroup, self).__init__(files, node)
+        
+        self.name = self._node._v_attrs.name
+        self.adjacency_graph = self._node._v_attrs.adjacency_graph
+        self.application_data = self._node.application_data
+        self.user_data = self._node.user_data
+        
+        self.channels = self._gen_children('channels', Channel)
+        self.clusters = self._gen_children('clusters', Cluster)
+        self.cluster_groups = self._gen_children('cluster_groups', ClusterGroup)
+        
+        self.spikes = Spikes(self._files, self._node.spikes)
+        
+class Spikes(Node):
+    def __init__(self, files, node=None):
+        super(Spikes, self).__init__(files, node)
+        
+        self.time_samples = self._node.time_samples
+        self.time_fractional = self._node.time_fractional
+        self.recording = self._node.recording
+        self.cluster = self._node.cluster
+        self.cluster_original = self._node.cluster_original
+        
+        # Get large datasets, that may be in external files.
+        self.features_masks = self._get_child('features_masks')
+        self.waveforms_raw = self._get_child('waveforms_raw')
+        self.waveforms_filtered = self._get_child('waveforms_filtered')
+       
+class Channel(Node):
+    def __init__(self, files, node=None):
+        super(Channel, self).__init__(files, node)
+        
+        self.name = self._node._v_attrs.name
+        self.kwd_index = self._node._v_attrs.kwd_index
+        self.ignored = self._node._v_attrs.ignored
+        self.position = self._node._v_attrs.position
+        self.voltage_gain = self._node._v_attrs.voltage_gain
+        self.display_threshold = self._node._v_attrs.display_threshold
+        
+        self.application_data = self._node.application_data
+        self.user_data = self._node.user_data
+    
+class Cluster(Node):
+    def __init__(self, files, node=None):
+        super(Cluster, self).__init__(files, node)
+        
+        self.cluster_group = self._node._v_attrs.cluster_group
+        self.mean_waveform_raw = self._node._v_attrs.mean_waveform_raw
+        self.mean_waveform_filtered = self._node._v_attrs.mean_waveform_filtered
+        
+        self.application_data = self._node.application_data
+        self.user_data = self._node.user_data
+        self.quality_measures = self._node.quality_measures
 
-# -----------------------------------------------------------------------------
-# Create experiment
-# -----------------------------------------------------------------------------
-def create_experiment(name=None, dir=None, filenames=None,):
-    """Create the JSON/HDF5 files forming an experiment.
-    
-    TODO
-    
-    """
-    if prm is None:
-        prm = {}
-    
-    # Generate the filenames from the experiment's name if filenames are
-    # not provided.
-    if filenames is None:
-        filenames = get_filenames(name)
+class ClusterGroup(Node):
+    def __init__(self, files, node=None):
+        super(ClusterGroup, self).__init__(files, node)
+        self.name = self._node._v_attrs.name
         
-    if dir is None:
-        dir = os.path.abspath(os.getcwd())
-        
-    assert isinstance(name, string_types), ("You must specify an "
-        "experiment's name.")
-        
-    # Get the filenames.
-    path_kwik = os.path.join(dir, filenames.get('kwik', None))
-    path_kwx = os.path.join(dir, filenames.get('kwx', None))
-    paths_kwd = {key: os.path.join(dir, val) 
-        for key, val in iteritems(filenames.get('kwd', {}))}
+        self.application_data = self._node.application_data
+        self.user_data = self._node.user_data
     
-
-# -----------------------------------------------------------------------------
-# Read experiment
-# -----------------------------------------------------------------------------
-def read_experiment(name=None, dir=None, filenames=None):
-    if filenames is None:
-        filenames = get_filenames(name)
+class Recording(Node):
+    def __init__(self, files, node=None):
+        super(Recording, self).__init__(files, node)
         
-    if dir is None:
-        dir = os.path.abspath(os.getcwd())
+        self.name = self._node._v_attrs.name
+        self.start_time = self._node._v_attrs.start_time
+        self.start_sample = self._node._v_attrs.start_sample
+        self.sample_rate = self._node._v_attrs.sample_rate
+        self.bit_depth = self._node._v_attrs.bit_depth
+        self.band_high = self._node._v_attrs.band_high
+        self.band_low = self._node._v_attrs.band_low
         
-    # Get the filenames.
-    path_kwik = os.path.join(dir, filenames.get('kwik', None))
-    path_kwx = os.path.join(dir, filenames.get('kwx', None))
-    paths_kwd = {key: os.path.join(dir, val) 
-        for key, val in iteritems(filenames.get('kwd', {}))}
-    path_kwe = os.path.join(dir, filenames.get('kwe', None))
+        self.raw = self._get_child('raw')
+        self.high = self._get_child('high')
+        self.low = self._get_child('low')
+        
+        self.user_data = self._node.user_data
     
-    # TODO: read the files and return an Experiment object.
+class EventType(Node):
+    def __init__(self, files, node=None):
+        super(EventType, self).__init__(files, node)
+    
+        self.events = Events(self._files, self._node.events)
+        
+        self.application_data = self._node.application_data
+        self.user_data = self._node.user_data
+    
+class Events(Node):
+    def __init__(self, files, node=None):
+        super(Events, self).__init__(files, node)
+        
+        self.time_samples = self._node.time_samples
+        self.recording = self._node.recording
+        
+        self.user_data = self._node.user_data

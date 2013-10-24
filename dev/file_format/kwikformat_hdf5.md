@@ -69,24 +69,24 @@ Below is the structure of the KWIK file.Everything is a group, except fields wit
                 cluster* [N-long EArray of UInt32]
                 cluster_original* [N-long EArray of UInt32]
                 features_masks
-                    hdf5_path* [='{KWX}/channel_groups/X/features_masks']
+                    hdf5_path* [='{kwx}/channel_groups/X/features_masks']
                 waveforms_raw
-                    hdf5_path* [='{KWX}/channel_groups/X/waveforms_raw']
+                    hdf5_path* [='{kwx}/channel_groups/X/waveforms_raw']
                 waveforms_filtered
-                    hdf5_path* [='{KWX}/channel_groups/X/waveforms_filtered']
+                    hdf5_path* [='{kwx}/channel_groups/X/waveforms_filtered']
             clusters
                 [X]
                     application_data
                         klustaviewa
                             color*
                     cluster_group*
-                    mean_waveform_raw
-                    mean_waveform_filtered
+                    mean_waveform_raw*
+                    mean_waveform_filtered*
                     quality_measures
-                        isolation_distance
-                        matrix_isolation
-                        refractory_violation
-                        amplitude
+                        isolation_distance*
+                        matrix_isolation*
+                        refractory_violation*
+                        amplitude*
                     user_data
                         ...
             cluster_groups
@@ -99,19 +99,19 @@ Below is the structure of the KWIK file.Everything is a group, except fields wit
     /recordings
         [X]
             name*
-            user_data
             start_time*
             start_sample*
             sample_rate*
-            raw
-                hdf5_path* [='{KWD_RAW}/recordings/X']
-            high
-                hdf5_path* [='{KWD_HIGH}/recordings/X']
-            low
-                hdf5_path* [='{KWD_LOW}/recordings/X']
             bit_depth*
-            band_high
-            band_low
+            band_high*
+            band_low*
+            raw
+                hdf5_path* [='{raw.kwd}/recordings/X']
+            high
+                hdf5_path* [='{high.kwd}/recordings/X']
+            low
+                hdf5_path* [='{low.kwd}/recordings/X']
+            user_data
     /event_types
         [X]
             user_data
