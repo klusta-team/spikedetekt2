@@ -5,6 +5,7 @@
 # -----------------------------------------------------------------------------
 import os
 import re
+from itertools import chain
 
 import numpy as np
 import pandas as pd
@@ -14,7 +15,7 @@ from selection import select
 from spikedetekt2.dataio.kwik import (get_filenames, open_files, close_files
     )
 from spikedetekt2.utils.six import (iteritems, string_types, iterkeys, 
-    itervalues)
+    itervalues, next)
 from spikedetekt2.utils.wrap import wrap
 
 
@@ -52,6 +53,41 @@ def _get_child_id(child):
         return int(id)
     else:
         return id
+
+def _print_instance(obj, depth=0, name=''):
+    # Handle the first element of the list/dict.
+    if isinstance(obj, (list, dict)):
+        if isinstance(obj, list):
+            sobj = obj[0]
+            key = '0'
+        elif isinstance(obj, dict):
+            key, sobj = next(iteritems(obj))
+        if isinstance(sobj, (list, dict, int, long, string_types, np.ndarray, 
+                      float)):
+            r = []
+        else:
+            r = [(depth+1, str(key))] + _print_instance(sobj, depth+1)
+    # Arrays do not have children.
+    elif isinstance(obj, (np.ndarray, tb.EArray)):
+        r = []
+    # Handle class instances.
+    elif hasattr(obj, '__dict__'):
+        fields = {k: v 
+            for k, v in iteritems(vars(obj)) 
+                if not k.startswith('_')}
+        r = list(chain(*[_print_instance(fields[n], depth=depth+1, name=str(n)) 
+                for n in sorted(iterkeys(fields))]))
+    else:
+        r = []
+    # Add the current object's display string.
+    if name:
+        if isinstance(obj, tb.EArray):
+            s = name + ' [{dtype} {shape}]'.format(dtype=obj.dtype, 
+                shape=obj.shape)
+        else:
+            s = name
+        r = [(depth, s)] + r
+    return r
 
         
 # -----------------------------------------------------------------------------
@@ -146,6 +182,12 @@ class Experiment(Node):
     def close(self):
         if self._files is not None:
             close_files(self._files)
+    
+    def __repr__(self):
+        n = "<Experiment '{name}'>".format(name=self.name)
+        l = _print_instance(self, name=n)
+        # print l
+        return '\n'.join('    '*d + s for d, s in l)
     
     def __exit__ (self, type, value, tb):
         self.close()

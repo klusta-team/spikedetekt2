@@ -182,3 +182,9 @@ def test_experiment_1():
         assert recordings.dtype == np.uint16
         
         evtp.events.user_data
+        
+def test_experiment_repr():
+    with Experiment('myexperiment', dir=DIRPATH) as exp:
+        s = str(exp)
+        
+        
