@@ -41,17 +41,19 @@ Get user parameters or default parameters if unspecified.
     params = get_params(param1=?, ...)  # directly
     param1 = params['param1']
 
-### Experiment files
-
-**Create experiment files**
+### Create experiment files
 
     create_files('myexperiment', prm=prm, prb=prb)
     files = open_files('myexperiment', mode='a')
     
-**Appending data**
+### Adding data to an experiment
 
-    with Experiment('myexperiment') as exp:
+    with Experiment('myexperiment', mode='a') as exp:
         # Append high-pass filtered data to the experiment.
         exp.recordings[0].high.data.append(filtered)
 
-
+        # Append a spike.
+        exp.spikes.add(time_samples=..., ...)
+        
+        # Update waveforms of certain spikes.
+        exp.spikes.waveforms[indices, ...] = waveforms

@@ -28,6 +28,15 @@ def params_to_python(params):
     return "\n".join(["{0:s} = {1:s}".format(key, _to_str(val))
         for key, val in sorted(params.iteritems())])
 
+def get_params(filename=None, **params):
+    params_default = load_default_params()
+    if isinstance(filename, six.string_types):
+        # Path to PRM file.
+        with open(filename, 'r') as f:
+            params_prm = python_to_params(f.read())
+            params_default.update(params_prm)
+    params_default.update(params)
+    return params_default
 
 # -----------------------------------------------------------------------------
 # Default parameters

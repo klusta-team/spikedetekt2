@@ -4,7 +4,7 @@
 # Imports
 # -----------------------------------------------------------------------------
 from spikedetekt2 import (python_to_params, params_to_python, 
-    load_default_params)
+    load_default_params, get_params)
 
 def test_python_to_params():
     python = """
@@ -17,6 +17,9 @@ def test_python_to_params():
     assert params['MYVAR1'] == 'myvalue1'
     assert params['MYVAR2'] == .123
     assert params['MYVAR3'] == ['myvalue3', .456]
+    
+def test_get_params():
+    assert get_params().get('MYVAR1', None) == 'value1'
     
 def test_params_to_python():
     params = dict(
