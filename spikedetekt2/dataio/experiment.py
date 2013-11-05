@@ -89,6 +89,30 @@ def _print_instance(obj, depth=0, name=''):
         r = [(depth, s)] + r
     return r
 
+class ArrayProxy(object):
+    """Proxy to a view of an array."""
+    def __init__(self, arr, col=None):
+        self._arr = arr
+        self._col = col
+    
+    @property
+    def shape(self):
+        return self._arr.shape[:-1]
+        
+    def __getitem__(self, item):
+        if self._col is None:
+            return self._arr[item]
+        else:
+            return self._arr[item, ..., self._col]
+        
+def get_row_shape(arr):
+    """Return the shape of a row of an array."""
+    return (1,) + arr.shape[1:]
+        
+def empty_row(arr, dtype=None):
+    """Create an empty row for a given array."""
+    return np.zeros(get_row_shape(arr), dtype=arr.dtype)
+        
         
 # -----------------------------------------------------------------------------
 # Node wrappers
@@ -221,7 +245,47 @@ class Spikes(Node):
         self.features_masks = self._get_child('features_masks')
         self.waveforms_raw = self._get_child('waveforms_raw')
         self.waveforms_filtered = self._get_child('waveforms_filtered')
+        
+        self.nsamples, self.nchannels = self.waveforms_raw.shape[1:]
+        self.features = ArrayProxy(self.features_masks, col=0)
+        self.masks = ArrayProxy(self.features_masks, col=1)
        
+    def add(self, time_samples=None, time_fractional=0,
+            recording=0, cluster=0, cluster_original=0,
+            features_masks=None, features=None, masks=None,
+            waveforms_raw=None, waveforms_filtered=None,
+            ):
+        """Add a spike. Only `time_samples` is mandatory."""
+        if features_masks is None:
+            # Default features and masks
+            if features is None:
+                features = np.zeros((1, self.nchannels), dtype=np.float32)
+            if masks is None:
+                masks = np.zeros((1, self.nchannels), dtype=np.float32)
+            # Concatenate features and masks
+            features_masks = np.dstack((features, masks))
+            
+        if waveforms_raw is None:
+            waveforms_raw = empty_row(self.waveforms_raw)
+        if waveforms_filtered is None:
+            waveforms_filtered = empty_row(self.waveforms_filtered)
+            
+        self.time_samples.append((time_samples,))
+        self.time_fractional.append((time_fractional,))
+        self.recording.append((recording,))
+        self.cluster.append((cluster,))
+        self.cluster_original.append((cluster_original,))
+        self.features_masks.append(features_masks)
+        self.waveforms_raw.append(waveforms_raw)
+        self.waveforms_filtered.append(waveforms_filtered)
+    
+    def __getitem__(self, item):
+        raise NotImplementedError("""It is not possible to select entire spikes 
+            yet.""")
+            
+    def __len__(self):
+        return self.time_samples.shape[0]
+        
 class Channel(Node):
     def __init__(self, files, node=None):
         super(Channel, self).__init__(files, node)

@@ -10,11 +10,13 @@ import tempfile
 import numpy as np
 import pandas as pd
 import tables as tb
+from nose import with_setup
 
 from spikedetekt2.dataio.kwik import (add_recording, create_files, open_files,
     close_files, add_event_type, add_cluster_group, get_filenames,
     add_cluster)
-from spikedetekt2.dataio.experiment import (Experiment, _resolve_hdf5_path,)
+from spikedetekt2.dataio.experiment import (Experiment, _resolve_hdf5_path,
+    ArrayProxy)
 from spikedetekt2.utils.six import itervalues
 
 
@@ -25,7 +27,7 @@ DIRPATH = tempfile.mkdtemp()
 
 def setup():
     # Create files.
-    prm = {'nfeatures': 3, 'nwavesamples': 10, 'nchannels': 10}
+    prm = {'nfeatures': 3, 'nwavesamples': 10, 'nchannels': 3}
     prb = {'channel_groups': [
         {
             'channels': [4, 6, 8],
@@ -46,7 +48,7 @@ def setup():
                   bit_depth=16,
                   band_high=100.,
                   band_low=500.,
-                  nchannels=10,)
+                  nchannels=3,)
     add_event_type(files, 'myevents')
     add_cluster_group(files, channel_group_id='0', id='noise', name='Noise')
     add_cluster(files, channel_group_id='0',)
@@ -75,7 +77,7 @@ def test_experiment_channels():
         assert exp.name == 'myexperiment'
         assert exp.application_data
         assert exp.user_data
-        assert exp.application_data.spikedetekt.nchannels == 10
+        assert exp.application_data.spikedetekt.nchannels == 3
         assert exp.application_data.spikedetekt.nwavesamples == 10
         assert exp.application_data.spikedetekt.nfeatures == 3
         
@@ -136,6 +138,25 @@ def test_experiment_spikes():
         assert isinstance(spikes.waveforms_filtered, tb.EArray)
         assert spikes.waveforms_filtered.dtype == np.int16
         assert spikes.waveforms_filtered.ndim == 3
+
+@with_setup(setup,)  # Create brand new files.
+def test_experiment_add_spikes():
+    with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:
+        chgrp = exp.channel_groups[0]
+        spikes = chgrp.spikes
+        
+        assert spikes.features_masks.shape == (0, 3, 2)
+        assert isinstance(spikes.features, ArrayProxy)
+        assert spikes.features.shape == (0, 3)
+        
+        spikes.add(time_samples=1000)
+        spikes.add(time_samples=2000)
+        
+        assert len(spikes) == 2
+        assert spikes.features_masks.shape == (2, 3, 2)
+        
+        assert isinstance(spikes.features, ArrayProxy)
+        assert spikes.features.shape == (2, 3)
         
 def test_experiment_clusters():
     with Experiment('myexperiment', dir=DIRPATH) as exp:
@@ -172,7 +193,7 @@ def test_experiment_recordings():
         
         rd = rec.raw.data
         assert isinstance(rd, tb.EArray)
-        assert rd.shape == (0, 10)
+        assert rd.shape == (0, 3)
         assert rd.dtype == np.int16
         
 def test_experiment_events():
