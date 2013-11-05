@@ -1,8 +1,8 @@
 * spikedetekt2 can be used in two ways:
 
-      1. It offers a single command that accepts PRM/PRB files/dictionaries and performs the whole spike detection (in the future, it might also do clustering).
+   * It offers a single command that accepts PRM/PRB files/dictionaries and performs the whole spike detection (in the future, it might also do clustering).
 
-      2. It offers a Python API to customize the whole process.
+   * It offers a Python API to customize the whole process.
 
 * Method 1 is for regular users, method 2 is for advanced users and especially for ourselves. It will make things simpler when we'll need to try different algorithms or workflows.
 
@@ -15,10 +15,10 @@
 * The method `rd.to_seconds()` accepts a number, a tuple, a list, or an array with samples, 
   and returns the same in seconds.
 
-    rd = RawDataReader('rawdata.ns5', nchannels=?)  # from a binary file
-    rd = RawDataReader('experiment.kwik')  # from a kwik file
-    rd = RawDataReader(rawdata)  # from a NumPy Nsamples x Nchannels array
-    rd = RawDataReader(..., chunk_size=[in samples],
+      rd = RawDataReader('rawdata.ns5', nchannels=?)  # from a binary file
+      rd = RawDataReader('experiment.kwik')  # from a kwik file
+      rd = RawDataReader(rawdata)  # from a NumPy Nsamples x Nchannels array
+      rd = RawDataReader(..., chunk_size=[in samples],
                             chunk_overlap=[in samples], 
                             sample_rate=[in Hz])
     
