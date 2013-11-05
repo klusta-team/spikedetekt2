@@ -27,9 +27,8 @@
     chunk = rd.next_chunk()
     chunk.window_full == (s1, s2)  # with overlap
     chunk.window_keep == (s1, s2)  # without overlap
-    chunk.data_full  # chunk_full_size x Nchannels array
-    chunk.data_keep  # chunk_full_size x Nchannels array
-    chunk.index == 0  # index of the chunk  
+    chunk.data_chunk_full  # chunk_full_size x Nchannels array
+    chunk.data_chunk_keep  # chunk_full_size x Nchannels array
 
     rd.reset()  # reset chunking and move the cursor to the beginning
     
