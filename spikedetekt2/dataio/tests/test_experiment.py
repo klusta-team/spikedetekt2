@@ -70,7 +70,7 @@ def test_resolve_hdf5_path():
     
     close_files(files)
 
-def test_experiment_1():
+def test_experiment_channels():
     with Experiment('myexperiment', dir=DIRPATH) as exp:
         assert exp.name == 'myexperiment'
         assert exp.application_data
@@ -101,7 +101,9 @@ def test_experiment_1():
         assert ch.application_data
         assert ch.user_data
         
-        # Spikes.
+def test_experiment_spikes():
+    with Experiment('myexperiment', dir=DIRPATH) as exp:
+        chgrp = exp.channel_groups[0]
         spikes = chgrp.spikes
         assert isinstance(spikes.time_samples, tb.EArray)
         assert spikes.time_samples.dtype == np.uint64
@@ -135,7 +137,9 @@ def test_experiment_1():
         assert spikes.waveforms_filtered.dtype == np.int16
         assert spikes.waveforms_filtered.ndim == 3
         
-        # Cluster.
+def test_experiment_clusters():
+    with Experiment('myexperiment', dir=DIRPATH) as exp:
+        chgrp = exp.channel_groups[0]
         cluster = chgrp.clusters[0]
         
         assert cluster.application_data
@@ -146,14 +150,17 @@ def test_experiment_1():
         cluster.mean_waveform_raw
         cluster.mean_waveform_filtered
         
-        # Cluster group.
+def test_experiment_cluster_groups():
+    with Experiment('myexperiment', dir=DIRPATH) as exp:
+        chgrp = exp.channel_groups[0]
         cluster_group = chgrp.cluster_groups['noise']
         assert cluster_group.name == 'Noise'
         
         assert cluster_group.application_data
         assert cluster_group.user_data
         
-        # Recordings.
+def test_experiment_recordings():
+    with Experiment('myexperiment', dir=DIRPATH) as exp:
         rec = exp.recordings[0]
         assert rec.name == 'recording_0'
         assert rec.sample_rate == 20000.
@@ -168,7 +175,8 @@ def test_experiment_1():
         assert rd.shape == (0, 10)
         assert rd.dtype == np.int16
         
-        # Event types
+def test_experiment_events():
+    with Experiment('myexperiment', dir=DIRPATH) as exp:
         evtp = exp.event_types['myevents']
         evtp.application_data
         evtp.user_data
