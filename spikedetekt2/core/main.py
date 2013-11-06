@@ -32,6 +32,7 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
     filter_low = prm['filter_low']
     threshold_strong_std_factor = prm['threshold_strong_std_factor']
     threshold_weak_std_factor = prm['threshold_weak_std_factor']
+    join_size = prm['connected_component_join_size']
     
     # Ensure a RawDataReader is instanciated.
     # TODO: concatenate DAT files
@@ -63,17 +64,16 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
         chunk_fil = apply_filter(chunk.data_chunk_keep, filter=filter)
         
         # Apply strong threshold.
-        chunk_strong = apply_threshold(-chunk_fil, threshold_strong,
+        chunk_strong = apply_threshold(chunk_fil, -threshold_strong,
                                      side='below')
-        chunk_weak = apply_threshold(-chunk_fil, threshold_weak,
+        chunk_weak = apply_threshold(chunk_fil, -threshold_weak,
                                      side='below')
-        # 0 = below weak
-        # 1 = between weak and strong
-        # 2 = above strong
-        chunk_twothresh = chunk_strong + chunk_weak
         
         # Find connected component (strong threshold).
-        components = connected_components(chunk_twothresh)
+        # components = connected_components(chunk_strong=chunk_strong, 
+                                          # chunk_weak=chunk_weak,
+                                          # graph=graph,
+                                          # join_size=join_size)
         
         # For each component
             # Alignment.

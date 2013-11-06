@@ -19,3 +19,8 @@ nexcerpts = 50
 excerpt_size = int(1. * sample_rate)
 threshold_strong_std_factor = 4.5
 threshold_weak_std_factor = 2.
+
+# Connected component
+# -------------------
+connected_component_join_size = int(.00005 * sample_rate)
+
