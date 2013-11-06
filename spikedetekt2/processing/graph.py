@@ -3,15 +3,28 @@
 # -----------------------------------------------------------------------------
 # Imports
 # -----------------------------------------------------------------------------
+from itertools import izip
+
 import numpy as np
 from scipy import signal
+from scipy.ndimage.measurements import label
 
 
 # -----------------------------------------------------------------------------
 # Graph
 # -----------------------------------------------------------------------------
-#connected_components_twothresholds - This seems to work now, but keep an eye on it
-# It fails 2 out of 22000 spikes for some reason...
+def _to_tuples(x):
+    return ((i, j) for (i, j) in x)
+    
+def _to_list(x):
+    return [(i, j) for (i, j) in x]
+
+def get_component(chunk, position):
+    """Return the component that the element at the given position belongs
+    to, as a list of pairs of indices."""
+    l = label(chunk)[0]
+    return np.vstack(np.nonzero(l == l[position])).T
+
 def connected_components(chunk_weak=None, chunk_strong=None, 
                          graph=None, join_size=0):
     '''
@@ -19,6 +32,9 @@ def connected_components(chunk_weak=None, chunk_strong=None,
     array chunk_weak, where a pair is adjacent if the samples are within join_size of
     each other, and the channels are adjacent in graph, the channel graph.
     '''
+    
+    if chunk_strong is None:
+        chunk_strong = chunk_weak
     
     assert chunk_weak.shape == chunk_strong.shape
     
@@ -30,7 +46,7 @@ def connected_components(chunk_weak=None, chunk_strong=None,
     join_size = int(join_size)
     
     # an array with the component label for each node in the chunk
-    label_buffer = np.zeros((n_s, n_ch), dtype=int32)
+    label_buffer = np.zeros((n_s, n_ch), dtype=np.int32)
     
     # component indices, a dictionary with keys the label of the component
     # and values a list of pairs (sample, channel) belonging to that component  
@@ -83,7 +99,7 @@ def connected_components(chunk_weak=None, chunk_strong=None,
                         # adjacent component to the current one
                         # samps_chans is an array of pairs sample, channel
                         # currently assigned to component adjlabel
-                        samps_chans = np.array(comp_inds[adjlabel], dtype=int32)
+                        samps_chans = np.array(comp_inds[adjlabel], dtype=np.int32)
                         # samps_chans[:, 0] is the sample indices, so this
                         # gives only the samp,chan pairs that are within
                         # join_size of the current point
