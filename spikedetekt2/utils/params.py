@@ -11,10 +11,17 @@ from six import string_types, iteritems
 # -----------------------------------------------------------------------------
 # Python script <==> dictionaries conversion
 # -----------------------------------------------------------------------------
-def get_params(filename=None, **params):
+def get_params(filename=None, **kwargs):
+    """Return all the parameters, retrieved following this order of priority:
+    
+    * parameters specified as keyword arguments in this function,
+    * parameters specified in the .PRM file given in `filename`,
+    * default parameters.
+    
+    """
     return get_pydict(filename=filename, 
                       pydict_default=load_default_params(),
-                      **params)
+                      **kwargs)
 
 
 # -----------------------------------------------------------------------------
