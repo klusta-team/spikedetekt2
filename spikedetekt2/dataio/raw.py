@@ -6,18 +6,29 @@
 import numpy as np
 
 from chunks import chunk_bounds, Chunk
-from spikedetekt2 import six
+from six import Iterator
 
 
 # -----------------------------------------------------------------------------
 # Raw data readers
 # -----------------------------------------------------------------------------
-class BaseRawDataReader(object):
-    pass
+class BaseRawDataReader(Iterator):
+    def __next__(self):
+        return self.next_chunk()
+        
+    def next_chunk(self):
+        return
+        
+    def reset(self):
+        return
+        
+    def __iter__(self):
+        return self
 
 class NumPyRawDataReader(BaseRawDataReader):
     """Read a NumPy array with raw data by chunks."""
-    def __init__(self, arr, chunk_size=None, chunk_overlap=None):
+    def __init__(self, arr, chunk_size=None, chunk_overlap=0):
+        assert chunk_size is not None, "You need to specify a chunk size."""
         self._arr = arr
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap

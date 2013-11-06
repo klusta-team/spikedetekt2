@@ -60,7 +60,7 @@ class Chunk(object):
         return self._data[self._keep_start:self._keep_end,:]
     
     def __repr__(self):
-        return "<Chunk [{d}|{d}|{d}|{d}], maxlen={d}>".format(
+        return "<Chunk [{0:d}|{1:d}|{2:d}|{3:d}], maxlen={4:d}>".format(
             self._s_start, self._keep_start, self._keep_end, self._s_end,
             self._data.shape[0]
         )

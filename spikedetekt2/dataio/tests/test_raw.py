@@ -27,4 +27,12 @@ def test_raw_data_1():
     assert np.array_equal(ch.data_chunk_full, data[80:180])
     assert np.array_equal(ch.data_chunk_keep, data[90:170])
     
+    assert str(ch)
+    
+def test_raw_data_iterator():
+    data = np.random.randn(200, 4)
+    rd = NumPyRawDataReader(data, chunk_size=100, chunk_overlap=20)
+    
+    assert len([ch for ch in rd]) == 3
+    
     

@@ -13,19 +13,20 @@ from spikedetekt2.core import run
 # Processing tests
 # -----------------------------------------------------------------------------
 def test_run_1():
-    sample_rate = 20000.
+    sample_rate = 20000
     duration = 1.
     nsamples = int(sample_rate * duration)
     nfeatures = 3
     nwavesamples = 10
     nchannels = 2
+    chunk_size = 20000
     
     prm = {
         'nfeatures': nfeatures, 
         'nwavesamples': nwavesamples, 
         'nchannels': nchannels,
         'sample_rate': sample_rate,
-        
+        'chunk_size': chunk_size,
     }
     prb = {'channel_groups': [
         {
