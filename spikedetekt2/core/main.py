@@ -59,17 +59,6 @@ def run(raw_data=None, experiment=None, prm=None, prb=None, **kwargs):
         # Find connected component (high threshold for seeds).
         # For each component
             # Alignment.
-            # t_ = (\sum_{ct} (y_{ct}-B)+^p t) / (\sum_{ct} (y_{ct}-B)+^p)
-            # f = interp1d on all channels
-                # 1: not upsample !!!, find t_, and interp1d()(t_::10)
-                # ((2: upsample: int(t_)::10))
-                # (3: upsample t_::10)
-
-            # other option:
-                # upsample
-                # peak on each channel
-                # weight as above
-    
             # Masking. 
             # linear interp between 2 thresholds for the max sample on each channel
             

@@ -5,7 +5,7 @@
 # -----------------------------------------------------------------------------
 import numpy as np
 
-from spikedetekt2.dataio import chunk_bounds, Chunk
+from spikedetekt2.dataio import chunk_bounds, Chunk, excerpts
 
 
 # -----------------------------------------------------------------------------
@@ -40,5 +40,10 @@ def test_chunk():
     assert np.array_equal(ch.data_chunk_full, data[80:180])
     assert np.array_equal(ch.data_chunk_keep, data[90:170])
     
+def test_excerpts():
+    bounds = [(start, end) for (start, end) in excerpts(100, 
+                                                        nexcerpts=3,
+                                                        excerpt_size=10)]
+    assert bounds == [(0, 10), (45, 55), (90, 100)]
     
     
