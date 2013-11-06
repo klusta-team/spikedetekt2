@@ -1,4 +1,5 @@
 from six import *
 from pydict import *
+from probe import *
 from params import *
 from wrap import *

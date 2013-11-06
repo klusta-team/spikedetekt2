@@ -1,20 +1,14 @@
-"""Handle user-specified and default parameters."""
+"""Probe tests."""
+
 # -----------------------------------------------------------------------------
 # Imports
 # -----------------------------------------------------------------------------
-import os
-
-from spikedetekt2.utils import get_pydict
+from spikedetekt2 import (get_adjacency_graph)
 
 
 # -----------------------------------------------------------------------------
-# Python script <==> dictionaries conversion
+# Tests
 # -----------------------------------------------------------------------------
-def get_probe(filename=None, **kwargs):
-    return get_pydict(filename=filename, **kwargs)
-
-def get_adjacency_graph(prb):
+def test_adjacency_graph():
     # TODO
     pass
-    
-    

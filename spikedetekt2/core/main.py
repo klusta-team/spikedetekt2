@@ -7,7 +7,8 @@ import numpy as np
 
 from spikedetekt2.dataio import BaseRawDataReader, read_raw
 from spikedetekt2.processing import (bandpass_filter, apply_filter, 
-    get_threshold, apply_threshold, connected_components)
+    get_threshold, apply_threshold, connected_components,)
+from spikedetekt2.utils import get_adjacency_graph
 
 
 # -----------------------------------------------------------------------------
@@ -33,6 +34,9 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
     threshold_strong_std_factor = prm['threshold_strong_std_factor']
     threshold_weak_std_factor = prm['threshold_weak_std_factor']
     join_size = prm['connected_component_join_size']
+    
+    # Get the adjacency graph.
+    adjacency = get_adjacency_graph(prb)
     
     # Ensure a RawDataReader is instanciated.
     # TODO: concatenate DAT files
@@ -60,8 +64,8 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
     # Loop through all chunks with overlap.
     for chunk in raw_data.chunks(chunk_size=chunk_size, 
                                  chunk_overlap=chunk_overlap,):
-        # Filter the chunk.
-        chunk_fil = apply_filter(chunk.data_chunk_keep, filter=filter)
+        # Filter the (full) chunk.
+        chunk_fil = apply_filter(chunk.data_chunk_full, filter=filter)
         
         # Apply strong threshold.
         chunk_strong = apply_threshold(chunk_fil, -threshold_strong,
