@@ -52,8 +52,7 @@ def run(raw_data=None, experiment=None, prm=None, prb=None, **kwargs):
     # TODO: raw_data.next_excerpt()
     for excerpt in raw_data.excerpts(nexercepts=prm['nexcerpts'], 
                                      excerpt_size=prm['excerpt_size']):
-        print excerpt
-        # apply_filter(excerpt, filter)
+        excerpt_fil = apply_filter(excerpt.data, filter)
     
     for chunk in raw_data:
         pass

@@ -15,5 +15,5 @@ chunk_overlap = int(.01 * sample_rate)
 # --------
 # Uniformly scattered chunks, for computing the threshold from the std of the
 # signal across the whole recording.
-nexcerpts = 50
+nexcerpts = 10
 excerpt_size = int(1. * sample_rate)

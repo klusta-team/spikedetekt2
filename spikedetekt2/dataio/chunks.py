@@ -93,7 +93,7 @@ class Excerpt(object):
         self.window = bounds
         
     @property
-    def data_excerpt(self):
+    def data(self):
         return self._data[self.start:self.end,:]
     
     def __repr__(self):

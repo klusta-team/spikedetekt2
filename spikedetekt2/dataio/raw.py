@@ -20,13 +20,10 @@ class BaseRawDataReader(Iterator):
         return
         
     def excerpts(self, nexercepts=None, excerpt_size=None):
-        return excerpts(self._data.shape[0],
+        for bounds in excerpts(self._data.shape[0],
                                nexcerpts=nexercepts, 
-                               excerpt_size=excerpt_size)
-        # for bounds in excerpts(self._data.shape[0],
-                               # nexcerpts=nexercepts, 
-                               # excerpt_size=excerpt_size):
-            # yield bounds# Excerpt(self._data, bounds=bounds)
+                               excerpt_size=excerpt_size):
+            yield Excerpt(self._data, bounds=bounds)
         
     def reset(self):
         return

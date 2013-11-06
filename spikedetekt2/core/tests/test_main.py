@@ -21,7 +21,7 @@ from spikedetekt2.utils import itervalues, get_params
 DIRPATH = tempfile.mkdtemp()
 
 sample_rate = 20000
-duration = 10.
+duration = 5.
 nfeatures = 3
 nwavesamples = 10
 nchannels = 2
