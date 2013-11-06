@@ -1,4 +1,4 @@
-"""Manage experiments."""
+"""Object-oriented interface to an experiment's data."""
 
 # -----------------------------------------------------------------------------
 # Imports

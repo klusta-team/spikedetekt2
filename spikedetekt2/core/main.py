@@ -6,6 +6,7 @@
 import numpy as np
 
 from spikedetekt2.dataio import BaseRawDataReader, read_raw
+from spikedetekt2.processing import bandpass_filter, apply_filter
 
 
 # -----------------------------------------------------------------------------
@@ -21,6 +22,7 @@ def run(raw_data=None, experiment=None, prm=None, prb=None, **kwargs):
     
     chunk_size = prm.get('chunk_size', None)
     chunk_overlap = prm.get('chunk_overlap', 0)
+    sample_rate = prm['sample_rate']
     
     if raw_data is not None:
         if not isinstance(raw_data, BaseRawDataReader):
@@ -39,6 +41,16 @@ def run(raw_data=None, experiment=None, prm=None, prb=None, **kwargs):
     # Now, we can assume that raw_data is a valid RawDataReader instance.
     
     # Filtering.
+    # F_LOW = 500. # low pass frequency (Hz)
+    # F_HIGH_FACTOR = 0.95 # high pass frequency as a proportion of the Nyquist freq, used to derive F_HIGH, i.e. F_HIGH = 0.95*SAMPLERATE/2 here
+    # BUTTER_ORDER = 3 # Order of butterworth filter
+    filter = bandpass_filter(order=prm['filter_butter_order'],
+                             rate=sample_rate,
+                             low=prm['filter_low'],
+                             high=prm.get('filter_high',
+                                          (prm['filter_high_factor'] * 
+                                                sample_rate * .5)),
+                             )
     
     # Get the threshold: 50 chunks of 1s evenly scattered along the recording
     # threshold = std (1 for all channels for now, but may be changed later)

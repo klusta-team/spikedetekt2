@@ -5,14 +5,14 @@
 # -----------------------------------------------------------------------------
 import numpy as np
 from scipy import signal
-from spikedetekt2.processing import (apply_filtering, bandpass_filter,
+from spikedetekt2.processing import (apply_filter, bandpass_filter,
     get_whitening_matrix, whiten)
 
 
 # -----------------------------------------------------------------------------
 # Tests
 # -----------------------------------------------------------------------------
-def test_apply_filtering():
+def test_apply_filter():
     """Test bandpass filtering on a combination of two sinusoids."""
     rate = 10000.
     low, high = 100., 200.
@@ -21,7 +21,7 @@ def test_apply_filtering():
     x = np.sin(2*np.pi*low/2*t) + np.cos(2*np.pi*high*2*t)
     # Filter the signal.
     filter = bandpass_filter(low=low, high=high, order=4, rate=rate)
-    x_filtered = apply_filtering(x, filter=filter)
+    x_filtered = apply_filter(x, filter=filter)
     # Check that the bandpass-filtered signal is weak.
     assert np.abs(x[int(2./low*rate):-int(2./low*rate)]).max() >= .9
     assert np.abs(x_filtered[int(2./low*rate):-int(2./low*rate)]).max() <= .1

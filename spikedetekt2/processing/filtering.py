@@ -17,7 +17,7 @@ def bandpass_filter(order=None, rate=None, low=None, high=None):
                          (low/(rate/2.), high/(rate/2.)),
                          'pass')
 
-def apply_filtering(x, filter=None):
+def apply_filter(x, filter=None):
     b, a = filter
     # out_arr = np.zeros_like(x)
     # for i_ch in range(x.shape[1]):
