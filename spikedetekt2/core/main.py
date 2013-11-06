@@ -7,7 +7,7 @@ import numpy as np
 
 from spikedetekt2.dataio import BaseRawDataReader, read_raw
 from spikedetekt2.processing import (bandpass_filter, apply_filter, 
-    get_threshold, apply_threshold)
+    get_threshold, apply_threshold, connected_components)
 
 
 # -----------------------------------------------------------------------------
@@ -30,8 +30,8 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
     filter_butter_order = prm['filter_butter_order']
     filter_high = prm['filter_high']
     filter_low = prm['filter_low']
-    threshold_high_std_factor = prm['threshold_high_std_factor']
-    threshold_low_std_factor = prm['threshold_low_std_factor']
+    threshold_strong_std_factor = prm['threshold_strong_std_factor']
+    threshold_weak_std_factor = prm['threshold_weak_std_factor']
     
     # Ensure a RawDataReader is instanciated.
     # TODO: concatenate DAT files
@@ -41,16 +41,16 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
     else:
         raw_data = read_raw(experiment)
     
-    # Get the high-pass filter.
+    # Get the strong-pass filter.
     filter = bandpass_filter(order=filter_butter_order,
                              rate=sample_rate,
                              low=filter_low,
                              high=filter_high,)
     
-    # Compute the high threshold across excerpts uniformly scattered across the
+    # Compute the strong threshold across excerpts uniformly scattered across the
     # whole recording.
-    factors = (threshold_high_std_factor, threshold_low_std_factor)
-    threshold_high, threshold_low = get_threshold(raw_data, 
+    factors = (threshold_strong_std_factor, threshold_weak_std_factor)
+    threshold_strong, threshold_weak = get_threshold(raw_data, 
                                         filter=filter, 
                                         nexcerpts=nexcerpts,
                                         excerpt_size=excerpt_size,
@@ -62,11 +62,18 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
         # Filter the chunk.
         chunk_fil = apply_filter(chunk.data_chunk_keep, filter=filter)
         
-        # Apply high threshold.
-        chunk_high = apply_threshold(chunk_fil, threshold_high,
-                                     side='abs_above')
+        # Apply strong threshold.
+        chunk_strong = apply_threshold(-chunk_fil, threshold_strong,
+                                     side='below')
+        chunk_weak = apply_threshold(-chunk_fil, threshold_weak,
+                                     side='below')
+        # 0 = below weak
+        # 1 = between weak and strong
+        # 2 = above strong
+        chunk_twothresh = chunk_strong + chunk_weak
         
-        # Find connected component (high threshold for seeds).
+        # Find connected component (strong threshold).
+        components = connected_components(chunk_twothresh)
         
         # For each component
             # Alignment.
