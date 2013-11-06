@@ -50,7 +50,10 @@ class DatRawDataReader(BaseRawDataReader):
 def read_raw(raw, **kwargs):
     if isinstance(raw, np.ndarray):
         return NumPyRawDataReader(raw, **kwargs)
+    elif isinstance(raw, Experiment):
+        # TODO: read from Experiment instance
+        pass
     elif isinstance(raw, string_types):
-        # TODO
+        # TODO: read from .dat file
         pass
     

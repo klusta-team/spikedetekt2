@@ -11,10 +11,13 @@ from spikedetekt2.dataio import BaseRawDataReader, read_raw
 # -----------------------------------------------------------------------------
 # Processing
 # -----------------------------------------------------------------------------
-def run(raw_data=None, prm=None, prb=None, **kwargs):
+def run(raw_data=None, experiment=None, prm=None, prb=None, **kwargs):
     """This main function takes raw data (either as a RawReader, or a path
     to a filename, or an array) and executes the main algorithm (filtering, 
     spike detection, extraction...)."""
+    
+    assert experiment is not None, ("An Experiment instance needs to be "
+        "provided in order to write the output.")
     
     chunk_size = prm.get('chunk_size', None)
     chunk_overlap = prm.get('chunk_overlap', 0)
@@ -25,6 +28,12 @@ def run(raw_data=None, prm=None, prb=None, **kwargs):
                                 chunk_size=chunk_size, 
                                 chunk_overlap=chunk_overlap, 
                                 **kwargs)
+    else:
+        raw_data = read_raw(experiment, 
+                            chunk_size=chunk_size, 
+                            chunk_overlap=chunk_overlap, 
+                            **kwargs)
+        
     # TODO: from PRM, create a RawDataReader that automatically concatenates
     # the different dat files.
     # Now, we can assume that raw_data is a valid RawDataReader instance.
