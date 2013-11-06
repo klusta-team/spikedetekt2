@@ -4,14 +4,16 @@
 # Imports
 # -----------------------------------------------------------------------------
 import numpy as np
+from nose.tools import assert_almost_equal as almeq
 
-from spikedetekt2 import (read_raw, get_threshold, bandpass_filter)
+from spikedetekt2 import (read_raw, get_threshold, bandpass_filter,
+    apply_threshold)
 
 
 # -----------------------------------------------------------------------------
 # Tests
 # -----------------------------------------------------------------------------
-def test_thresholding_1():
+def test_get_threshold_1():
     duration = 10.
     sample_rate = 20000.
     filter_low = 10.
@@ -36,5 +38,12 @@ def test_thresholding_1():
                               threshold_std_factor=4.5)
 
     assert np.abs(threshold - 4.5) < .5
+    
+def test_apply_threshold():
+    X = np.random.randn(10000, 5)
+    almeq(np.mean(apply_threshold(X, 1., side='below')), .84, places=1)
+    almeq(np.mean(apply_threshold(X, 1., side='above')), .16, places=1)
+    almeq(np.mean(apply_threshold(X, 1., side='both')), .68, places=1)
+    
     
     

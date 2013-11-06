@@ -24,7 +24,15 @@ def get_threshold(raw_data, filter=None,
                   use_single_threshold=True,
                   ):
     """Compute the threshold from the standard deviation of the filtered signal
-    across many uniformly scattered excerpts of data."""
+    across many uniformly scattered excerpts of data.
+    
+    threshold_std_factor can be a tuple, in which case multiple thresholds
+    are returned.
+    
+    """
+    
+    if isinstance(threshold_std_factor, tuple):
+        threshold_std_factor = np.array(threshold_std_factor)
     
     # We compute the standard deviation of the signal across the excerpts.
     # WARNING: this may use a lot of RAM.
@@ -46,5 +54,17 @@ def get_threshold(raw_data, filter=None,
     threshold = threshold_std_factor * std
     
     return threshold
+
+def apply_threshold(data, threshold=None, side=None):
+    """Apply a threshold.
     
+    side can be either 'below', 'above', 'both'.
+    
+    """
+    if side == 'below':
+        return data < threshold
+    elif side == 'above':
+        return data > threshold
+    elif side  == 'both':
+        return np.abs(data) < threshold
     
