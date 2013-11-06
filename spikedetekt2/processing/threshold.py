@@ -58,13 +58,15 @@ def get_threshold(raw_data, filter=None,
 def apply_threshold(data, threshold=None, side=None):
     """Apply a threshold.
     
-    side can be either 'below', 'above', 'both'.
+    side can be either 'below', 'above', 'abs_below', 'abs_above'.
     
     """
     if side == 'below':
         return data < threshold
     elif side == 'above':
         return data > threshold
-    elif side  == 'both':
+    elif side  == 'abs_below':
         return np.abs(data) < threshold
+    elif side  == 'abs_above':
+        return np.abs(data) > threshold
     

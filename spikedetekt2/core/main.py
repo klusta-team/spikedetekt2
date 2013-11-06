@@ -7,7 +7,7 @@ import numpy as np
 
 from spikedetekt2.dataio import BaseRawDataReader, read_raw
 from spikedetekt2.processing import (bandpass_filter, apply_filter, 
-    get_threshold)
+    get_threshold, apply_threshold)
 
 
 # -----------------------------------------------------------------------------
@@ -62,7 +62,12 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
         # Filter the chunk.
         chunk_fil = apply_filter(chunk.data_chunk_keep, filter=filter)
         
+        # Apply high threshold.
+        chunk_high = apply_threshold(chunk_fil, threshold_high,
+                                     side='abs_above')
+        
         # Find connected component (high threshold for seeds).
+        
         # For each component
             # Alignment.
             # Masking. 

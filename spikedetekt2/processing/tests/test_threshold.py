@@ -43,7 +43,8 @@ def test_apply_threshold():
     X = np.random.randn(10000, 5)
     almeq(np.mean(apply_threshold(X, 1., side='below')), .84, places=1)
     almeq(np.mean(apply_threshold(X, 1., side='above')), .16, places=1)
-    almeq(np.mean(apply_threshold(X, 1., side='both')), .68, places=1)
+    almeq(np.mean(apply_threshold(X, 1., side='abs_below')), .68, places=1)
+    almeq(np.mean(apply_threshold(X, 1., side='abs_above')), .32, places=1)
     
     
     
