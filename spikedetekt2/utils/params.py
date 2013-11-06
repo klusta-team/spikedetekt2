@@ -4,8 +4,22 @@
 # -----------------------------------------------------------------------------
 import os
 
-import six
+from six import string_types, iteritems
 
+
+# -----------------------------------------------------------------------------
+# Utility functions
+# -----------------------------------------------------------------------------
+def _to_str(val):
+    """Get a string representation of any Python variable."""
+    if isinstance(val, string_types):
+        return "'{0:s}'".format(val)
+    else:
+        return str(val)
+
+def _to_lower(d):
+    return {key.lower(): val for key, val in iteritems(d)}
+    
 
 # -----------------------------------------------------------------------------
 # Python script <==> dictionaries conversion
@@ -14,14 +28,7 @@ def python_to_params(script_contents):
     """Load a Python script with parameters into a dictionary."""
     params = {}
     exec script_contents in {}, params
-    return params
-    
-def _to_str(val):
-    """Get a string representation of any Python variable."""
-    if isinstance(val, six.string_types):
-        return "'{0:s}'".format(val)
-    else:
-        return str(val)
+    return _to_lower(params)
     
 def params_to_python(params):
     """Convert a parameters dictionary into a Python script."""
@@ -30,13 +37,15 @@ def params_to_python(params):
 
 def get_params(filename=None, **params):
     params_default = load_default_params()
-    if isinstance(filename, six.string_types):
+    params_final = params_default.copy()
+    if isinstance(filename, string_types):
         # Path to PRM file.
         with open(filename, 'r') as f:
             params_prm = python_to_params(f.read())
-            params_default.update(params_prm)
-    params_default.update(params)
-    return params_default
+            params_final.update(params_prm)
+    params_final.update(params)
+    return _to_lower(params_final)
+
 
 # -----------------------------------------------------------------------------
 # Default parameters
@@ -47,5 +56,5 @@ def load_default_params():
     with open(params_default_path, 'r') as f:
         params_default_python = f.read()
     params_default = python_to_params(params_default_python)
-    return params_default
+    return _to_lower(params_default)
 

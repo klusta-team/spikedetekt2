@@ -14,12 +14,12 @@ def test_python_to_params():
     """.replace('    ', '').strip()
     
     params = python_to_params(python)
-    assert params['MYVAR1'] == 'myvalue1'
-    assert params['MYVAR2'] == .123
-    assert params['MYVAR3'] == ['myvalue3', .456]
+    assert params['myvar1'] == 'myvalue1'
+    assert params['myvar2'] == .123
+    assert params['myvar3'] == ['myvalue3', .456]
     
 def test_get_params():
-    assert get_params().get('MYVAR1', None) == 'value1'
+    assert get_params().get('myvar1', None) == 'value1'
     
 def test_params_to_python():
     params = dict(
@@ -36,6 +36,6 @@ def test_params_to_python():
     
 def test_default_params():
     params_default = load_default_params()
-    assert params_default['MYVAR1'] == 'value1'
+    assert params_default['myvar1'] == 'value1'
     
 
