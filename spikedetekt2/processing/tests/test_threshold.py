@@ -14,8 +14,8 @@ from spikedetekt2 import (read_raw, get_threshold, bandpass_filter)
 def test_thresholding_1():
     duration = 10.
     sample_rate = 20000.
-    filter_low = 200.
-    filter_high = 1000.
+    filter_low = 10.
+    filter_high = 10000.
     nchannels = 5
     nsamples = int(duration * sample_rate)
     nexcerpts = 3
@@ -34,7 +34,7 @@ def test_thresholding_1():
                               nexcerpts=nexcerpts,
                               excerpt_size=excerpt_size,
                               threshold_std_factor=4.5)
-    
+
     assert np.abs(threshold - 4.5) < .5
     
     

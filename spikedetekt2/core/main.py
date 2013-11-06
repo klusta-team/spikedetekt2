@@ -27,8 +27,10 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
     chunk_overlap = prm.get('chunk_overlap', 0)
     nexcerpts = prm['nexcerpts']
     excerpt_size = prm['excerpt_size']
-    filter_low = prm['filter_low']
+    filter_butter_order = prm['filter_butter_order']
     filter_high = prm['filter_high']
+    filter_low = prm['filter_low']
+    threshold_std_factor = prm['threshold_std_factor']
     
     # Ensure a RawDataReader is instanciated.
     # TODO: concatenate DAT files
@@ -39,21 +41,24 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
         raw_data = read_raw(experiment)
     
     # Get the high-pass filter.
-    filter = bandpass_filter(order=prm['filter_butter_order'],
+    filter = bandpass_filter(order=filter_butter_order,
                              rate=sample_rate,
                              low=filter_low,
-                             high=filter_high,
-                             )
+                             high=filter_high,)
     
     # Compute the threshold across excerpts uniformly scattered across the
     # whole recording.
-    # threshold = get_threshold(raw_data, filter=filter, 
-                              # nexcerpts=nexcerpts,
-                              # excerpt_size=excerpt_size)
+    threshold = get_threshold(raw_data, filter=filter, 
+                              nexcerpts=nexcerpts,
+                              excerpt_size=excerpt_size,
+                              threshold_std_factor=threshold_std_factor,)
     
+    # Loop through all chunks with overlap.
     for chunk in raw_data.chunks(chunk_size=chunk_size, 
                                  chunk_overlap=chunk_overlap,):
+        # Filter the chunk.
         pass
+        
         # Find connected component (high threshold for seeds).
         # For each component
             # Alignment.
