@@ -90,6 +90,7 @@ class Excerpt(object):
         self.nsamples = nsamples
         self.nchannels = nchannels
         self.start, self.end = bounds
+        self.size = self.end - self.start
         self.window = bounds
         
     @property

@@ -11,9 +11,10 @@ filter_butter_order = 3  # Order of Butterworth filter.
 chunk_size = int(sample_rate)
 chunk_overlap = int(.01 * sample_rate)
 
-# Excerpts
-# --------
+# Threshold
+# ---------
 # Uniformly scattered chunks, for computing the threshold from the std of the
 # signal across the whole recording.
 nexcerpts = 10
 excerpt_size = int(1. * sample_rate)
+threshold_std_factor = 4.5

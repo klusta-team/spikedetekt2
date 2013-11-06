@@ -12,50 +12,36 @@ from six import Iterator
 # -----------------------------------------------------------------------------
 # Raw data readers
 # -----------------------------------------------------------------------------
-class BaseRawDataReader(Iterator):
-    def __next__(self):
-        return self.next_chunk()
+class BaseRawDataReader(object):
+    def __init__(self, data):
+        self._data = data
+        self.nsamples, self.nchannels = data.shape
         
-    def next_chunk(self):
-        return
+    def chunks(self, chunk_size=None, 
+                     chunk_overlap=None):
+        assert chunk_size is not None, "You need to specify a chunk size."""
+        for bounds in chunk_bounds(self._data.shape[0], 
+                                   chunk_size=chunk_size, 
+                                   overlap=chunk_overlap):
+            yield Chunk(self._data, bounds=bounds)
         
-    def excerpts(self, nexercepts=None, excerpt_size=None):
+    def excerpts(self, nexcerpts=None, excerpt_size=None):
         for bounds in excerpts(self._data.shape[0],
-                               nexcerpts=nexercepts, 
+                               nexcerpts=nexcerpts, 
                                excerpt_size=excerpt_size):
             yield Excerpt(self._data, bounds=bounds)
-        
-    def reset(self):
-        return
-        
-    def __iter__(self):
-        return self
 
 class NumPyRawDataReader(BaseRawDataReader):
-    """Read a NumPy array with raw data by chunks."""
-    def __init__(self, data, chunk_size=None, chunk_overlap=0):
-        assert chunk_size is not None, "You need to specify a chunk size."""
-        self._data = data
-        self.chunk_size = chunk_size
-        self.chunk_overlap = chunk_overlap
-        self.nsamples, self.nchannels = data.shape
-        self.reset()
-
-    def next_chunk(self):
-        return Chunk(self._data, bounds=next(self._chunks))
-        
-    def reset(self):
-        self._chunks = chunk_bounds(self.nsamples, self.chunk_size, 
-                                    overlap=self.chunk_overlap)
+    pass
 
 class DatRawDataReader(BaseRawDataReader):
     """Read a DAT file by chunks."""
     # TODO
     pass
     
-def read_raw(raw, **kwargs):
+def read_raw(raw):
     if isinstance(raw, np.ndarray):
-        return NumPyRawDataReader(raw, **kwargs)
+        return NumPyRawDataReader(raw)
     elif isinstance(raw, Experiment):
         # TODO: read from Experiment instance
         pass
