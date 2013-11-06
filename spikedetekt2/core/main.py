@@ -41,20 +41,18 @@ def run(raw_data=None, experiment=None, prm=None, prb=None, **kwargs):
     # Now, we can assume that raw_data is a valid RawDataReader instance.
     
     # Filtering.
-    # F_LOW = 500. # low pass frequency (Hz)
-    # F_HIGH_FACTOR = 0.95 # high pass frequency as a proportion of the Nyquist freq, used to derive F_HIGH, i.e. F_HIGH = 0.95*SAMPLERATE/2 here
-    # BUTTER_ORDER = 3 # Order of butterworth filter
     filter = bandpass_filter(order=prm['filter_butter_order'],
                              rate=sample_rate,
                              low=prm['filter_low'],
-                             high=prm.get('filter_high',
-                                          (prm['filter_high_factor'] * 
-                                                sample_rate * .5)),
+                             high=prm['filter_high'],
                              )
     
     # Get the threshold: 50 chunks of 1s evenly scattered along the recording
     # threshold = std (1 for all channels for now, but may be changed later)
     # TODO: raw_data.next_excerpt()
+    # for excerpt in raw_data.excerpts(prm['nexcerpts'], 
+                                     # size=prm['excerpt_size']):
+        # apply_filter(excerpt, filter)
     
     for chunk in raw_data:
         pass

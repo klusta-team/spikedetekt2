@@ -24,11 +24,12 @@ def to_lower(d):
 # -----------------------------------------------------------------------------
 # Python script <==> dictionaries conversion
 # -----------------------------------------------------------------------------
-def python_to_pydict(script_contents):
+def python_to_pydict(script_contents, namespace=None):
     """Load a Python script with dictionaries into a dictionary."""
-    pydict = {}
-    exec script_contents in {}, pydict
-    return to_lower(pydict)
+    if namespace is None:
+        namespace = {}
+    exec script_contents in {}, namespace
+    return to_lower(namespace)
     
 def pydict_to_python(pydict):
     """Convert a dictionaries dictionary into a Python script."""
