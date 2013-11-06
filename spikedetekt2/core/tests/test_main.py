@@ -10,7 +10,7 @@ import numpy as np
 
 from spikedetekt2.dataio import (BaseRawDataReader, read_raw, create_files,
     open_files, close_files, add_recording, add_cluster_group, add_cluster,
-    get_filenames, Experiment)
+    get_filenames, Experiment, excerpts)
 from spikedetekt2.core import run
 from spikedetekt2.utils import itervalues, get_params
 
@@ -21,7 +21,7 @@ from spikedetekt2.utils import itervalues, get_params
 DIRPATH = tempfile.mkdtemp()
 
 sample_rate = 20000
-duration = 1.
+duration = 10.
 nfeatures = 3
 nwavesamples = 10
 nchannels = 2
@@ -70,11 +70,8 @@ def teardown():
 def test_run_1():
     
     # Add "spikes".
-    raw_data[100:110] *= 5
-    raw_data[1100:1110] *= 5
-    raw_data[10000:10010] *= 5
-    
-    
+    for start, end in excerpts(nsamples, nexcerpts=100, excerpt_size=10):
+        raw_data[start:end] *= 5
     
     # Run the algorithm.
     with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:

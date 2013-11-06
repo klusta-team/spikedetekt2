@@ -50,8 +50,9 @@ def run(raw_data=None, experiment=None, prm=None, prb=None, **kwargs):
     # Get the threshold: 50 chunks of 1s evenly scattered along the recording
     # threshold = std (1 for all channels for now, but may be changed later)
     # TODO: raw_data.next_excerpt()
-    # for excerpt in raw_data.excerpts(prm['nexcerpts'], 
-                                     # size=prm['excerpt_size']):
+    for excerpt in raw_data.excerpts(nexercepts=prm['nexcerpts'], 
+                                     excerpt_size=prm['excerpt_size']):
+        print excerpt
         # apply_filter(excerpt, filter)
     
     for chunk in raw_data:

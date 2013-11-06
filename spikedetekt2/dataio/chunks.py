@@ -37,10 +37,14 @@ def chunk_bounds(nsamples, chunk_size, overlap=0):
 
 def excerpts(nsamples, nexcerpts=None, excerpt_size=None):
     """Yield (start, end) where start is included and end is excluded."""
-    step = (nsamples - excerpt_size) // (nexcerpts - 1)
+    step = max((nsamples - excerpt_size) // (nexcerpts - 1),
+               excerpt_size)
+    
     for i in range(nexcerpts):
         start = i * step
-        end = start + excerpt_size
+        if start >= nsamples:
+            break
+        end = min(start + excerpt_size, nsamples)
         yield start, end
     
     
@@ -79,22 +83,21 @@ class Chunk(object):
 # -----------------------------------------------------------------------------
 class Excerpt(object):
     def __init__(self, data=None, nsamples=None, nchannels=None,
-                 start=None, end=None):
+                 bounds=None):
         self._data = data
         if nsamples is None and nchannels is None:
             nsamples, nchannels = data.shape
         self.nsamples = nsamples
         self.nchannels = nchannels
-        self.start = start
-        self.end = end
-        self.window = (start, end)
+        self.start, self.end = bounds
+        self.window = bounds
         
     @property
     def data_excerpt(self):
         return self._data[self.start:self.end,:]
     
     def __repr__(self):
-        return "<Excerpt [{0:d}:{1:d}], maxlen={4:d}>".format(
+        return "<Excerpt [{0:d}:{1:d}], maxlen={2:d}>".format(
             self.start, self.end, self._data.shape[0]
         )
         

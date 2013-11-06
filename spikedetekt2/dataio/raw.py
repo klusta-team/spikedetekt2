@@ -5,30 +5,13 @@
 # -----------------------------------------------------------------------------
 import numpy as np
 
-from chunks import chunk_bounds, Chunk
+from chunks import chunk_bounds, Chunk, Excerpt, excerpts
 from six import Iterator
 
 
 # -----------------------------------------------------------------------------
 # Raw data readers
 # -----------------------------------------------------------------------------
-class Excerpts(Iterator):
-    def __init__(self, data=None, nexcerpts=None, excerpt_size=None):
-        self.data = data
-        self.nsamples = data.shape[0]
-        self.nexcerpts = nexcerpts
-        self.excerpt_size = excerpt_size
-        self.step = (self.nsamples - self.excerpt_size) // self.nexcerpts
-    
-    def __next__(self):
-        for i in range(self.nexcerpts):
-            start = i * self.step
-            end = start + self.excerpt_size
-        return Excerpt(self.data, start=start, end=end)
-        
-    def __iter__(self):
-        return self
-
 class BaseRawDataReader(Iterator):
     def __next__(self):
         return self.next_chunk()
@@ -37,8 +20,13 @@ class BaseRawDataReader(Iterator):
         return
         
     def excerpts(self, nexercepts=None, excerpt_size=None):
-        return Excerpts(self._data,
-                        nexercepts=nexercepts, excerpt_size=excerpt_size)
+        return excerpts(self._data.shape[0],
+                               nexcerpts=nexercepts, 
+                               excerpt_size=excerpt_size)
+        # for bounds in excerpts(self._data.shape[0],
+                               # nexcerpts=nexercepts, 
+                               # excerpt_size=excerpt_size):
+            # yield bounds# Excerpt(self._data, bounds=bounds)
         
     def reset(self):
         return

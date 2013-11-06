@@ -40,10 +40,16 @@ def test_chunk():
     assert np.array_equal(ch.data_chunk_full, data[80:180])
     assert np.array_equal(ch.data_chunk_keep, data[90:170])
     
-def test_excerpts():
+def test_excerpts_1():
     bounds = [(start, end) for (start, end) in excerpts(100, 
                                                         nexcerpts=3,
                                                         excerpt_size=10)]
     assert bounds == [(0, 10), (45, 55), (90, 100)]
+    
+def test_excerpts_2():
+    bounds = [(start, end) for (start, end) in excerpts(10, 
+                                                        nexcerpts=3,
+                                                        excerpt_size=10)]
+    assert bounds == [(0, 10),]
     
     
