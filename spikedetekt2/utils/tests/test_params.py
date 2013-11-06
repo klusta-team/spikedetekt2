@@ -19,7 +19,7 @@ def test_python_to_params():
     assert params['myvar3'] == ['myvalue3', .456]
     
 def test_get_params():
-    assert get_params().get('myvar1', None) == 'value1'
+    assert get_params().get('filter_butter_order', None) == 3
     
 def test_params_to_python():
     params = dict(
@@ -36,6 +36,6 @@ def test_params_to_python():
     
 def test_default_params():
     params_default = load_default_params()
-    assert params_default['myvar1'] == 'value1'
+    assert params_default['filter_butter_order'] == 3
     
 
