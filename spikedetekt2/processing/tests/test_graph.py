@@ -18,6 +18,7 @@ def _clip(x, m, M):
 n = 5
 graph = {i: set(_clip([i-1, i+1], 0, n))
             for i in range(n)}
+print "Graph", graph
 
 def test_get_component():
     chunk = np.array([
@@ -45,9 +46,9 @@ def test_connected_components_1():
         [0, 1, 0, 1, 1]
     ])
     components = connected_components(chunk, graph=graph)
+    print "Test1"
     for c in components:
         print c
-    # assert len(components) == 7
     
 def test_connected_components_2():
     chunk = np.array([
@@ -58,7 +59,7 @@ def test_connected_components_2():
         [0, 1, 0, 1, 1]
     ])
     components = connected_components(chunk, graph=graph, join_size=1)
+    print "Test2"
     for c in components:
         print c
-    # assert len(components) == 7
     
