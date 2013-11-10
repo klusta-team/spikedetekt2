@@ -19,12 +19,10 @@ All files are in HDF5.
       * the **KWX** file contains the **spiking data**: features, masks, waveforms
       * the **KWD** files contain the **raw/filtered recordings**
   
-  * Once spike sorting is finished, one can discard the KWX and KWD files and just keep the KWIK file which contains everything.
+  * Once spike sorting is finished, one can discard the KWX and KWD files and just keep the KWIK file for subsequent analysis (where spike sorting information like features, waveforms... are not necessary).
 
   * All files contain a **version number** in `/` (`kwik_version` attribute), which is an integer equal to 2 now.
 
-  * The `name` field is always compulsory (defaults to something like `cluster_group_X`).
-  
   * The input files the user provides to the programs to generate these data are:
   
       * the **raw data** coming out from the acquisition system, in any proprietary format (NS5, etc.)
@@ -171,7 +169,7 @@ This JSON text file describes the probe used for the experiment: its geometry, i
 
 ### PRM
 
-This text file (written in a tiny subset of Python) contains all parameters necessary for the programs to process, open and display the data. Each line is either a comment (starting with #) or a `VARNAME = VALUE` where VARNAME is the variable name, and VALUE is either a number, a string (within quotes), or a list of those. This structure ensures that it's easy to read/write this file programmatically.
+This Python script defines all parameters necessary for the programs to process, open and display the data.
 
     EXPERIMENT_NAME = 'myexperiment'
     RAW_DATA_FILES = ['n6mab041109blahblah1.ns5', 'n6mab041109blahblah2.ns5']
@@ -187,9 +185,4 @@ This text file (written in a tiny subset of Python) contains all parameters nece
     
     # SpikeDetekt parameters file
     # ...
-
-
-
-
-
 
