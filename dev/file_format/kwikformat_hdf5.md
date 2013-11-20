@@ -54,7 +54,7 @@ Below is the structure of the KWIK file.Everything is a group, except fields wit
                     kwd_index*
                     ignored*
                     position* (in microns relative to the whole multishank probe)
-                    voltage_gain*
+                    voltage_gain* (in microvolts)
                     display_threshold*
                     application_data
                         klustaviewa
