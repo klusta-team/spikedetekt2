@@ -6,8 +6,8 @@
 from itertools import izip
 
 import numpy as np
-from scipy import signal
-from scipy.ndimage.measurements import label
+# from scipy import signal
+# from scipy.ndimage.measurements import label
 
 
 # -----------------------------------------------------------------------------
@@ -19,11 +19,11 @@ def _to_tuples(x):
 def _to_list(x):
     return [(i, j) for (i, j) in x]
 
-def get_component(chunk, position):
-    """Return the component that the element at the given position belongs
-    to, as a list of pairs of indices."""
-    l = label(chunk)[0]
-    return np.vstack(np.nonzero(l == l[position])).T
+# def get_component(chunk, position):
+    # """Return the component that the element at the given position belongs
+    # to, as a list of pairs of indices."""
+    # l = label(chunk)[0]
+    # return np.vstack(np.nonzero(l == l[position])).T
 
 def connected_components(chunk_weak=None, chunk_strong=None, 
                          graph=None, join_size=0):
@@ -114,6 +114,7 @@ def connected_components(chunk_weak=None, chunk_strong=None,
                         # adjacent component entirely
                         comp_inds[curlabel].extend(comp_inds.pop(adjlabel))
                         #did not deal with merge condition, now fixed it seems...
+                        # WARNING: this "in" might incur a performance hit here...?
                         if adjlabel in strong_nodes:
                             strong_nodes.add(curlabel)
                         
@@ -123,7 +124,6 @@ def connected_components(chunk_weak=None, chunk_strong=None,
                     if curlabel > 0 and chunk_strong[i_s, i_ch]:
                         strong_nodes.add(curlabel) 
                   
-                        
         if label_buffer[i_s, i_ch]==0:
             # if nothing is adjacent, we have the beginnings of a new component,
             # so we label it, create a new list for the new component which is
@@ -131,6 +131,8 @@ def connected_components(chunk_weak=None, chunk_strong=None,
             # component afterwards
             label_buffer[i_s, i_ch] = c_label
             comp_inds[c_label] = [(i_s, i_ch)]
+            if chunk_strong[i_s, i_ch]:
+                strong_nodes.add(c_label)
             c_label += 1
             
     # only return the values, because we don't actually need the labels

@@ -6,11 +6,11 @@
 import numpy as np
 
 from spikedetekt2.processing.graph import (connected_components, 
-    get_component, _to_tuples, _to_list)
+    _to_tuples, _to_list)
 
 
 # -----------------------------------------------------------------------------
-# Tests
+# Utility functions
 # -----------------------------------------------------------------------------
 def _clip(x, m, M):
     return [_ for _ in x if m <= _ < M]
@@ -18,48 +18,143 @@ def _clip(x, m, M):
 n = 5
 graph = {i: set(_clip([i-1, i+1], 0, n))
             for i in range(n)}
-print "Graph", graph
 
-def test_get_component():
-    chunk = np.array([
-        [0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0],
-        [1, 0, 1, 1, 0],
-        [1, 0, 0, 1, 0],
-        [0, 1, 0, 1, 1]
-    ])
-    position = (2, 3)
-    comp = _to_list(get_component(chunk, position))
-    assert (1, 1) not in comp
-    assert (1, 2) in comp
-    assert (2, 0) not in comp
-    assert (2, 2) in comp
-    assert (2, 3) in comp
-    assert (3, 3) in comp
+CHUNK = [
+            [0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0],
+            [1, 0, 1, 1, 0],
+            [1, 0, 0, 1, 0],
+            [0, 1, 0, 1, 1],
+        ]
+            
+def _assert_components(chunk, components, **kwargs):
+    if not isinstance(chunk, np.ndarray):
+        chunk = np.array(chunk)
+    chunk_strong = kwargs.pop('chunk_strong', [])
+    if not isinstance(chunk_strong, np.ndarray):
+        chunk_strong = np.array(chunk_strong)
+    comp = connected_components(chunk, graph=graph, **kwargs)
+    assert len(comp) == len(components)
+    for c1, c2 in zip(comp, components):
+        assert set(c1) == set(c2)
     
-def test_connected_components_1():
-    chunk = np.array([
-        [0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0],
-        [1, 0, 1, 1, 0],
-        [1, 0, 0, 1, 0],
-        [0, 1, 0, 1, 1]
-    ])
-    components = connected_components(chunk, graph=graph)
-    print "Test1"
-    for c in components:
-        print c
     
-def test_connected_components_2():
-    chunk = np.array([
-        [0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0],
-        [1, 0, 1, 1, 0],
-        [1, 0, 0, 1, 0],
-        [0, 1, 0, 1, 1]
-    ])
-    components = connected_components(chunk, graph=graph, join_size=1)
-    print "Test2"
-    for c in components:
-        print c
+# -----------------------------------------------------------------------------
+# Tests A: 1 time step, 1 element
+# -----------------------------------------------------------------------------
+def test_components_A_1():
+    _assert_components([
+            [0, 0, 0, 0, 0],
+        ],  [])
+        
+def test_components_A_2():
+    _assert_components([
+            [1, 0, 0, 0, 0],
+        ],  [[(0, 0)]])
+        
+def test_components_A_3():
+    _assert_components([
+            [0, 1, 0, 0, 0],
+        ],  [[(0, 1)]])
+        
+def test_components_A_4():
+    _assert_components([
+            [0, 0, 0, 1, 0],
+        ],  [[(0, 3)]])
+        
+def test_components_A_5():
+    _assert_components([
+            [0, 0, 0, 0, 1],
+        ],  [[(0, 4)]])
+        
     
+# -----------------------------------------------------------------------------
+# Tests B: 1 time step, 2 elements
+# -----------------------------------------------------------------------------
+def test_components_B_1():
+    _assert_components([
+            [1, 1, 0, 0, 0],
+        ],  [[(0, 0), (0, 1)]])
+        
+def test_components_B_2():
+    _assert_components([
+            [1, 0, 1, 0, 0],
+        ],  [[(0, 0)], [(0, 2)]])
+        
+def test_components_B_3():
+    _assert_components([
+            [1, 0, 0, 0, 1],
+        ],  [[(0, 0)], [(0, 4)]])
+        
+def test_components_B_4():
+    _assert_components([
+            [0, 1, 0, 1, 0],
+        ],  [[(0, 1)], [(0, 3)]])
+        
+    
+# -----------------------------------------------------------------------------
+# Tests C: 1 time step, 3 elements
+# -----------------------------------------------------------------------------
+def test_components_C_1():
+    _assert_components([
+            [1, 1, 1, 0, 0],
+        ],  [[(0, 0), (0, 1), (0, 2)]])
+        
+def test_components_C_2():
+    _assert_components([
+            [1, 1, 0, 1, 0],
+        ],  [[(0, 0), (0, 1)], [(0, 3)]])
+        
+def test_components_C_3():
+    _assert_components([
+            [1, 0, 1, 1, 0],
+        ],  [[(0, 0)], [(0, 2), (0, 3)]])
+        
+def test_components_C_4():
+    _assert_components([
+            [0, 1, 1, 1, 0],
+        ],  [[(0, 1), (0, 2), (0, 3)]])
+        
+def test_components_C_5():
+    _assert_components([
+            [0, 1, 1, 0, 1],
+        ],  [[(0, 1), (0, 2)], [(0, 4)]])
+        
+    
+# -----------------------------------------------------------------------------
+# Tests D: 5 time steps
+# -----------------------------------------------------------------------------
+def test_components_D_1():
+    _assert_components([
+            [0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0],
+            [1, 0, 1, 1, 0],
+            [1, 0, 0, 1, 0],
+            [0, 1, 0, 1, 1],
+        ],  [[(1, 2)], 
+             [(2, 0)], [(2, 2), (2, 3)],
+             [(3, 0)], [(3, 3)],
+             [(4, 1)], [(4, 3), (4, 4)],
+             ])
+        
+def test_components_D_2():
+    _assert_components([
+            [0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0],
+            [1, 0, 1, 1, 0],
+            [1, 0, 0, 1, 0],
+            [0, 1, 0, 1, 1],
+        ],  [[(1, 2), (2, 2), (2, 3), (3, 3), (4, 3), (4, 4)], 
+             [(2, 0), (3, 0), (4, 1)],
+             ],
+        join_size=1
+        )
+        
+def test_components_D_3():
+    _assert_components(CHUNK,  
+            [[(1, 2), (2, 2), (2, 3), (3, 3), (4, 3), (4, 4), 
+              (2, 0), (3, 0), (4, 1)],
+             ],
+        join_size=2
+        )
+        
