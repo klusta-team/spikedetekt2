@@ -113,14 +113,14 @@ def connected_components(chunk_weak=None, chunk_strong=None,
                         # add them to the current label list, and remove the
                         # adjacent component entirely
                         comp_inds[curlabel].extend(comp_inds.pop(adjlabel))
-                        #did not deal with merge condition, now fixed it seems...
-                        # WARNING: this "in" might incur a performance hit here...?
+                        # did not deal with merge condition, now fixed it seems...
+                        # WARNING: might this "in" incur a performance hit here...?
                         if adjlabel in strong_nodes:
                             strong_nodes.add(curlabel)
+                            strong_nodes.remove(adjlabel)
                         
                     # NEW: add the current component label to the set of all
                     # strong nodes, if the current node is strong
-
                     if curlabel > 0 and chunk_strong[i_s, i_ch]:
                         strong_nodes.add(curlabel) 
                   

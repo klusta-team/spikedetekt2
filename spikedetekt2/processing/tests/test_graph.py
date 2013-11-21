@@ -30,11 +30,13 @@ CHUNK = [
 def _assert_components(chunk, components, **kwargs):
     if not isinstance(chunk, np.ndarray):
         chunk = np.array(chunk)
-    chunk_strong = kwargs.pop('chunk_strong', [])
-    if not isinstance(chunk_strong, np.ndarray):
+    chunk_strong = kwargs.pop('chunk_strong', None)
+    if chunk_strong is not None and not isinstance(chunk_strong, np.ndarray):
         chunk_strong = np.array(chunk_strong)
-    comp = connected_components(chunk, graph=graph, **kwargs)
-    assert len(comp) == len(components)
+    comp = connected_components(chunk, graph=graph, 
+                                chunk_strong=chunk_strong,
+                                **kwargs)   
+    assert len(comp) == len(components), (len(comp), len(components))
     for c1, c2 in zip(comp, components):
         assert set(c1) == set(c2)
     
@@ -122,7 +124,7 @@ def test_components_C_5():
         
     
 # -----------------------------------------------------------------------------
-# Tests D: 5 time steps
+# Tests D: 5 time steps, varying join_size
 # -----------------------------------------------------------------------------
 def test_components_D_1():
     _assert_components([
@@ -156,5 +158,80 @@ def test_components_D_3():
               (2, 0), (3, 0), (4, 1)],
              ],
         join_size=2
+        )
+        
+
+# -----------------------------------------------------------------------------
+# Tests E: 5 time steps, strong != weak
+# -----------------------------------------------------------------------------
+def test_components_E_1():
+    _assert_components(CHUNK,
+            [],
+        join_size=0,
+        chunk_strong=[
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+        ]
+        )
+        
+def test_components_E_2():
+    _assert_components(CHUNK,
+            [[(1, 2)], 
+             ],
+        join_size=0,
+        chunk_strong=[
+            [0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+        ]
+        )
+        
+def test_components_E_3():
+    _assert_components(CHUNK,
+            [[(1, 2), (2, 2), (2, 3), (3, 3), (4, 3), (4, 4)],
+             ],
+        join_size=1,
+        chunk_strong=[
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1],
+        ]
+        )
+        
+def test_components_E_4():
+    _assert_components(CHUNK,
+            [[(1, 2), (2, 2), (2, 3), (3, 3), (4, 3), (4, 4), 
+              (2, 0), (3, 0), (4, 1)],
+             ],
+        join_size=2,
+        chunk_strong=[
+            [0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+        ]
+        )
+        
+def test_components_E_5():
+    _assert_components(CHUNK,
+            [[(1, 2), (2, 2), (2, 3), (3, 3), (4, 3), (4, 4), 
+              (2, 0), (3, 0), (4, 1)],
+             ],
+        join_size=2,
+        chunk_strong=[
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0],
+        ]
         )
         
