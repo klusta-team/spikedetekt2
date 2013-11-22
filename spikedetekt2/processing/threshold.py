@@ -17,12 +17,7 @@ def _n_sum_sum2(x):
                       np.sum(x, axis=0),
                       np.sum(x * x, axis=0)))
 
-def get_threshold(raw_data, filter=None, 
-                  nexcerpts=None,
-                  excerpt_size=None,
-                  threshold_std_factor=None,
-                  use_single_threshold=True,
-                  ):
+def get_threshold(raw_data, filter=None, **prm):
     """Compute the threshold from the standard deviation of the filtered signal
     across many uniformly scattered excerpts of data.
     
@@ -30,6 +25,14 @@ def get_threshold(raw_data, filter=None,
     are returned.
     
     """
+    
+    nexcerpts = prm.get('nexcerpts', None)
+    excerpt_size = prm.get('excerpt_size', None)
+    use_single_threshold = prm.get('use_single_threshold', True)
+    threshold_strong_std_factor = prm.get('threshold_strong_std_factor', None)
+    threshold_weak_std_factor = prm.get('threshold_weak_std_factor', None)
+    threshold_std_factor = prm.get('threshold_std_factor', 
+        (threshold_strong_std_factor, threshold_weak_std_factor))
     
     if isinstance(threshold_std_factor, tuple):
         threshold_std_factor = np.array(threshold_std_factor)

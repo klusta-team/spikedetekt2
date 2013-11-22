@@ -26,17 +26,12 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
     sample_rate = prm['sample_rate']
     chunk_size = prm.get('chunk_size', None)
     chunk_overlap = prm.get('chunk_overlap', 0)
-    nexcerpts = prm['nexcerpts']
-    excerpt_size = prm['excerpt_size']
     filter_butter_order = prm['filter_butter_order']
     filter_high = prm['filter_high']
     filter_low = prm['filter_low']
-    threshold_strong_std_factor = prm['threshold_strong_std_factor']
-    threshold_weak_std_factor = prm['threshold_weak_std_factor']
-    join_size = prm['connected_component_join_size']
     
     # Get the adjacency graph.
-    adjacency = get_adjacency_graph(prb)
+    graph = get_adjacency_graph(prb)
     
     # Ensure a RawDataReader is instanciated.
     # TODO: concatenate DAT files
@@ -50,16 +45,13 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
     filter = bandpass_filter(order=filter_butter_order,
                              rate=sample_rate,
                              low=filter_low,
-                             high=filter_high,)
+                             high=filter_high)
     
     # Compute the strong threshold across excerpts uniformly scattered across the
     # whole recording.
-    factors = (threshold_strong_std_factor, threshold_weak_std_factor)
     threshold_strong, threshold_weak = get_threshold(raw_data, 
-                                        filter=filter, 
-                                        nexcerpts=nexcerpts,
-                                        excerpt_size=excerpt_size,
-                                        threshold_std_factor=factors)
+                                                     filter=filter, 
+                                                     **prm)
     
     # Loop through all chunks with overlap.
     for chunk in raw_data.chunks(chunk_size=chunk_size, 
@@ -69,15 +61,15 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
         
         # Apply strong threshold.
         chunk_strong = apply_threshold(chunk_fil, -threshold_strong,
-                                     side='below')
+                                       side='below')
         chunk_weak = apply_threshold(chunk_fil, -threshold_weak,
-                                     side='below')
+                                       side='below')
         
         # Find connected component (strong threshold).
-        # components = connected_components(chunk_strong=chunk_strong, 
-                                          # chunk_weak=chunk_weak,
-                                          # graph=graph,
-                                          # join_size=join_size)
+        components = connected_components(chunk_strong=chunk_strong, 
+                                          chunk_weak=chunk_weak,
+                                          graph=graph,
+                                          **prm)
         
         # For each component
             # Alignment.

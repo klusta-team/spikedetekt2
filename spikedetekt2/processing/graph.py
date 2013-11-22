@@ -6,8 +6,6 @@
 from itertools import izip
 
 import numpy as np
-# from scipy import signal
-# from scipy.ndimage.measurements import label
 
 
 # -----------------------------------------------------------------------------
@@ -19,19 +17,27 @@ def _to_tuples(x):
 def _to_list(x):
     return [(i, j) for (i, j) in x]
 
-# def get_component(chunk, position):
-    # """Return the component that the element at the given position belongs
-    # to, as a list of pairs of indices."""
-    # l = label(chunk)[0]
-    # return np.vstack(np.nonzero(l == l[position])).T
-
 def connected_components(chunk_weak=None, chunk_strong=None, 
-                         graph=None, join_size=0):
-    '''
-    Returns a list of pairs (samp, chan) of the connected components in the 2D
+                         graph=None, **prm):
+    """
+    Return a list of pairs (samp, chan) of the connected components in the 2D
     array chunk_weak, where a pair is adjacent if the samples are within join_size of
     each other, and the channels are adjacent in graph, the channel graph.
-    '''
+    
+    Arguments:
+    
+    * chunk_weak: Nsamples x Nchannels array with weak threshold crossings
+    * chunk_strong: Nsamples x Nchannels array with strong threshold crossings
+    * graph: a dict {channel: [neighbors]}
+    * join_size: the number of samples defining the tolerance in time for
+      finding connected components
+    
+    """
+    
+    join_size = prm.get('join_size', 0)
+    
+    if graph is None:
+        graph = {}
     
     if chunk_strong is None:
         chunk_strong = chunk_weak
