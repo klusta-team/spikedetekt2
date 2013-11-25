@@ -17,4 +17,6 @@ def get_adjacency_graph(prb):
     # TODO
     pass
     
-    
+# TODO: Probe class
+class Probe(object):
+    pass
