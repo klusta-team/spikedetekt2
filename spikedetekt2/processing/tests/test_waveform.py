@@ -4,13 +4,13 @@
 # Imports
 # -----------------------------------------------------------------------------
 import numpy as np
-from spikedetekt2.processing import (align)
+from spikedetekt2.processing import extract_waveform
 
 
 # -----------------------------------------------------------------------------
 # Tests
 # -----------------------------------------------------------------------------
-def test_align_1():
+def test_extract_waveform_1():
     pass
     
     

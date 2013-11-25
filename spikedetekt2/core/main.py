@@ -7,7 +7,7 @@ import numpy as np
 
 from spikedetekt2.dataio import BaseRawDataReader, read_raw
 from spikedetekt2.processing import (bandpass_filter, apply_filter, 
-    get_threshold, apply_threshold, connected_components,)
+    get_threshold, apply_threshold, connected_components, extract_waveform)
 from spikedetekt2.utils import get_adjacency_graph
 
 
@@ -23,12 +23,8 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
         "provided in order to write the output.")
     
     # Get parameters from the PRM dictionary.
-    # sample_rate = prm['sample_rate']
     chunk_size = prm.get('chunk_size', None)
     chunk_overlap = prm.get('chunk_overlap', 0)
-    # filter_butter_order = prm['filter_butter_order']
-    # filter_high = prm['filter_high']
-    # filter_low = prm['filter_low']
     
     # Get the adjacency graph.
     graph = get_adjacency_graph(prb)
@@ -69,6 +65,15 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
                                           **prm)
         
         # For each component
+        # TODO: waveform class with __cmp__ as a function of fractional peak
+        waveforms = [extract_waveform(component,
+                                      chunk_strong=chunk_strong,
+                                      chunk_weak=chunk_weak,
+                                      threshold_strong=threshold_strong,
+                                      threshold_weak=threshold_weak,
+                                      **prm) 
+                     for component in components]
+            
             # Alignment.
             # Masking. 
             # linear interp between 2 thresholds for the max sample on each channel
