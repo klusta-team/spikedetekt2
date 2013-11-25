@@ -73,10 +73,13 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
                                       threshold_weak=threshold_weak,
                                       **prm) 
                      for component in components]
-            
-            # Alignment.
-            # Masking. 
-            # linear interp between 2 thresholds for the max sample on each channel
+        # Sort waveforms by increasing order of fractional time.
+        for waveform in sorted(waveforms):
+            # TODO: channel group index? get the shank from the connected 
+            # component, maybe a field of waveforms
+            # experiment.channel_groups[0].spikes.add(#TODO
+                                                    # )
+            pass
             
     # Feature extraction.
         # PCA: sample 10000 waveforms evenly in time
