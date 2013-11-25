@@ -11,8 +11,12 @@ from spikedetekt2.utils.six.moves import range
 # -----------------------------------------------------------------------------
 # Signal processing functions
 # -----------------------------------------------------------------------------
-def bandpass_filter(order=None, rate=None, low=None, high=None):
+def bandpass_filter(**prm):
     """Bandpass filtering."""
+    rate = prm['sample_rate']
+    order = prm['filter_butter_order']
+    low = prm['filter_low']
+    high = prm['filter_high']
     return signal.butter(order,
                          (low/(rate/2.), high/(rate/2.)),
                          'pass')

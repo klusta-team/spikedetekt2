@@ -12,11 +12,6 @@ from spikedetekt2.processing import apply_filter
 # -----------------------------------------------------------------------------
 # Thresholding
 # -----------------------------------------------------------------------------
-def _n_sum_sum2(x):
-    return np.vstack(((x.shape[0],) * x.shape[1],
-                      np.sum(x, axis=0),
-                      np.sum(x * x, axis=0)))
-
 def get_threshold(raw_data, filter=None, **prm):
     """Compute the threshold from the standard deviation of the filtered signal
     across many uniformly scattered excerpts of data.

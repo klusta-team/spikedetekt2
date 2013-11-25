@@ -20,7 +20,8 @@ def test_apply_filter():
     t = np.linspace(0., 1., rate)
     x = np.sin(2*np.pi*low/2*t) + np.cos(2*np.pi*high*2*t)
     # Filter the signal.
-    filter = bandpass_filter(low=low, high=high, order=4, rate=rate)
+    filter = bandpass_filter(filter_low=low,
+        filter_high=high, filter_butter_order=4, sample_rate=rate)
     x_filtered = apply_filter(x, filter=filter)
     # Check that the bandpass-filtered signal is weak.
     assert np.abs(x[int(2./low*rate):-int(2./low*rate)]).max() >= .9

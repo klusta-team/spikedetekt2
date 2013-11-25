@@ -26,10 +26,10 @@ def test_get_threshold_1():
     X = np.random.randn(nsamples, nchannels)
     raw_data = read_raw(X)
     
-    filter = bandpass_filter(order=3,
-                             rate=sample_rate,
-                             low=filter_low,
-                             high=filter_high,
+    filter = bandpass_filter(filter_butter_order=3,
+                             sample_rate=sample_rate,
+                             filter_low=filter_low,
+                             filter_high=filter_high,
                              )
                              
     threshold = get_threshold(raw_data, filter=filter, 
