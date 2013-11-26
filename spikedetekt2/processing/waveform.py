@@ -28,8 +28,12 @@ class Waveform(object):
 def extract_waveform(component, chunk_strong=None, chunk_weak=None,
                      threshold_strong=None, threshold_weak=None, 
                      probe=None, **prm):
-    pass
-    # Find the channel_group of the spike
-    # 
+    """
+    * component: list of (isample, ichannel) pairs.
+    
+    """
+    assert len(component) > 0
+    # Find the channel_group of the spike.
+    ichannel_group = probe.channel_to_group[component[0][1]]
     
     

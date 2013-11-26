@@ -68,6 +68,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
                                       chunk_weak=chunk_weak,
                                       threshold_strong=threshold_strong,
                                       threshold_weak=threshold_weak,
+                                      probe=probe,
                                       **prm) 
                      for component in components]
         # Sort waveforms by increasing order of fractional time.
