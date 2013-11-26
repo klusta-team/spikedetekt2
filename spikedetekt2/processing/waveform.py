@@ -25,7 +25,8 @@ class Waveform(object):
 # -----------------------------------------------------------------------------
 # Waveform extraction
 # -----------------------------------------------------------------------------
-def extract_waveform(component, chunk_strong=None, chunk_weak=None,
+def extract_waveform(component, chunk_fil=None,
+                     chunk_strong=None, chunk_weak=None,
                      threshold_strong=None, threshold_weak=None, 
                      probe=None, **prm):
     """

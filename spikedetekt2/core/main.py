@@ -64,6 +64,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
         # For each component
         # TODO: waveform class with __cmp__ as a function of fractional peak
         waveforms = [extract_waveform(component,
+                                      chunk_fil=chunk_fil,
                                       chunk_strong=chunk_strong,
                                       chunk_weak=chunk_weak,
                                       threshold_strong=threshold_strong,
