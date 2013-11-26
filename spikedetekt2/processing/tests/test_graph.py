@@ -16,7 +16,7 @@ def _clip(x, m, M):
     return [_ for _ in x if m <= _ < M]
 
 n = 5
-graph = {i: set(_clip([i-1, i+1], 0, n))
+probe_adjacency_list = {i: set(_clip([i-1, i+1], 0, n))
             for i in range(n)}
 
 CHUNK = [
@@ -33,7 +33,7 @@ def _assert_components(chunk, components, **kwargs):
     chunk_strong = kwargs.pop('chunk_strong', None)
     if chunk_strong is not None and not isinstance(chunk_strong, np.ndarray):
         chunk_strong = np.array(chunk_strong)
-    comp = connected_components(chunk, graph=graph, 
+    comp = connected_components(chunk, probe_adjacency_list=probe_adjacency_list, 
                                 chunk_strong=chunk_strong,
                                 **kwargs)   
     assert len(comp) == len(components), (len(comp), len(components))

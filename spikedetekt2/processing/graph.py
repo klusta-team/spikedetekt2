@@ -31,17 +31,17 @@ def _to_list(x):
     return [(i, j) for (i, j) in x]
 
 def connected_components(chunk_weak=None, chunk_strong=None, 
-                         graph=None, **prm):
+                         probe_adjacency_list=None, **prm):
     """
     Return a list of pairs (samp, chan) of the connected components in the 2D
     array chunk_weak, where a pair is adjacent if the samples are within join_size of
-    each other, and the channels are adjacent in graph, the channel graph.
+    each other, and the channels are adjacent in probe_adjacency_list, the channel graph.
     
     Arguments:
     
     * chunk_weak: Nsamples x Nchannels array with weak threshold crossings
     * chunk_strong: Nsamples x Nchannels array with strong threshold crossings
-    * graph: a dict {channel: [neighbors]}
+    * probe_adjacency_list: a dict {channel: [neighbors]}
     * join_size: the number of samples defining the tolerance in time for
       finding connected components
     
@@ -49,8 +49,8 @@ def connected_components(chunk_weak=None, chunk_strong=None,
     
     join_size = prm.get('join_size', 0)
     
-    if graph is None:
-        graph = {}
+    if probe_adjacency_list is None:
+        probe_adjacency_list = {}
     
     if chunk_strong is None:
         chunk_strong = chunk_weak
@@ -75,7 +75,7 @@ def connected_components(chunk_weak=None, chunk_strong=None,
     # channel graph (a dictionary) is a node, and the value is a set of nodes
     # which are connected to it by an edge
     mgraph = {}
-    for source, targets in graph.iteritems():
+    for source, targets in probe_adjacency_list.iteritems():
         # we add self connections
         mgraph[source] = targets.union([source])
     # label of the next component

@@ -37,6 +37,8 @@ def pydict_to_python(pydict):
         for key, val in sorted(pydict.iteritems())])
 
 def get_pydict(filename=None, pydict_default={}, **kwargs):
+    """Load a Python script with key=value lines, convert it into a dictionary,
+    and fill unset values to default values."""
     pydict_final = pydict_default.copy()
     if isinstance(filename, string_types):
         # Path to pydict file.

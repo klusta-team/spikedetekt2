@@ -8,13 +8,13 @@ import numpy as np
 from spikedetekt2.dataio import BaseRawDataReader, read_raw
 from spikedetekt2.processing import (bandpass_filter, apply_filter, 
     get_threshold, apply_threshold, connected_components, extract_waveform)
-from spikedetekt2.utils import get_adjacency_graph
+from spikedetekt2.utils import Probe
 
 
 # -----------------------------------------------------------------------------
 # Processing
 # -----------------------------------------------------------------------------
-def run(raw_data=None, experiment=None, prm=None, prb=None):
+def run(raw_data=None, experiment=None, prm=None, probe=None):
     """This main function takes raw data (either as a RawReader, or a path
     to a filename, or an array) and executes the main algorithm (filtering, 
     spike detection, extraction...)."""
@@ -25,9 +25,6 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
     # Get parameters from the PRM dictionary.
     chunk_size = prm.get('chunk_size', None)
     chunk_overlap = prm.get('chunk_overlap', 0)
-    
-    # Get the adjacency graph.
-    graph = get_adjacency_graph(prb)
     
     # Ensure a RawDataReader is instanciated.
     # TODO: concatenate DAT files
@@ -61,7 +58,7 @@ def run(raw_data=None, experiment=None, prm=None, prb=None):
         # Find connected component (strong threshold).
         components = connected_components(chunk_strong=chunk_strong, 
                                           chunk_weak=chunk_weak,
-                                          graph=graph,
+                                          probe_adjacency_list=probe.adjacency_list,
                                           **prm)
         
         # For each component

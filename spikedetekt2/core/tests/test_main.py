@@ -12,7 +12,7 @@ from spikedetekt2.dataio import (BaseRawDataReader, read_raw, create_files,
     open_files, close_files, add_recording, add_cluster_group, add_cluster,
     get_filenames, Experiment, excerpts)
 from spikedetekt2.core import run
-from spikedetekt2.utils import itervalues, get_params
+from spikedetekt2.utils import itervalues, get_params, Probe
 
 
 # -----------------------------------------------------------------------------
@@ -75,7 +75,7 @@ def test_run_1():
     
     # Run the algorithm.
     with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:
-        run(raw_data, experiment=exp, prm=prm, prb=prb)
+        run(raw_data, experiment=exp, prm=prm, probe=Probe(prb))
     
     # Open the data files.
     with Experiment('myexperiment', dir=DIRPATH) as exp:
