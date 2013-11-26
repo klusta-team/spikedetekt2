@@ -39,7 +39,17 @@ def _assert_channel_graphs(channels=None, graph=None):
     channels_in_graph = set(itertools.chain(*graph))
     assert channels_in_graph <= set(channels)
     
-
+def _get_channel_to_group(channel_groups):
+    """Take a list of ChannelGroup instances, and return a mapping
+    channel ==> channel_group index"""
+    mapping = {}
+    channels_list = [cg.channels for cg in channel_groups]
+    for igroup, channels in enumerate(channels_list):
+        for channel in channels:
+            mapping[channel] = igroup
+    return mapping
+    
+    
 # -----------------------------------------------------------------------------
 # Probe class
 # -----------------------------------------------------------------------------
@@ -53,6 +63,7 @@ class Probe(object):
         # Get the full adjacency graph, which is just the concatenation
         # of all graphs in all channel groups.
         graphs = [cg.graph for cg in self.channel_groups]
+        self.channel_to_group = _get_channel_to_group(self.channel_groups)
         self.graph = list(itertools.chain(*graphs))
         self.adjacency_list = _get_adjacency_list(self.graph)
         

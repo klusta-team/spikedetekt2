@@ -43,6 +43,11 @@ def test_probe():
     assert np.array_equal(probe.channel_groups[1].geometry_arr,
                           np.array([(.1, .2), (.3, .4)]))
     
+    for i in range(4):
+        assert probe.channel_to_group[i] == 0
+    for i in range(4, 8):
+        assert probe.channel_to_group[i] == 1
+    
     assert list(probe.adjacency_list[0]) == [1]
     assert list(probe.adjacency_list[1]) == [0]
     assert list(probe.adjacency_list[2]) == [3]
