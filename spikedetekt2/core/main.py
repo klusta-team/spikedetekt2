@@ -47,13 +47,18 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
     for chunk in raw_data.chunks(chunk_size=chunk_size, 
                                  chunk_overlap=chunk_overlap,):
         # Filter the (full) chunk.
+        # shape: (nsamples, nchannels)
         chunk_fil = apply_filter(chunk.data_chunk_full, filter=filter)
         
-        # Apply strong threshold.
-        chunk_strong = apply_threshold(chunk_fil, -threshold_strong,
-                                       side='below')
-        chunk_weak = apply_threshold(chunk_fil, -threshold_weak,
-                                       side='below')
+        # Apply thresholds.
+        if prm['detect_spikes'] == 'positive':
+            chunk_detect = chunk_fil
+        elif prm['detect_spikes'] == 'negative':
+            chunk_detect = -chunk_fil
+        elif prm['detect_spikes'] == 'both':
+            chunk_detect = np.abs(chunk_fil)
+        chunk_strong = chunk_detect > threshold_strong  # shape: (nsamples, nchannels)
+        chunk_weak = chunk_detect > threshold_weak
         
         # Find connected component (strong threshold).
         components = connected_components(chunk_strong=chunk_strong, 
@@ -61,18 +66,18 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
                                           probe_adjacency_list=probe.adjacency_list,
                                           **prm)
         
-        # For each component
-        # TODO: waveform class with __cmp__ as a function of fractional peak
+        # Now we extract the spike in each component.
+        chunk_extract = chunk_detect  # shape: (nsamples, nchannels)
+        
         waveforms = [extract_waveform(component,
-                                      chunk_fil=chunk_fil,
-                                      chunk_strong=chunk_strong,
-                                      chunk_weak=chunk_weak,
+                                      chunk_extract=chunk_extract,
                                       threshold_strong=threshold_strong,
                                       threshold_weak=threshold_weak,
                                       probe=probe,
                                       **prm) 
                      for component in components]
-        # Sort waveforms by increasing order of fractional time.
+                        
+        # We sort waveforms by increasing order of fractional time.
         for waveform in sorted(waveforms):
             # TODO: channel group index? get the shank from the connected 
             # component, maybe a field of waveforms

@@ -21,7 +21,7 @@ from spikedetekt2.utils import itervalues, get_params, Probe
 DIRPATH = tempfile.mkdtemp()
 
 sample_rate = 20000
-duration = 5.
+duration = 1.
 nfeatures = 3
 nwavesamples = 10
 nchannels = 2
@@ -35,6 +35,7 @@ prm = get_params(**{
     'nchannels': nchannels,
     'sample_rate': sample_rate,
     'chunk_size': chunk_size,
+    'detect_spikes': 'positive',
 })
 prb = {'channel_groups': [
     {

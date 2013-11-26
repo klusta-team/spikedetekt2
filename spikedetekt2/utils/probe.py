@@ -66,6 +66,7 @@ class Probe(object):
         self.channel_to_group = _get_channel_to_group(self.channel_groups)
         self.graph = list(itertools.chain(*graphs))
         self.adjacency_list = _get_adjacency_list(self.graph)
+        self.nchannels = np.sum([cg.nchannels for cg in self.channel_groups])
         
     def __repr__(self):
         name = "'{0:s}' ".format(self.name) if self.name else ''
@@ -77,6 +78,7 @@ class ProbeChannelGroup(object):
     def __init__(self, i, channel_group):
         self.index = i
         self.channels = channel_group['channels']
+        self.nchannels = len(self.channels)
         self.graph = [tuple(pair) for pair in channel_group.get('graph', [])]
         self.geometry = channel_group.get('geometry', {})
         self.geometry_arr = _get_geometry_arr(self.geometry)

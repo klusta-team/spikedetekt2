@@ -40,10 +40,10 @@ COMPONENT = np.array([(1, 2), (2, 2), (2, 3),
 JOIN_SIZE = 1 
 THRESHOLD_STRONG = .8
 THRESHOLD_WEAK = .5
-CHUNK_FIL = THRESHOLD_WEAK * np.random.rand(5, 5)
-CHUNK_FIL[COMPONENT[:,0], COMPONENT[:,1]] = THRESHOLD_WEAK + \
-                        (1-THRESHOLD_WEAK) * np.random.rand(6)
-CHUNK_FIL[2, 2] = (1 + THRESHOLD_STRONG) / 2.
+CHUNK_EXTRACT = THRESHOLD_WEAK * np.random.rand(5, 5)
+CHUNK_EXTRACT[COMPONENT[:,0], COMPONENT[:,1]] = THRESHOLD_WEAK + \
+                        (1-THRESHOLD_WEAK) * np.random.rand(COMPONENT.shape[0])
+CHUNK_EXTRACT[2, 2] = (1 + THRESHOLD_STRONG) / 2.
 
 
 # -----------------------------------------------------------------------------
@@ -51,9 +51,7 @@ CHUNK_FIL[2, 2] = (1 + THRESHOLD_STRONG) / 2.
 # -----------------------------------------------------------------------------
 def test_extract_waveform_1():
     extract_waveform(COMPONENT,
-                     chunk_fil=CHUNK_FIL,
-                     chunk_strong=CHUNK_STRONG,
-                     chunk_weak=CHUNK_WEAK,
+                     chunk_extract=CHUNK_EXTRACT,
                      threshold_strong=THRESHOLD_STRONG,
                      threshold_weak=THRESHOLD_WEAK, 
                      probe=PROBE)
