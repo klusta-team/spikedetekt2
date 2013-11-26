@@ -12,13 +12,10 @@ import numpy as np
 # Component class
 # -----------------------------------------------------------------------------
 class Component(object):
-    def __init__(self, component=None, chunk_weak=None, chunk_strong=None,
-                 chunk_start=None):
-        self.component = component
-        self.chunk_weak = chunk_weak
-        self.chunk_strong = chunk_strong
-        self.chunk_start = chunk_start
-
+    def __init__(self, items=None, s_start=0, keep_start=0):
+        self.items = items
+        self.s_start = s_start
+        self.keep_start = keep_start
 
 
 # -----------------------------------------------------------------------------
@@ -31,7 +28,9 @@ def _to_list(x):
     return [(i, j) for (i, j) in x]
 
 def connected_components(chunk_weak=None, chunk_strong=None, 
-                         probe_adjacency_list=None, **prm):
+                         chunk=None, probe_adjacency_list=None, 
+                         return_objects=True,
+                         **prm):
     """
     Return a list of pairs (samp, chan) of the connected components in the 2D
     array chunk_weak, where a pair is adjacent if the samples are within join_size of
@@ -156,7 +155,10 @@ def connected_components(chunk_weak=None, chunk_strong=None,
             
     # only return the values, because we don't actually need the labels
     comps = [comp_inds[key] for key in comp_inds.keys() if key in strong_nodes]
-    
-    # TODO: return list of Component objects
-    return comps
+    if return_objects:
+        return [Component(comp, s_start=chunk.s_start, 
+                                keep_start=chunk.keep_start)
+                    for comp in comps]
+    else:
+        return comps
     

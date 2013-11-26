@@ -34,7 +34,7 @@ def _assert_components(chunk, components, **kwargs):
     if chunk_strong is not None and not isinstance(chunk_strong, np.ndarray):
         chunk_strong = np.array(chunk_strong)
     comp = connected_components(chunk, probe_adjacency_list=probe_adjacency_list, 
-                                chunk_strong=chunk_strong,
+                                chunk_strong=chunk_strong, return_objects=False,
                                 **kwargs)   
     assert len(comp) == len(components), (len(comp), len(components))
     for c1, c2 in zip(comp, components):

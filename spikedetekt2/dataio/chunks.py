@@ -59,21 +59,21 @@ class Chunk(object):
             nsamples, nchannels = data.shape
         self.nsamples = nsamples
         self.nchannels = nchannels
-        self._s_start, self._s_end, self._keep_start, self._keep_end = bounds
-        self.window_full = self._s_start, self._s_end
-        self.window_keep = self._keep_start, self._keep_end
+        self.s_start, self.s_end, self.keep_start, self.keep_end = bounds
+        self.window_full = self.s_start, self.s_end
+        self.window_keep = self.keep_start, self.keep_end
         
     @property
     def data_chunk_full(self):
-        return self._data[self._s_start:self._s_end,:]
+        return self._data[self.s_start:self.s_end,:]
     
     @property
     def data_chunk_keep(self):
-        return self._data[self._keep_start:self._keep_end,:]
+        return self._data[self.keep_start:self.keep_end,:]
     
     def __repr__(self):
         return "<Chunk [{0:d}|{1:d}|{2:d}|{3:d}], maxlen={4:d}>".format(
-            self._s_start, self._keep_start, self._keep_end, self._s_end,
+            self.s_start, self.keep_start, self.keep_end, self.s_end,
             self._data.shape[0]
         )
         

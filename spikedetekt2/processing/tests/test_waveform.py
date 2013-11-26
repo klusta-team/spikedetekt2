@@ -5,7 +5,7 @@
 # -----------------------------------------------------------------------------
 import numpy as np
 
-from spikedetekt2.processing import extract_waveform
+from spikedetekt2.processing import extract_waveform, Component
 from spikedetekt2.utils import Probe
 
 
@@ -50,7 +50,7 @@ CHUNK_EXTRACT[2, 2] = (1 + THRESHOLD_STRONG) / 2.
 # Tests
 # -----------------------------------------------------------------------------
 def test_extract_waveform_1():
-    extract_waveform(COMPONENT,
+    extract_waveform(Component(COMPONENT),
                      chunk_extract=CHUNK_EXTRACT,
                      threshold_strong=THRESHOLD_STRONG,
                      threshold_weak=THRESHOLD_WEAK, 

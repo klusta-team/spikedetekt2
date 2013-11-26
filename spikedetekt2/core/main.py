@@ -60,15 +60,17 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
         chunk_strong = chunk_detect > threshold_strong  # shape: (nsamples, nchannels)
         chunk_weak = chunk_detect > threshold_weak
         
-        # Find connected component (strong threshold).
+        # Find connected component (strong threshold). Return list of
+        # Component instances.
         components = connected_components(chunk_strong=chunk_strong, 
                                           chunk_weak=chunk_weak,
                                           probe_adjacency_list=probe.adjacency_list,
+                                          chunk=chunk,
                                           **prm)
         
         # Now we extract the spike in each component.
         chunk_extract = chunk_detect  # shape: (nsamples, nchannels)
-        
+        # This is a list of Waveform instances.
         waveforms = [extract_waveform(component,
                                       chunk_extract=chunk_extract,
                                       threshold_strong=threshold_strong,
@@ -83,7 +85,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
             # component, maybe a field of waveforms
             # experiment.channel_groups[0].spikes.add(#TODO
                                                     # )
-            pass
+            print(waveform)
             
     # Feature extraction.
         # PCA: sample 10000 waveforms evenly in time
