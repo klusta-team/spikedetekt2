@@ -50,11 +50,15 @@ CHUNK_EXTRACT[2, 2] = (1 + THRESHOLD_STRONG) / 2.
 # Tests
 # -----------------------------------------------------------------------------
 def test_extract_waveform_1():
-    extract_waveform(Component(COMPONENT),
-                     chunk_extract=CHUNK_EXTRACT,
-                     threshold_strong=THRESHOLD_STRONG,
-                     threshold_weak=THRESHOLD_WEAK, 
-                     probe=PROBE)
-    
+    waveform = extract_waveform(Component(COMPONENT),
+                                chunk_extract=CHUNK_EXTRACT,
+                                chunk_fil=CHUNK_EXTRACT,
+                                extract_s_before=1,
+                                extract_s_after=2,
+                                threshold_strong=THRESHOLD_STRONG,
+                                threshold_weak=THRESHOLD_WEAK, 
+                                probe=PROBE)
+    assert waveform.waveforms.shape == (3, 5)
+    assert waveform.masks.shape == (5,)
     
     

@@ -73,6 +73,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
         # This is a list of Waveform instances.
         waveforms = [extract_waveform(component,
                                       chunk_extract=chunk_extract,
+                                      chunk_fil=chunk_fil,
                                       threshold_strong=threshold_strong,
                                       threshold_weak=threshold_weak,
                                       probe=probe,

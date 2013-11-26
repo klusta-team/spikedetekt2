@@ -4,8 +4,33 @@
 # Imports
 # -----------------------------------------------------------------------------
 import numpy as np
+from scipy.interpolate import interp1d
 
 
+# -----------------------------------------------------------------------------
+# Utility functions
+# -----------------------------------------------------------------------------
+def get_padded(Arr, Start, End):
+    '''
+    Returns Arr[Start:End] filling in with zeros outside array bounds
+    
+    Assumes that EITHER Start<0 OR End>len(Arr) but not both (raises error).
+    '''
+    if Start < 0 and End >= Arr.shape[0]:
+        raise IndexError("Can have Start<0 OR End>len(Arr) but not both.\n \
+                           This error has probably occured because your Thresholds \n \
+                             are aritificially low due to early artifacts\n \
+                             Increase the parameter CHUNKS_FOR_THRESH ")
+    if Start < 0:
+        StartZeros = np.zeros((-Start, Arr.shape[1]), dtype=Arr.dtype)
+        return np.vstack((StartZeros, Arr[:End]))
+    elif End > Arr.shape[0]:
+        EndZeros = np.zeros((End-Arr.shape[0], Arr.shape[1]), dtype=Arr.dtype)
+        return np.vstack((Arr[Start:], EndZeros))
+    else:
+        return Arr[Start:End]
+        
+        
 # -----------------------------------------------------------------------------
 # Waveform class
 # -----------------------------------------------------------------------------
@@ -36,7 +61,7 @@ class Waveform(object):
 # -----------------------------------------------------------------------------
 # Waveform extraction
 # -----------------------------------------------------------------------------
-def extract_waveform(component, chunk_extract=None,
+def extract_waveform(component, chunk_fil=None, chunk_extract=None,
                      threshold_strong=None, threshold_weak=None, 
                      probe=None, **prm):
     """
@@ -48,6 +73,9 @@ def extract_waveform(component, chunk_extract=None,
     """
     component_items = component.items
     s_start = component.s_start
+    
+    s_before = prm['extract_s_before']
+    s_after = prm['extract_s_after']
     
     assert len(component_items) > 0
     # Find the channel_group of the spike.
@@ -95,7 +123,7 @@ def extract_waveform(component, chunk_extract=None,
         (peaks_values - threshold_weak) / (threshold_strong - threshold_weak), 
         0, 1)
     
-    # Compute the fractional peak
+    # Compute the fractional peak.
     power = prm.get('weight_power', 1.)
     comp_normalized = np.clip(
         (comp - threshold_weak) / (threshold_strong - threshold_weak),
@@ -104,25 +132,21 @@ def extract_waveform(component, chunk_extract=None,
     u = np.arange(s_max - s_min)[:,np.newaxis]
     s_fracpeak = np.sum(comp_power * u) / np.sum(comp_power) + s_min
     
-    # Realign spike with respect to s_fracpeak
+    # Realign spike with respect to s_fracpeak.
     s_peak = int(s_fracpeak)
-    # get block of given size around peaksample
-    # WaveBlock = get_padded(FilteredArr,
-                           # s_peak-s_before-1, s_peak+s_after+2)
-    # # Perform interpolation around the fractional peak
-    # old_s = np.arange(s_peak-s_before-1, s_peak+s_after+2)
-    # new_s = np.arange(s_peak-s_before, s_peak+s_after)+(s_fracpeak-s_peak)
-    # try:
-        # f = interp1d(old_s, WaveBlock, bounds_error=True, kind='cubic', axis=0)
-    # except ValueError: 
-        # raise InterpolationError
-    # Wave = f(new_s)
+    # Get block of given size around peaksample.
+    wave = get_padded(chunk_fil,
+                           s_peak-s_before-1, s_peak+s_after+2)
+    # Perform interpolation around the fractional peak.
+    old_s = np.arange(s_peak - s_before - 1, s_peak + s_after + 2)
+    new_s = np.arange(s_peak - s_before, s_peak + s_after) + (s_fracpeak - s_peak)
+    try:
+        f = interp1d(old_s, wave, bounds_error=True, kind='cubic', axis=0)
+    except ValueError: 
+        raise InterpolationError
+    wave_aligned = f(new_s)
     
-    # TODO
-    waveforms = None
-    masks = None
-    
-    return Waveform(waveforms=waveforms, masks=masks, 
+    return Waveform(waveforms=wave_aligned, masks=masks_float, 
                     s_min=s_min, s_start=s_start,
                     s_fracpeak=s_fracpeak, ichannel_group=ichannel_group)
     

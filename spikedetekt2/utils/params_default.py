@@ -27,3 +27,5 @@ connected_component_join_size = int(.00005 * sample_rate)
 
 # Spike extraction
 # ----------------
+extract_s_before = 5
+extract_s_after = 5
