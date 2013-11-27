@@ -37,25 +37,26 @@ def get_padded(Arr, Start, End):
 class Waveform(object):
     def __init__(self, fil=None, raw=None, masks=None, 
                  s_min=None,  # relative to the start of the chunk
-                 s_start=None,
-                 s_fracpeak=None, ichannel_group=None):
+                 s_fracpeak=None,   # relative to the start of the chunk
+                 s_start=None,  # start of the chunk, absolute
+                 ichannel_group=None):
         self.fil = fil
         self.raw = raw
         self.masks = masks
         self.s_min = s_min  # start of the waveform, relative to the start
                             # of the chunk
-        # peak fractional time of the waveform, absolute (relative to the exp)
         self.s_start = s_start
-        self.s_fracpeak_abs = s_fracpeak + s_start
+        # peak fractional time of the waveform, absolute (relative to the exp)
+        self.s_offset = s_fracpeak + s_start
         self.ichannel_group = ichannel_group
         
     def __cmp__(self, other):
-        return self.s_fracpeak_abs - other.s_fracpeak_abs
+        return self.s_offset - other.s_offset
         
     def __repr__(self):
         return '<Waveform on channel group {chgrp} at sample {smp}>'.format(
             chgrp=self.ichannel_group,
-            smp=self.s_fracpeak_abs
+            smp=self.s_offset
         )
 
 
@@ -75,6 +76,8 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     """
     component_items = component.items
     s_start = component.s_start  # Absolute start of the chunk.
+    keep_start = component.keep_start  # Absolute start of the kept chunk.
+    keep_end = component.keep_end  # Absolute end of the kept chunk.
     
     s_before = prm['extract_s_before']
     s_after = prm['extract_s_after']
@@ -152,7 +155,15 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     wave_raw = get_padded(chunk_raw, s_peak - s_before,
                                      s_peak + s_after)
     
-    return Waveform(fil=wave_aligned, raw=wave_raw, masks=masks_float, 
+    # Create the Waveform instance.
+    waveform = Waveform(fil=wave_aligned, raw=wave_raw, masks=masks_float, 
                     s_min=s_min, s_start=s_start,
                     s_fracpeak=s_fracpeak, ichannel_group=ichannel_group)
     
+    # Only keep the waveforms that are within the chunk window.
+    if keep_start <= waveform.s_offset < keep_end:
+        return waveform
+    else:
+        return None
+        
+        

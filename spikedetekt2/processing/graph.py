@@ -12,10 +12,11 @@ import numpy as np
 # Component class
 # -----------------------------------------------------------------------------
 class Component(object):
-    def __init__(self, items=None, s_start=0, keep_start=0):
+    def __init__(self, items=None, s_start=0, keep_start=0, keep_end=np.inf):
         self.items = items
         self.s_start = s_start
         self.keep_start = keep_start
+        self.keep_end = keep_end
 
 
 # -----------------------------------------------------------------------------
@@ -157,7 +158,9 @@ def connected_components(chunk_weak=None, chunk_strong=None,
     comps = [comp_inds[key] for key in comp_inds.keys() if key in strong_nodes]
     if return_objects:
         return [Component(comp, s_start=chunk.s_start, 
-                                keep_start=chunk.keep_start)
+                                keep_start=chunk.keep_start,
+                                keep_end=chunk.keep_end,
+                                )
                     for comp in comps]
     else:
         return comps

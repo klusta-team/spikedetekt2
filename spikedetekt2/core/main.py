@@ -81,17 +81,13 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
                                       probe=probe,
                                       **prm) 
                      for component in components]
+        # Remove skipped waveforms (in overlapping chunk sections).
+        waveforms = [w for w in waveforms if w is not None]
                         
         # We sort waveforms by increasing order of fractional time.
         for waveform in sorted(waveforms):
             # experiment.channel_groups[0].spikes.add(#TODO
                                                     # )
-            
-            # TODO
-            # s_offset = s_start+s_peak
-                    # sf_offset = s_start + sf_peak
-                    # if keep_start<=s_offset<keep_end:
-                        # spike_count += 1
             
             print(waveform)
             
