@@ -17,7 +17,8 @@ def compute_pcs(x, npcs=None):
     and concatenated iteratively along the last axis."""
     # If x is a 3D array, compute the PCs by iterating over the last axis.
     if x.ndim == 3:
-        return np.dstack([compute_pcs(x[..., i]) for i in range(x.shape[-1])])
+        return np.dstack([compute_pcs(x[..., i], npcs=npcs) 
+                              for i in range(x.shape[-1])])
     # Now, we assume x is a 2D array.
     assert x.ndim == 2
     # Take the covariance matrix.
@@ -27,11 +28,11 @@ def compute_pcs(x, npcs=None):
     pcs = vecs.T.astype(np.float32)[np.argsort(vals)[::-1]]
     # Take the first npcs components.
     if npcs is not None:
-        return pcs[:npcs]
+        return pcs[:npcs,...]
     else:
         return pcs
     
-def project_pcs(x, pcs, npcs=None):
+def project_pcs(x, pcs):
     """Project data points onto principal components.
     
     Arguments:

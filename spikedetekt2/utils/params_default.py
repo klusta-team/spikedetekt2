@@ -33,4 +33,6 @@ extract_s_after = 5
 # Features
 # --------
 nfeatures_per_channel = 3  # Number of features per channel.
+pca_nwaveforms_max = 10000
+
 

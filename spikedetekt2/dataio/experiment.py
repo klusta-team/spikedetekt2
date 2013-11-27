@@ -265,6 +265,15 @@ class Spikes(Node):
                 features = np.zeros((1, self.nfeatures), dtype=np.float32)
             if masks is None:
                 masks = np.zeros((1, self.nfeatures), dtype=np.float32)
+            # Ensure features and masks have the right number of dimensions.
+            if features.ndim == 1:
+                features = np.expand_dims(features, axis=0)
+            if masks.ndim == 1:
+                masks = np.expand_dims(masks, axis=0)
+            # Tile the masks if needed: same mask value on each channel.
+            if masks.shape[1] < features.shape[1]:
+                nfeatures_per_channel = features.shape[1] // masks.shape[1]
+                masks = np.tile(masks, (1, nfeatures_per_channel))
             # Concatenate features and masks
             features_masks = np.dstack((features, masks))
             

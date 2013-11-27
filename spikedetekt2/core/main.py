@@ -5,10 +5,11 @@
 # -----------------------------------------------------------------------------
 import numpy as np
 
-from spikedetekt2.dataio import BaseRawDataReader, read_raw
+from spikedetekt2.dataio import BaseRawDataReader, read_raw, excerpt_step
 from spikedetekt2.processing import (bandpass_filter, apply_filter, 
-    get_threshold, apply_threshold, connected_components, extract_waveform)
-from spikedetekt2.utils import Probe
+    get_threshold, apply_threshold, connected_components, extract_waveform,
+    compute_pcs, project_pcs)
+from spikedetekt2.utils import Probe, iterkeys
 
 
 # -----------------------------------------------------------------------------
@@ -16,13 +17,33 @@ from spikedetekt2.utils import Probe
 # -----------------------------------------------------------------------------
 def add_waveform(experiment, waveform):
     experiment.channel_groups[waveform.channel_group].spikes.add(
-    time_samples=waveform.s_offset, 
-    time_fractional=waveform.s_frac_part,
-    recording=waveform.recording,
-    waveforms_raw=waveform.raw, 
-    waveforms_filtered=waveform.fil,
+        time_samples=waveform.s_offset, 
+        time_fractional=waveform.s_frac_part,
+        recording=waveform.recording,
+        waveforms_raw=waveform.raw, 
+        waveforms_filtered=waveform.fil,
+        masks=waveform.masks,
     )
-
+    
+def save_features(experiment, nwaveforms_max=None, npcs=None):
+    """Compute the features from the waveforms and save them in the experiment
+    dataset."""
+    for chgrp in iterkeys(experiment.channel_groups):
+        spikes = experiment.channel_groups[chgrp].spikes
+        # Extract a subset of the saveforms.
+        nspikes = len(spikes)
+        nwaveforms = min(nspikes, nwaveforms_max)
+        step = excerpt_step(nspikes, nexcerpts=nwaveforms, excerpt_size=1)
+        waveforms_subset = spikes.waveforms_filtered[::step]
+        # Compute the PCs.
+        pcs = compute_pcs(waveforms_subset, npcs=npcs)
+        # Project the waveforms on the PCs and compute the features.
+        # WARNING: optimization: we could load and project waveforms by chunks.
+        for i, waveform in enumerate(spikes.waveforms_filtered):
+            features = project_pcs(waveform, pcs)
+            spikes.features_masks[i,:,0] = features.ravel()
+            # TODO: add masks
+        
     
 # -----------------------------------------------------------------------------
 # Main loop
@@ -83,6 +104,8 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
                                           **prm)
         
         # Now we extract the spike in each component.
+        # For now, we use the same binary chunk for detection and extraction
+        # +/-chunk, or abs(chunk), depending on the parameter 'detect_spikes'.
         chunk_extract = chunk_detect  # shape: (nsamples, nchannels)
         # This is a list of Waveform instances.
         waveforms = [extract_waveform(component,
@@ -102,10 +125,9 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
             add_waveform(experiment, waveform)
             
     # Feature extraction.
-        # PCA: sample 10000 waveforms evenly in time
-        # specify the total number of waveforms
-        
-    
+    save_features(experiment, 
+                  nwaveforms_max=prm['pca_nwaveforms_max'],
+                  npcs=prm['nfeatures_per_channel'])
     
 
 

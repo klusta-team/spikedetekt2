@@ -35,11 +35,16 @@ def chunk_bounds(nsamples, chunk_size, overlap=0):
     keep_end = s_end
     yield s_start, s_end, keep_start, keep_end
 
-def excerpts(nsamples, nexcerpts=None, excerpt_size=None):
-    """Yield (start, end) where start is included and end is excluded."""
+def excerpt_step(nsamples, nexcerpts=None, excerpt_size=None):
     step = max((nsamples - excerpt_size) // (nexcerpts - 1),
                excerpt_size)
+    return step
     
+def excerpts(nsamples, nexcerpts=None, excerpt_size=None):
+    """Yield (start, end) where start is included and end is excluded."""
+    step = excerpt_step(nsamples, 
+                        nexcerpts=nexcerpts,
+                        excerpt_size=excerpt_size)
     for i in range(nexcerpts):
         start = i * step
         if start >= nsamples:
