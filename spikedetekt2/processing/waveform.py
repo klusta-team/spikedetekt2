@@ -35,11 +35,12 @@ def get_padded(Arr, Start, End):
 # Waveform class
 # -----------------------------------------------------------------------------
 class Waveform(object):
-    def __init__(self, waveforms=None, masks=None, 
+    def __init__(self, fil=None, raw=None, masks=None, 
                  s_min=None,  # relative to the start of the chunk
                  s_start=None,
                  s_fracpeak=None, ichannel_group=None):
-        self.waveforms = waveforms
+        self.fil = fil
+        self.raw = raw
         self.masks = masks
         self.s_min = s_min  # start of the waveform, relative to the start
                             # of the chunk
@@ -61,7 +62,8 @@ class Waveform(object):
 # -----------------------------------------------------------------------------
 # Waveform extraction
 # -----------------------------------------------------------------------------
-def extract_waveform(component, chunk_fil=None, chunk_extract=None,
+def extract_waveform(component, chunk_fil=None, chunk_raw=None,
+                     chunk_extract=None,
                      threshold_strong=None, threshold_weak=None, 
                      probe=None, **prm):
     """
@@ -72,7 +74,7 @@ def extract_waveform(component, chunk_fil=None, chunk_extract=None,
     
     """
     component_items = component.items
-    s_start = component.s_start
+    s_start = component.s_start  # Absolute start of the chunk.
     
     s_before = prm['extract_s_before']
     s_after = prm['extract_s_after']
@@ -112,7 +114,7 @@ def extract_waveform(component, chunk_fil=None, chunk_extract=None,
     # the sample where the peak is reached, on each channel, relative to
     # the beginning
     
-    # Find the peaks.
+    # Find the peaks (relative to the start of the chunk).
     peaks = np.argmax(comp, axis=0) + s_min  # shape: (nchannels,)
     # peak values on each channel
     # shape: (nchannels,)
@@ -130,13 +132,13 @@ def extract_waveform(component, chunk_fil=None, chunk_extract=None,
         0, 1)
     comp_power = np.power(comp_normalized, power)
     u = np.arange(s_max - s_min)[:,np.newaxis]
+    # Spike frac time relative to the start of the chunk.
     s_fracpeak = np.sum(comp_power * u) / np.sum(comp_power) + s_min
     
     # Realign spike with respect to s_fracpeak.
     s_peak = int(s_fracpeak)
     # Get block of given size around peaksample.
-    wave = get_padded(chunk_fil,
-                           s_peak-s_before-1, s_peak+s_after+2)
+    wave = get_padded(chunk_fil, s_peak - s_before - 1, s_peak + s_after + 2)
     # Perform interpolation around the fractional peak.
     old_s = np.arange(s_peak - s_before - 1, s_peak + s_after + 2)
     new_s = np.arange(s_peak - s_before, s_peak + s_after) + (s_fracpeak - s_peak)
@@ -146,7 +148,11 @@ def extract_waveform(component, chunk_fil=None, chunk_extract=None,
         raise InterpolationError
     wave_aligned = f(new_s)
     
-    return Waveform(waveforms=wave_aligned, masks=masks_float, 
+    # Get unfiltered spike.
+    wave_raw = get_padded(chunk_raw, s_peak - s_before,
+                                     s_peak + s_after)
+    
+    return Waveform(fil=wave_aligned, raw=wave_raw, masks=masks_float, 
                     s_min=s_min, s_start=s_start,
                     s_fracpeak=s_fracpeak, ichannel_group=ichannel_group)
     

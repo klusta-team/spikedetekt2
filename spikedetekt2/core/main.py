@@ -48,7 +48,8 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
                                  chunk_overlap=chunk_overlap,):
         # Filter the (full) chunk.
         # shape: (nsamples, nchannels)
-        chunk_fil = apply_filter(chunk.data_chunk_full, filter=filter)
+        chunk_raw = chunk.data_chunk_full
+        chunk_fil = apply_filter(chunk_raw, filter=filter)
         
         # Apply thresholds.
         if prm['detect_spikes'] == 'positive':
@@ -74,6 +75,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
         waveforms = [extract_waveform(component,
                                       chunk_extract=chunk_extract,
                                       chunk_fil=chunk_fil,
+                                      chunk_raw=chunk_raw,
                                       threshold_strong=threshold_strong,
                                       threshold_weak=threshold_weak,
                                       probe=probe,
@@ -82,10 +84,15 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
                         
         # We sort waveforms by increasing order of fractional time.
         for waveform in sorted(waveforms):
-            # TODO: channel group index? get the shank from the connected 
-            # component, maybe a field of waveforms
             # experiment.channel_groups[0].spikes.add(#TODO
                                                     # )
+            
+            # TODO
+            # s_offset = s_start+s_peak
+                    # sf_offset = s_start + sf_peak
+                    # if keep_start<=s_offset<keep_end:
+                        # spike_count += 1
+            
             print(waveform)
             
     # Feature extraction.
