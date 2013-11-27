@@ -7,15 +7,54 @@ import numpy as np
 
 from spikedetekt2.dataio import BaseRawDataReader, read_raw, excerpt_step
 from spikedetekt2.processing import (bandpass_filter, apply_filter, 
-    get_threshold, apply_threshold, connected_components, extract_waveform,
-    compute_pcs, project_pcs)
+    get_threshold, connected_components, extract_waveform,
+    compute_pcs, project_pcs, DoubleThreshold)
 from spikedetekt2.utils import Probe, iterkeys
 
 
 # -----------------------------------------------------------------------------
 # Processing
 # -----------------------------------------------------------------------------
-def add_waveform(experiment, waveform):
+def apply_threshold(chunk_fil, threshold=None, **prm):
+    # Determine the chunk used for thresholding.
+    if prm['detect_spikes'] == 'positive':
+        chunk_detect = chunk_fil
+    elif prm['detect_spikes'] == 'negative':
+        chunk_detect = -chunk_fil
+    elif prm['detect_spikes'] == 'both':
+        chunk_detect = np.abs(chunk_fil)
+    
+    # Perform thresholding.
+    # shape: (nsamples, nchannels)
+    chunk_threshold = DoubleThreshold(
+        strong=chunk_detect > threshold.strong,
+        weak=chunk_detect > threshold.weak,
+    )
+    return chunk_detect, chunk_threshold
+
+def extract_waveforms(chunk_detect=None, threshold=None,
+                      chunk_fil=None, chunk_raw=None,
+                      probe=None, components=None,
+                      **prm):
+    # For now, we use the same binary chunk for detection and extraction
+    # +/-chunk, or abs(chunk), depending on the parameter 'detect_spikes'.
+    chunk_extract = chunk_detect  # shape: (nsamples, nchannels)
+    # This is a list of Waveform instances.
+    waveforms = [extract_waveform(component,
+                                  chunk_extract=chunk_extract,
+                                  chunk_fil=chunk_fil,
+                                  chunk_raw=chunk_raw,
+                                  threshold_strong=threshold.strong,
+                                  threshold_weak=threshold.weak,
+                                  probe=probe,
+                                  **prm) 
+                 for component in components]
+    # Remove skipped waveforms (in overlapping chunk sections).
+    waveforms = [w for w in waveforms if w is not None]
+    return waveforms
+    
+def add_waveform(experiment, waveform, **prm):
+    """Add a Waveform instance to an Experiment."""
     experiment.channel_groups[waveform.channel_group].spikes.add(
         time_samples=waveform.s_offset, 
         time_fractional=waveform.s_frac_part,
@@ -25,9 +64,12 @@ def add_waveform(experiment, waveform):
         masks=waveform.masks,
     )
     
-def save_features(experiment, nwaveforms_max=None, npcs=None):
+def save_features(experiment, **prm):
     """Compute the features from the waveforms and save them in the experiment
     dataset."""
+    nwaveforms_max = prm['pca_nwaveforms_max']
+    npcs = prm['nfeatures_per_channel']
+    
     for chgrp in iterkeys(experiment.channel_groups):
         spikes = experiment.channel_groups[chgrp].spikes
         # Extract a subset of the saveforms.
@@ -42,9 +84,8 @@ def save_features(experiment, nwaveforms_max=None, npcs=None):
         for i, waveform in enumerate(spikes.waveforms_filtered):
             features = project_pcs(waveform, pcs)
             spikes.features_masks[i,:,0] = features.ravel()
-            # TODO: add masks
-        
-    
+
+
 # -----------------------------------------------------------------------------
 # Main loop
 # -----------------------------------------------------------------------------
@@ -73,9 +114,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
     
     # Compute the strong threshold across excerpts uniformly scattered across the
     # whole recording.
-    threshold_strong, threshold_weak = get_threshold(raw_data, 
-                                                     filter=filter, 
-                                                     **prm)
+    threshold = get_threshold(raw_data, filter=filter, **prm)
     
     # Loop through all chunks with overlap.
     for chunk in raw_data.chunks(chunk_size=chunk_size, 
@@ -86,48 +125,26 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
         chunk_fil = apply_filter(chunk_raw, filter=filter)
         
         # Apply thresholds.
-        if prm['detect_spikes'] == 'positive':
-            chunk_detect = chunk_fil
-        elif prm['detect_spikes'] == 'negative':
-            chunk_detect = -chunk_fil
-        elif prm['detect_spikes'] == 'both':
-            chunk_detect = np.abs(chunk_fil)
-        chunk_strong = chunk_detect > threshold_strong  # shape: (nsamples, nchannels)
-        chunk_weak = chunk_detect > threshold_weak
+        chunk_detect, chunk_threshold = apply_threshold(chunk_fil, 
+            threshold=threshold, **prm)
         
         # Find connected component (strong threshold). Return list of
         # Component instances.
-        components = connected_components(chunk_strong=chunk_strong, 
-                                          chunk_weak=chunk_weak,
-                                          probe_adjacency_list=probe.adjacency_list,
-                                          chunk=chunk,
-                                          **prm)
+        components = connected_components(
+            chunk_strong=chunk_threshold.strong, 
+            chunk_weak=chunk_threshold.weak, 
+            probe_adjacency_list=probe.adjacency_list,
+            chunk=chunk, **prm)
         
         # Now we extract the spike in each component.
-        # For now, we use the same binary chunk for detection and extraction
-        # +/-chunk, or abs(chunk), depending on the parameter 'detect_spikes'.
-        chunk_extract = chunk_detect  # shape: (nsamples, nchannels)
-        # This is a list of Waveform instances.
-        waveforms = [extract_waveform(component,
-                                      chunk_extract=chunk_extract,
-                                      chunk_fil=chunk_fil,
-                                      chunk_raw=chunk_raw,
-                                      threshold_strong=threshold_strong,
-                                      threshold_weak=threshold_weak,
-                                      probe=probe,
-                                      **prm) 
-                     for component in components]
-        # Remove skipped waveforms (in overlapping chunk sections).
-        waveforms = [w for w in waveforms if w is not None]
+        waveforms = extract_waveforms(chunk_detect=chunk_detect,
+            threshold=threshold, chunk_fil=chunk_fil, chunk_raw=chunk_raw, 
+            probe=probe, components=components, **prm)
                         
         # We sort waveforms by increasing order of fractional time.
-        for waveform in sorted(waveforms):
-            add_waveform(experiment, waveform)
-            
+        [add_waveform(experiment, waveform) for waveform in sorted(waveforms)]
+        
     # Feature extraction.
-    save_features(experiment, 
-                  nwaveforms_max=prm['pca_nwaveforms_max'],
-                  npcs=prm['nfeatures_per_channel'])
+    save_features(experiment, **prm)
     
-
-
+    

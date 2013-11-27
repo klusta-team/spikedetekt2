@@ -3,10 +3,14 @@
 # -----------------------------------------------------------------------------
 # Imports
 # -----------------------------------------------------------------------------
+from collections import namedtuple
+
 import numpy as np
 from scipy import signal
 
 from spikedetekt2.processing import apply_filter
+
+DoubleThreshold = namedtuple('DoubleThreshold', ['strong', 'weak'])
 
 
 # -----------------------------------------------------------------------------
@@ -51,20 +55,8 @@ def get_threshold(raw_data, filter=None, **prm):
     std = median / .6745
     threshold = threshold_std_factor * std
     
-    return threshold
+    if isinstance(threshold, np.ndarray):
+        return DoubleThreshold(strong=threshold[0], weak=threshold[1])
+    else:
+        return threshold
 
-def apply_threshold(data, threshold=None, side=None):
-    """Apply a threshold.
-    
-    side can be either 'below', 'above', 'abs_below', 'abs_above'.
-    
-    """
-    if side == 'below':
-        return data < threshold
-    elif side == 'above':
-        return data > threshold
-    elif side  == 'abs_below':
-        return np.abs(data) < threshold
-    elif side  == 'abs_above':
-        return np.abs(data) > threshold
-    
