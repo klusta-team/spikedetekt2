@@ -38,8 +38,9 @@ class Waveform(object):
     def __init__(self, fil=None, raw=None, masks=None, 
                  s_min=None,  # relative to the start of the chunk
                  s_fracpeak=None,   # relative to the start of the chunk
-                 s_start=None,  # start of the chunk, absolute
-                 ichannel_group=None):
+                 s_start=None,  # start of the chunk, absolute,
+                 recording=0,
+                 channel_group=None):
         self.fil = fil
         self.raw = raw
         self.masks = masks
@@ -47,16 +48,19 @@ class Waveform(object):
                             # of the chunk
         self.s_start = s_start
         # peak fractional time of the waveform, absolute (relative to the exp)
-        self.s_offset = s_fracpeak + s_start
-        self.ichannel_group = ichannel_group
+        self.sf_offset = s_fracpeak + s_start
+        self.s_offset = int(self.sf_offset)
+        self.s_frac_part = self.sf_offset - self.s_offset
+        self.channel_group = channel_group
+        self.recording = recording
         
     def __cmp__(self, other):
-        return self.s_offset - other.s_offset
+        return self.sf_offset - other.sf_offset
         
     def __repr__(self):
         return '<Waveform on channel group {chgrp} at sample {smp}>'.format(
-            chgrp=self.ichannel_group,
-            smp=self.s_offset
+            chgrp=self.channel_group,
+            smp=self.sf_offset
         )
 
 
@@ -78,13 +82,15 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     s_start = component.s_start  # Absolute start of the chunk.
     keep_start = component.keep_start  # Absolute start of the kept chunk.
     keep_end = component.keep_end  # Absolute end of the kept chunk.
+    recording = component.recording  # Recording index of the current raw data 
+                                     # section
     
     s_before = prm['extract_s_before']
     s_after = prm['extract_s_after']
     
     assert len(component_items) > 0
     # Find the channel_group of the spike.
-    ichannel_group = probe.channel_to_group[component_items[0][1]]
+    channel_group = probe.channel_to_group[component_items[0][1]]
 
     # Total number of channels across all channel groups.
     nsamples, nchannels = chunk_extract.shape
@@ -157,11 +163,12 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     
     # Create the Waveform instance.
     waveform = Waveform(fil=wave_aligned, raw=wave_raw, masks=masks_float, 
-                    s_min=s_min, s_start=s_start,
-                    s_fracpeak=s_fracpeak, ichannel_group=ichannel_group)
+                    s_min=s_min, s_start=s_start, s_fracpeak=s_fracpeak, 
+                    channel_group=channel_group,
+                    recording=recording)
     
     # Only keep the waveforms that are within the chunk window.
-    if keep_start <= waveform.s_offset < keep_end:
+    if keep_start <= waveform.sf_offset < keep_end:
         return waveform
     else:
         return None

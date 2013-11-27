@@ -22,7 +22,6 @@ DIRPATH = tempfile.mkdtemp()
 
 sample_rate = 20000
 duration = 1.
-nfeatures = 3
 nwavesamples = 10
 nchannels = 2
 chunk_size = 20000
@@ -30,7 +29,6 @@ nsamples = int(sample_rate * duration)
 raw_data = .1 * np.random.randn(nsamples, nchannels)
 
 prm = get_params(**{
-    'nfeatures': nfeatures, 
     'nwavesamples': nwavesamples, 
     'nchannels': nchannels,
     'sample_rate': sample_rate,

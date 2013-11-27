@@ -118,18 +118,19 @@ def empty_row(arr, dtype=None):
 # Node wrappers
 # -----------------------------------------------------------------------------
 class Node(object):
-    def __init__(self, files, node=None):
+    def __init__(self, files, node=None, root=None):
         self._files = files
         self._kwik = self._files.get('kwik', None)
         assert self._kwik is not None
         if node is None:
             node = self._kwik.root
         self._node = node
+        self._root = root
         
     def _gen_children(self, container_name, child_class):
         """Return a dictionary {child_id: child_instance}."""
         return {
-            _get_child_id(child): child_class(self._files, child)
+            _get_child_id(child): child_class(self._files, child, root=self._root)
                 for child in self._node._f_getChild(container_name)
             }
     
@@ -180,12 +181,13 @@ class Experiment(Node):
     experiment. One can access any information using a logical structure
     that is somewhat independent from the physical representation on disk.
     """
-    def __init__(self, name=None, dir=None, files=None, mode='r'):
+    def __init__(self, name=None, dir=None, files=None, mode='r', prm={}):
         """`name` must correspond to the basename of the files."""
         self.name = name
         self._dir = dir
         self._mode = mode
         self._files = files
+        self._prm = prm
         if self._files is None:
             self._files = open_files(self.name, dir=self._dir, mode=self._mode)
         self._filenames = {type: os.path.realpath(file.filename)
@@ -217,8 +219,8 @@ class Experiment(Node):
         self.close()
         
 class ChannelGroup(Node):
-    def __init__(self, files, node=None):
-        super(ChannelGroup, self).__init__(files, node)
+    def __init__(self, files, node=None, root=None):
+        super(ChannelGroup, self).__init__(files, node, root=root)
         
         self.name = self._node._v_attrs.name
         self.adjacency_graph = self._node._v_attrs.adjacency_graph
@@ -232,8 +234,8 @@ class ChannelGroup(Node):
         self.spikes = Spikes(self._files, self._node.spikes)
         
 class Spikes(Node):
-    def __init__(self, files, node=None):
-        super(Spikes, self).__init__(files, node)
+    def __init__(self, files, node=None, root=None):
+        super(Spikes, self).__init__(files, node, root=root)
         
         self.time_samples = self._node.time_samples
         self.time_fractional = self._node.time_fractional
@@ -248,6 +250,7 @@ class Spikes(Node):
         
         self.nsamples, self.nchannels = self.waveforms_raw.shape[1:]
         self.features = ArrayProxy(self.features_masks, col=0)
+        self.nfeatures = self.features.shape[1]
         self.masks = ArrayProxy(self.features_masks, col=1)
        
     def add(self, time_samples=None, time_fractional=0,
@@ -259,16 +262,21 @@ class Spikes(Node):
         if features_masks is None:
             # Default features and masks
             if features is None:
-                features = np.zeros((1, self.nchannels), dtype=np.float32)
+                features = np.zeros((1, self.nfeatures), dtype=np.float32)
             if masks is None:
-                masks = np.zeros((1, self.nchannels), dtype=np.float32)
+                masks = np.zeros((1, self.nfeatures), dtype=np.float32)
             # Concatenate features and masks
             features_masks = np.dstack((features, masks))
             
         if waveforms_raw is None:
             waveforms_raw = empty_row(self.waveforms_raw)
+        if waveforms_raw.ndim < 3:
+            waveforms_raw = np.expand_dims(waveforms_raw, axis=0)
+            
         if waveforms_filtered is None:
             waveforms_filtered = empty_row(self.waveforms_filtered)
+        if waveforms_filtered.ndim < 3:
+            waveforms_filtered = np.expand_dims(waveforms_filtered, axis=0)
             
         self.time_samples.append((time_samples,))
         self.time_fractional.append((time_fractional,))
@@ -276,6 +284,7 @@ class Spikes(Node):
         self.cluster.append((cluster,))
         self.cluster_original.append((cluster_original,))
         self.features_masks.append(features_masks)
+        
         self.waveforms_raw.append(waveforms_raw)
         self.waveforms_filtered.append(waveforms_filtered)
     
@@ -287,8 +296,8 @@ class Spikes(Node):
         return self.time_samples.shape[0]
         
 class Channel(Node):
-    def __init__(self, files, node=None):
-        super(Channel, self).__init__(files, node)
+    def __init__(self, files, node=None, root=None):
+        super(Channel, self).__init__(files, node, root=root)
         
         self.name = self._node._v_attrs.name
         self.kwd_index = self._node._v_attrs.kwd_index
@@ -301,8 +310,8 @@ class Channel(Node):
         self.user_data = NodeWrapper(self._node.user_data)
     
 class Cluster(Node):
-    def __init__(self, files, node=None):
-        super(Cluster, self).__init__(files, node)
+    def __init__(self, files, node=None, root=None):
+        super(Cluster, self).__init__(files, node, root=root)
         
         self.cluster_group = self._node._v_attrs.cluster_group
         self.mean_waveform_raw = self._node._v_attrs.mean_waveform_raw
@@ -313,16 +322,16 @@ class Cluster(Node):
         self.quality_measures = NodeWrapper(self._node.quality_measures)
 
 class ClusterGroup(Node):
-    def __init__(self, files, node=None):
-        super(ClusterGroup, self).__init__(files, node)
+    def __init__(self, files, node=None, root=None):
+        super(ClusterGroup, self).__init__(files, node, root=root)
         self.name = self._node._v_attrs.name
         
         self.application_data = NodeWrapper(self._node.application_data)
         self.user_data = NodeWrapper(self._node.user_data)
     
 class Recording(Node):
-    def __init__(self, files, node=None):
-        super(Recording, self).__init__(files, node)
+    def __init__(self, files, node=None, root=None):
+        super(Recording, self).__init__(files, node, root=root)
         
         self.name = self._node._v_attrs.name
         self.start_time = self._node._v_attrs.start_time
@@ -339,8 +348,8 @@ class Recording(Node):
         self.user_data = NodeWrapper(self._node.user_data)
     
 class EventType(Node):
-    def __init__(self, files, node=None):
-        super(EventType, self).__init__(files, node)
+    def __init__(self, files, node=None, root=None):
+        super(EventType, self).__init__(files, node, root=root)
     
         self.events = Events(self._files, self._node.events)
         
@@ -348,8 +357,8 @@ class EventType(Node):
         self.user_data = NodeWrapper(self._node.user_data)
     
 class Events(Node):
-    def __init__(self, files, node=None):
-        super(Events, self).__init__(files, node)
+    def __init__(self, files, node=None, root=None):
+        super(Events, self).__init__(files, node, root=root)
         
         self.time_samples = self._node.time_samples
         self.recording = self._node.recording

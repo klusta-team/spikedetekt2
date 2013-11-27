@@ -12,12 +12,22 @@ import numpy as np
 # Component class
 # -----------------------------------------------------------------------------
 class Component(object):
-    def __init__(self, items=None, s_start=0, keep_start=0, keep_end=np.inf):
+    def __init__(self, items=None, chunk=None, 
+                 s_start=0, keep_start=0, keep_end=np.inf,
+                 recording=0):
         self.items = items
-        self.s_start = s_start
-        self.keep_start = keep_start
-        self.keep_end = keep_end
-
+        self.chunk = chunk
+        if not chunk:
+            self.s_start = s_start
+            self.keep_start = keep_start
+            self.keep_end = keep_end
+            self.recording = recording
+        else:
+            self.s_start = chunk.s_start
+            self.keep_start = chunk.keep_start
+            self.keep_end = chunk.keep_end
+            self.recording = chunk.recording
+            
 
 # -----------------------------------------------------------------------------
 # Graph
@@ -157,10 +167,7 @@ def connected_components(chunk_weak=None, chunk_strong=None,
     # only return the values, because we don't actually need the labels
     comps = [comp_inds[key] for key in comp_inds.keys() if key in strong_nodes]
     if return_objects:
-        return [Component(comp, s_start=chunk.s_start, 
-                                keep_start=chunk.keep_start,
-                                keep_end=chunk.keep_end,
-                                )
+        return [Component(comp, chunk=chunk)
                     for comp in comps]
     else:
         return comps

@@ -47,29 +47,40 @@ def excerpts(nsamples, nexcerpts=None, excerpt_size=None):
         end = min(start + excerpt_size, nsamples)
         yield start, end
     
+def _convert_dtype(data, dtype=None):
+    if not dtype:
+        return data
+    dtype0 = data.dtype
+    data_bis = data.astype(stype)
+    return data_bis
+    
     
 # -----------------------------------------------------------------------------
 # Chunk class
 # -----------------------------------------------------------------------------
 class Chunk(object):
     def __init__(self, data=None, nsamples=None, nchannels=None,
-                 bounds=None):
+                 bounds=None, dtype=None, recording=0):
         self._data = data
         if nsamples is None and nchannels is None:
             nsamples, nchannels = data.shape
         self.nsamples = nsamples
         self.nchannels = nchannels
+        self.dtype = dtype
+        self.recording = recording
         self.s_start, self.s_end, self.keep_start, self.keep_end = bounds
         self.window_full = self.s_start, self.s_end
         self.window_keep = self.keep_start, self.keep_end
         
     @property
     def data_chunk_full(self):
-        return self._data[self.s_start:self.s_end,:]
+        chunk = self._data[self.s_start:self.s_end,:]
+        return _convert_dtype(chunk, self.dtype)
     
     @property
     def data_chunk_keep(self):
-        return self._data[self.keep_start:self.keep_end,:]
+        chunk =  self._data[self.keep_start:self.keep_end,:]
+        return _convert_dtype(chunk, self.dtype)
     
     def __repr__(self):
         return "<Chunk [{0:d}|{1:d}|{2:d}|{3:d}], maxlen={4:d}>".format(

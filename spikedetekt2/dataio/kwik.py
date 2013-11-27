@@ -183,6 +183,7 @@ def create_kwx(path, prb=None, prm=None, has_masks=True):
         prm = {}
     
     nchannels = prm.get('nchannels', None)
+    nfeatures_per_channel = prm.get('nfeatures_per_channel', None)
     nfeatures = prm.get('nfeatures', None)
     nwavesamples = prm.get('nwavesamples', None)
         
@@ -191,8 +192,9 @@ def create_kwx(path, prb=None, prm=None, has_masks=True):
     
     for ichannel_group, chgrp_info in enumerate(prb.get('channel_groups', [])):
         nchannels_ = len(chgrp_info.get('channels', [])) or nchannels or 0
-        nfeatures_ = chgrp_info.get('nfeatures', nfeatures) or 0
         nwavesamples_ = chgrp_info.get('nwavesamples', nwavesamples) or 0
+        nfeatures_per_channel_ = chgrp_info.get('nfeatures_per_channel', nfeatures_per_channel) or 0
+        nfeatures_ = chgrp_info.get('nfeatures', nfeatures) or nfeatures_per_channel_ * nchannels_
         
         assert nchannels_ > 0
         assert nfeatures_ > 0
@@ -204,7 +206,7 @@ def create_kwx(path, prb=None, prm=None, has_masks=True):
         file.createGroup('/channel_groups', 
                          '{0:d}'.format(ichannel_group))
                          
-        # Create the tables.
+        # Create the arrays.
         if has_masks:
             # Features + masks.
             file.createEArray(channel_group_path, 'features_masks',

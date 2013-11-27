@@ -13,8 +13,10 @@ from six import Iterator
 # Raw data readers
 # -----------------------------------------------------------------------------
 class BaseRawDataReader(object):
-    def __init__(self, data):
+    def __init__(self, data, dtype=None, recording=0):
         self._data = data
+        self.dtype = dtype
+        self.recording = recording
         self.nsamples, self.nchannels = data.shape
         
     def chunks(self, chunk_size=None, 
@@ -23,7 +25,8 @@ class BaseRawDataReader(object):
         for bounds in chunk_bounds(self._data.shape[0], 
                                    chunk_size=chunk_size, 
                                    overlap=chunk_overlap):
-            yield Chunk(self._data, bounds=bounds)
+            yield Chunk(self._data, bounds=bounds, dtype=self.dtype,
+                        recording=self.recording)
         
     def excerpts(self, nexcerpts=None, excerpt_size=None):
         for bounds in excerpts(self._data.shape[0],

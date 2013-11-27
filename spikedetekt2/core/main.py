@@ -14,6 +14,19 @@ from spikedetekt2.utils import Probe
 # -----------------------------------------------------------------------------
 # Processing
 # -----------------------------------------------------------------------------
+def add_waveform(experiment, waveform):
+    experiment.channel_groups[waveform.channel_group].spikes.add(
+    time_samples=waveform.s_offset, 
+    time_fractional=waveform.s_frac_part,
+    recording=waveform.recording,
+    waveforms_raw=waveform.raw, 
+    waveforms_filtered=waveform.fil,
+    )
+
+    
+# -----------------------------------------------------------------------------
+# Main loop
+# -----------------------------------------------------------------------------
 def run(raw_data=None, experiment=None, prm=None, probe=None):
     """This main function takes raw data (either as a RawReader, or a path
     to a filename, or an array) and executes the main algorithm (filtering, 
@@ -86,10 +99,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
                         
         # We sort waveforms by increasing order of fractional time.
         for waveform in sorted(waveforms):
-            # experiment.channel_groups[0].spikes.add(#TODO
-                                                    # )
-            
-            print(waveform)
+            add_waveform(experiment, waveform)
             
     # Feature extraction.
         # PCA: sample 10000 waveforms evenly in time

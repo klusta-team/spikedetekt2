@@ -29,3 +29,8 @@ connected_component_join_size = int(.00005 * sample_rate)
 # ----------------
 extract_s_before = 5
 extract_s_after = 5
+
+# Features
+# --------
+nfeatures_per_channel = 3  # Number of features per channel.
+
