@@ -8,8 +8,8 @@ filter_butter_order = 3  # Order of Butterworth filter.
 
 # Chunks
 # ------
-chunk_size = int(sample_rate)
-chunk_overlap = int(.01 * sample_rate)
+chunk_size = int(1. * sample_rate)  # 1 second
+chunk_overlap = int(.01 * sample_rate)  # 10 ms
 
 # Spike detection
 # ---------------
@@ -27,8 +27,9 @@ connected_component_join_size = int(.00005 * sample_rate)
 
 # Spike extraction
 # ----------------
-extract_s_before = 5
-extract_s_after = 5
+extract_s_before = 10
+extract_s_after = 10
+waveforms_nsamples = extract_s_before + extract_s_after
 
 # Features
 # --------

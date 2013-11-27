@@ -171,7 +171,7 @@ def create_kwx(path, prb=None, prm=None, has_masks=True):
     
     Arguments:
       * prb: the PRB dictionary
-      * nwavesamples (common to all channel groups if set)
+      * waveforms_nsamples (common to all channel groups if set)
       * nfeatures (total number of features per spike, common to all channel groups if set)
       * nchannels (number of channels per channel group, common to all channel groups if set)
     
@@ -185,20 +185,20 @@ def create_kwx(path, prb=None, prm=None, has_masks=True):
     nchannels = prm.get('nchannels', None)
     nfeatures_per_channel = prm.get('nfeatures_per_channel', None)
     nfeatures = prm.get('nfeatures', None)
-    nwavesamples = prm.get('nwavesamples', None)
+    waveforms_nsamples = prm.get('waveforms_nsamples', None)
         
     file = tb.openFile(path, mode='w')
     file.createGroup('/', 'channel_groups')
     
     for ichannel_group, chgrp_info in enumerate(prb.get('channel_groups', [])):
         nchannels_ = len(chgrp_info.get('channels', [])) or nchannels or 0
-        nwavesamples_ = chgrp_info.get('nwavesamples', nwavesamples) or 0
+        waveforms_nsamples_ = chgrp_info.get('waveforms_nsamples', waveforms_nsamples) or 0
         nfeatures_per_channel_ = chgrp_info.get('nfeatures_per_channel', nfeatures_per_channel) or 0
         nfeatures_ = chgrp_info.get('nfeatures', nfeatures) or nfeatures_per_channel_ * nchannels_
         
         assert nchannels_ > 0
         assert nfeatures_ > 0
-        assert nwavesamples_ > 0
+        assert waveforms_nsamples_ > 0
         
         channel_group_path = '/channel_groups/{0:d}'.format(ichannel_group)
         
@@ -216,9 +216,9 @@ def create_kwx(path, prb=None, prm=None, has_masks=True):
                               tb.Float32Atom(), (0, nfeatures_))
         
         file.createEArray(channel_group_path, 'waveforms_raw',
-                          tb.Int16Atom(), (0, nwavesamples_, nchannels_))
+                          tb.Int16Atom(), (0, waveforms_nsamples_, nchannels_))
         file.createEArray(channel_group_path, 'waveforms_filtered',
-                          tb.Int16Atom(), (0, nwavesamples_, nchannels_))
+                          tb.Int16Atom(), (0, waveforms_nsamples_, nchannels_))
                                                    
     file.close()
             

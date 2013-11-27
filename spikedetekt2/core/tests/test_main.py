@@ -22,17 +22,13 @@ DIRPATH = tempfile.mkdtemp()
 
 sample_rate = 20000
 duration = 1.
-nwavesamples = 10
 nchannels = 2
-chunk_size = 20000
 nsamples = int(sample_rate * duration)
 raw_data = .1 * np.random.randn(nsamples, nchannels)
 
 prm = get_params(**{
-    'nwavesamples': nwavesamples, 
     'nchannels': nchannels,
     'sample_rate': sample_rate,
-    'chunk_size': chunk_size,
     'detect_spikes': 'positive',
 })
 prb = {'channel_groups': [

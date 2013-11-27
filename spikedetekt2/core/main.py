@@ -120,8 +120,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
     for chunk in raw_data.chunks(chunk_size=chunk_size, 
                                  chunk_overlap=chunk_overlap,):
         # Filter the (full) chunk.
-        # shape: (nsamples, nchannels)
-        chunk_raw = chunk.data_chunk_full
+        chunk_raw = chunk.data_chunk_full  # shape: (nsamples, nchannels)
         chunk_fil = apply_filter(chunk_raw, filter=filter)
         
         # Apply thresholds.

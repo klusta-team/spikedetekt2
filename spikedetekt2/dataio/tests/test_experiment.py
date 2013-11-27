@@ -27,7 +27,7 @@ DIRPATH = tempfile.mkdtemp()
 
 def setup():
     # Create files.
-    prm = {'nfeatures': 3, 'nwavesamples': 10, 'nchannels': 3}
+    prm = {'nfeatures': 3, 'waveforms_nsamples': 10, 'nchannels': 3}
     prb = {'channel_groups': [
         {
             'channels': [4, 6, 8],
@@ -78,7 +78,7 @@ def test_experiment_channels():
         assert exp.application_data
         assert exp.user_data
         assert exp.application_data.spikedetekt.nchannels == 3
-        assert exp.application_data.spikedetekt.nwavesamples == 10
+        assert exp.application_data.spikedetekt.waveforms_nsamples == 10
         assert exp.application_data.spikedetekt.nfeatures == 3
         
         # Channel group.

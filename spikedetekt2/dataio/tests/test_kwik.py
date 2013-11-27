@@ -20,7 +20,7 @@ from spikedetekt2.dataio.kwik import *
 DIRPATH = tempfile.mkdtemp()
 
 def setup_create():
-    prm = {'nfeatures': 3, 'nwavesamples': 10}
+    prm = {'nfeatures': 3, 'waveforms_nsamples': 10}
     prb = {'channel_groups': [
         {
             'channels': [4, 6, 8],
@@ -75,7 +75,7 @@ def test_create_kwik():
     path = os.path.join(DIRPATH, 'myexperiment.kwik')
     
     prm = {
-        'nwavesamples': 20,
+        'waveforms_nsamples': 20,
         'nfeatures': 3*32,
     }
     prb = {'channel_groups': [
@@ -99,12 +99,12 @@ def test_create_kwx():
     path = os.path.join(DIRPATH, 'myexperiment.kwx')
     
     # Create the KWX file.
-    nwavesamples = 20
+    waveforms_nsamples = 20
     nchannels = 32
     nchannels2 = 24
     nfeatures = 3*nchannels
     prm = {
-        'nwavesamples': 20,
+        'waveforms_nsamples': 20,
         'nfeatures': 3*nchannels,
     }
     prb = {'channel_groups': [
@@ -131,16 +131,16 @@ def test_create_kwx():
     wr1 = f.root.channel_groups.__getattr__('1').waveforms_raw
     wf1 = f.root.channel_groups.__getattr__('1').waveforms_filtered
     assert fm1.shape[1:] == (3*nchannels2, 2)
-    assert wr1.shape[1:] == (nwavesamples, nchannels2)
-    assert wf1.shape[1:] == (nwavesamples, nchannels2)
+    assert wr1.shape[1:] == (waveforms_nsamples, nchannels2)
+    assert wf1.shape[1:] == (waveforms_nsamples, nchannels2)
 
     # Group 2
     fm2 = f.root.channel_groups.__getattr__('2').features_masks
     wr2 = f.root.channel_groups.__getattr__('2').waveforms_raw
     wf2 = f.root.channel_groups.__getattr__('2').waveforms_filtered
     assert fm2.shape[1:] == (2*nchannels, 2)
-    assert wr2.shape[1:] == (nwavesamples, nchannels)
-    assert wf2.shape[1:] == (nwavesamples, nchannels)
+    assert wr2.shape[1:] == (waveforms_nsamples, nchannels)
+    assert wf2.shape[1:] == (waveforms_nsamples, nchannels)
     
     f.close()
     

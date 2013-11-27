@@ -57,6 +57,9 @@ def _get_child_id(child):
 def _print_instance(obj, depth=0, name=''):
     # Handle the first element of the list/dict.
     if isinstance(obj, (list, dict)):
+        if not obj:
+            r = []
+            return r
         if isinstance(obj, list):
             sobj = obj[0]
             key = '0'
@@ -293,7 +296,6 @@ class Spikes(Node):
         self.cluster.append((cluster,))
         self.cluster_original.append((cluster_original,))
         self.features_masks.append(features_masks)
-        
         self.waveforms_raw.append(waveforms_raw)
         self.waveforms_filtered.append(waveforms_filtered)
     
