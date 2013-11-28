@@ -52,8 +52,8 @@ def open_file(path, mode=None):
     try:
         f = tb.openFile(path, mode)
         return f
-    except:
-        return None
+    except IOError:
+        raise
 
 def open_files(name, dir=None, mode=None):
     filenames = get_filenames(name, dir=dir)
@@ -67,6 +67,14 @@ def close_files(name, dir=None):
     else:
         files = itervalues(name)
     [file.close() for file in files]
+    
+def files_exist(name, dir=None):
+    files = get_filenames(name, dir=dir)
+    return os.path.exists(files['kwik'])
+    
+def delete_files(name, dir=None):
+    files = get_filenames(name, dir=dir)
+    [os.remove(path) for path in itervalues(files) if os.path.exists(path)]
     
 
 # -----------------------------------------------------------------------------

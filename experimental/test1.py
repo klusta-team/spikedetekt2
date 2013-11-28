@@ -1,24 +1,16 @@
-"""Main module tests."""
+"""Test script illustrating how to run spikedetekt on a .dat file."""
 
 # -----------------------------------------------------------------------------
 # Imports
 # -----------------------------------------------------------------------------
 import os
-import tempfile
+import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-from spikedetekt2.dataio import (BaseRawDataReader, read_raw, create_files,
-    open_files, close_files, add_recording, add_cluster_group, add_cluster,
-    get_filenames, Experiment, excerpts)
-from spikedetekt2.core import run
-from spikedetekt2.utils import itervalues, get_params, Probe
+from spikedetekt2 import *
 
-
-# -----------------------------------------------------------------------------
-# Fixtures
-# -----------------------------------------------------------------------------
 DIRPATH = 'data'
 filename = 'dat1s'
 
@@ -54,7 +46,13 @@ prb = {'channel_groups': [
     }
 ]}
 
-def setup():
+# Delete the files if the script is called with "reset" option.
+if 'reset' in sys.argv:
+    if files_exist(filename, dir=DIRPATH):
+        delete_files(filename, dir=DIRPATH)
+
+# Create empty files if they do not exist yet.
+if not files_exist(filename, dir=DIRPATH):
     create_files(filename, dir=DIRPATH, prm=prm, prb=prb)
     
     # Open the files.
@@ -69,37 +67,17 @@ def setup():
     
     # Close the files
     close_files(files)
+    
+# Open the files in writing mode and run SpikeDetekt
+with Experiment(filename, dir=DIRPATH, mode='a') as exp:
+    run(raw_data, experiment=exp, prm=prm, probe=Probe(prb))
 
-def teardown():
-    files = get_filenames(filename, dir=DIRPATH)
-    [os.remove(path) for path in itervalues(files) if os.path.exists(path)]
-
-
-# -----------------------------------------------------------------------------
-# Processing tests
-# -----------------------------------------------------------------------------
-def test1(dorun=True):
+# Open the file in read-only mode to look into it.
+with Experiment(filename, dir=DIRPATH) as exp:
+    print "spikes:", len(exp.channel_groups[0].spikes)
+    fm = exp.channel_groups[0].spikes.features_masks
+    wf = exp.channel_groups[0].spikes.waveforms_filtered
     
-    import galry.pyplot as plt
-    
-    if dorun:
-        teardown()
-        setup()
-        with Experiment(filename, dir=DIRPATH, mode='a') as exp:
-            run(raw_data, experiment=exp, prm=prm, probe=Probe(prb))
-    
-    # Open the data files.
-    with Experiment(filename, dir=DIRPATH) as exp:
-        print len(exp.channel_groups[0].spikes)
-        # cl = exp.channel_groups[0].spikes.cluster
-        # fm = exp.channel_groups[0].spikes.features_masks
-        # wr = exp.channel_groups[0].spikes.waveforms_raw
-        # wf = exp.channel_groups[0].spikes.waveforms_filtered
-        
-        # plt.plot(wf[:,:,20])
-        # plt.show()
-    
-if __name__ == '__main__':
-    
-    test1(True)
+    print "Features & masks:", fm.shape
+    print "Waveforms:", wf.shape
     

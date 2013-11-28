@@ -111,6 +111,9 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
             raw_data = read_raw(raw_data, nchannels=nchannels)
     else:
         raw_data = read_raw(experiment)
+    # TODO: read from existing KWD file
+    # TODO: when reading from .DAT file, convert into KWD at the same time
+    # TODO: add_recording in Experiment as we go through the DAT files
     
     # Get the strong-pass filter.
     filter = bandpass_filter(**prm)
