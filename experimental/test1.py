@@ -91,13 +91,13 @@ def test1(dorun=True):
     # Open the data files.
     with Experiment(filename, dir=DIRPATH) as exp:
         print len(exp.channel_groups[0].spikes)
-        cl = exp.channel_groups[0].spikes.cluster
-        fm = exp.channel_groups[0].spikes.features_masks
-        wr = exp.channel_groups[0].spikes.waveforms_raw
-        wf = exp.channel_groups[0].spikes.waveforms_filtered
+        # cl = exp.channel_groups[0].spikes.cluster
+        # fm = exp.channel_groups[0].spikes.features_masks
+        # wr = exp.channel_groups[0].spikes.waveforms_raw
+        # wf = exp.channel_groups[0].spikes.waveforms_filtered
         
-        plt.plot(wf[:,:,20])
-        plt.show()
+        # plt.plot(wf[:,:,20])
+        # plt.show()
     
 if __name__ == '__main__':
     

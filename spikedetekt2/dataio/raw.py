@@ -3,7 +3,10 @@
 # -----------------------------------------------------------------------------
 # Imports
 # -----------------------------------------------------------------------------
+import os
+
 import numpy as np
+from nose import with_setup
 
 from chunks import chunk_bounds, Chunk, Excerpt, excerpts
 from six import Iterator
@@ -13,10 +16,9 @@ from six import Iterator
 # Raw data readers
 # -----------------------------------------------------------------------------
 class BaseRawDataReader(object):
-    def __init__(self, data, dtype=None, recording=0):
+    def __init__(self, data, dtype=None):
         self._data = data
         self.dtype = dtype
-        self.recording = recording
         self.nsamples, self.nchannels = data.shape
         
     def chunks(self, chunk_size=None, 
@@ -25,8 +27,7 @@ class BaseRawDataReader(object):
         for bounds in chunk_bounds(self._data.shape[0], 
                                    chunk_size=chunk_size, 
                                    overlap=chunk_overlap):
-            yield Chunk(self._data, bounds=bounds, dtype=self.dtype,
-                        recording=self.recording)
+            yield Chunk(self._data, bounds=bounds, dtype=self.dtype,)
         
     def excerpts(self, nexcerpts=None, excerpt_size=None):
         for bounds in excerpts(self._data.shape[0],
@@ -39,9 +40,45 @@ class NumPyRawDataReader(BaseRawDataReader):
 
 class DatRawDataReader(BaseRawDataReader):
     """Read a DAT file by chunks."""
-    # TODO
-    pass
+    def __init__(self, filenames, dtype=None, shape=None):
+        if not isinstance(filenames, list):
+            filenames = [filenames]
+        self.filenames = filenames
+        self.dtype = np.dtype(dtype)
+        self._data = None
+        _, self.nchannels = shape
+        
+    def next_file(self):
+        for filename in self.filenames:
+            # Find file size.
+            size = os.stat(filename).st_size
+            row_size = self.nchannels * self.dtype.itemsize
+            assert size % row_size == 0
+            nsamples = size // row_size
+            shape = (nsamples, self.nchannels)
+            self._data = np.memmap(filename, dtype=self.dtype,
+                                   mode='r',
+                                   offset=0,
+                                   shape=shape)
+            yield filename
+            self._data = None
+        
+    def chunks(self, *args, **kwargs):
+        for file in self.next_file():
+            for _ in super(DatRawDataReader, self).chunks(*args, **kwargs):
+                yield _
+        
+    def excerpts(self, *args, **kwargs):
+        for file in self.next_file():
+            for _ in super(DatRawDataReader, self).excerpts(*args, **kwargs):
+                yield _
+        
+    def __enter__(self):
+        return self
     
+    def __exit__(self, *args):
+        pass
+        
 def read_raw(raw):
     if isinstance(raw, np.ndarray):
         return NumPyRawDataReader(raw)

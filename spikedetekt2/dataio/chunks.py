@@ -27,13 +27,15 @@ def chunk_bounds(nsamples, chunk_size, overlap=0):
         s_end = s_start + chunk_size
         keep_start = keep_end
         keep_end = s_end - overlap // 2
-        yield s_start, s_end, keep_start, keep_end
+        if s_start < s_end:
+            yield s_start, s_end, keep_start, keep_end
         
     s_start = s_end - overlap
     s_end = nsamples
     keep_start = keep_end
     keep_end = s_end
-    yield s_start, s_end, keep_start, keep_end
+    if s_start < s_end:
+        yield s_start, s_end, keep_start, keep_end
 
 def excerpt_step(nsamples, nexcerpts=None, excerpt_size=None):
     step = max((nsamples - excerpt_size) // (nexcerpts - 1),
