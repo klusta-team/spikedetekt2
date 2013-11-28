@@ -8,8 +8,9 @@ import os
 import numpy as np
 from nose import with_setup
 
+from experiment import Experiment
 from chunks import chunk_bounds, Chunk, Excerpt, excerpts
-from six import Iterator
+from six import Iterator, string_types
 
 
 # -----------------------------------------------------------------------------
@@ -27,7 +28,7 @@ class BaseRawDataReader(object):
         for bounds in chunk_bounds(self._data.shape[0], 
                                    chunk_size=chunk_size, 
                                    overlap=chunk_overlap):
-            yield Chunk(self._data, bounds=bounds, dtype=self.dtype,)
+            yield Chunk(self._data, bounds=bounds,)
         
     def excerpts(self, nexcerpts=None, excerpt_size=None):
         for bounds in excerpts(self._data.shape[0],
@@ -69,13 +70,16 @@ class DatRawDataReader(BaseRawDataReader):
             for bounds in chunk_bounds(self._data.shape[0], 
                                        chunk_size=chunk_size, 
                                        overlap=chunk_overlap):
-                yield Chunk(self._data, bounds=bounds, dtype=self.dtype, 
+                yield Chunk(self._data, bounds=bounds, dtype=np.float32, 
                             recording=i)
         
-    def excerpts(self, *args, **kwargs):
-        for file in self.next_file():
-            for _ in super(DatRawDataReader, self).excerpts(*args, **kwargs):
-                yield _
+    def excerpts(self, nexcerpts=None, excerpt_size=None):
+        for i, file in enumerate(self.next_file()):
+            for bounds in excerpts(self._data.shape[0],
+                                   nexcerpts=nexcerpts, 
+                                   excerpt_size=excerpt_size):
+                yield Excerpt(self._data, bounds=bounds, dtype=np.float32, 
+                              recording=i)
         
     def __enter__(self):
         return self
@@ -83,13 +87,18 @@ class DatRawDataReader(BaseRawDataReader):
     def __exit__(self, *args):
         pass
         
-def read_raw(raw):
+        
+# -----------------------------------------------------------------------------
+# Main raw data reading function
+# -----------------------------------------------------------------------------
+def read_raw(raw, nchannels=None):
     if isinstance(raw, np.ndarray):
         return NumPyRawDataReader(raw)
     elif isinstance(raw, Experiment):
         # TODO: read from Experiment instance
-        pass
-    elif isinstance(raw, string_types):
-        # TODO: read from .dat file
-        pass
+        raise NotImplementedError("Reading from KWIK raw data file (.kwd).")
+    elif isinstance(raw, (string_types, list)):
+        assert nchannels > 0, ("The number of channels must be specified "
+            "in order to read from a .dat file.")
+        return DatRawDataReader(raw, dtype=np.int16, shape=(0, nchannels))
     

@@ -11,6 +11,7 @@ import numpy as np
 from nose import with_setup
 
 from spikedetekt2.dataio import NumPyRawDataReader, DatRawDataReader
+from spikedetekt2.utils import create_trace
 
 
 # -----------------------------------------------------------------------------
@@ -24,13 +25,6 @@ PATH2 = os.path.join(DIRPATH, FILENAME2)
 NSAMPLES = 20000
 NCHANNELS = 32
 
-def create_trace(nsamples, nchannels):
-    noise = np.array(np.random.randint(size=(nsamples, nchannels),
-        low=-1000, high=1000), dtype=np.int16)
-    t = np.linspace(0., 100., nsamples)
-    low = np.array(10000 * np.cos(t), dtype=np.int16)
-    return noise + low[:, np.newaxis]
-    
 def dat_setup_1():
     trace = create_trace(NSAMPLES, NCHANNELS)
     trace.tofile(PATH)

@@ -12,7 +12,7 @@ from spikedetekt2.dataio import (BaseRawDataReader, read_raw, create_files,
     open_files, close_files, add_recording, add_cluster_group, add_cluster,
     get_filenames, Experiment, excerpts)
 from spikedetekt2.core import run
-from spikedetekt2.utils import itervalues, get_params, Probe
+from spikedetekt2.utils import itervalues, get_params, Probe, create_trace
 
 
 # -----------------------------------------------------------------------------
@@ -20,11 +20,14 @@ from spikedetekt2.utils import itervalues, get_params, Probe
 # -----------------------------------------------------------------------------
 DIRPATH = tempfile.mkdtemp()
 
-sample_rate = 20000
+sample_rate = 20000.
 duration = 1.
 nchannels = 2
 nsamples = int(sample_rate * duration)
 raw_data = .1 * np.random.randn(nsamples, nchannels)
+# Add "spikes".
+for start, end in excerpts(nsamples, nexcerpts=100, excerpt_size=10):
+    raw_data[start:end] *= 5
 
 prm = get_params(**{
     'nchannels': nchannels,
@@ -33,8 +36,8 @@ prm = get_params(**{
 })
 prb = {'channel_groups': [
     {
-        'channels': [0, 1],
-        'graph': [[0, 1]],
+        'channels': list(range(nchannels)),
+        'graph': [(i, i + 1) for i in range(nchannels - 1)],
     }
 ]}
 
@@ -62,15 +65,35 @@ def teardown():
 # -----------------------------------------------------------------------------
 # Processing tests
 # -----------------------------------------------------------------------------
+def test_run_nospikes():
+    """Read from NumPy array file."""
+    # Run the algorithm.
+    with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:
+        run(np.zeros((nsamples, nchannels)), 
+            experiment=exp, prm=prm, probe=Probe(prb))
+    
+    # Open the data files.
+    with Experiment('myexperiment', dir=DIRPATH) as exp:
+        assert len(exp.channel_groups[0].spikes) == 0
+
 def test_run_1():
-    
-    # Add "spikes".
-    for start, end in excerpts(nsamples, nexcerpts=100, excerpt_size=10):
-        raw_data[start:end] *= 5
-    
+    """Read from NumPy array file."""
     # Run the algorithm.
     with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:
         run(raw_data, experiment=exp, prm=prm, probe=Probe(prb))
+    
+    # Open the data files.
+    with Experiment('myexperiment', dir=DIRPATH) as exp:
+        print(len(exp.channel_groups[0].spikes))
+    
+def test_run_2():
+    """Read from .dat file."""
+    path = os.path.join(DIRPATH, 'mydatfile.dat')
+    (raw_data * 1e4).astype(np.int16).tofile(path)
+    
+    # Run the algorithm.
+    with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:
+        run(path, experiment=exp, prm=prm, probe=Probe(prb))
     
     # Open the data files.
     with Experiment('myexperiment', dir=DIRPATH) as exp:

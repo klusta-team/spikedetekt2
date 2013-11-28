@@ -74,6 +74,9 @@ def save_features(experiment, **prm):
         spikes = experiment.channel_groups[chgrp].spikes
         # Extract a subset of the saveforms.
         nspikes = len(spikes)
+        # Skip the channel group if there are no spikes.
+        if nspikes == 0:
+            continue
         nwaveforms = min(nspikes, nwaveforms_max)
         step = excerpt_step(nspikes, nexcerpts=nwaveforms, excerpt_size=1)
         waveforms_subset = spikes.waveforms_filtered[::step]
@@ -100,12 +103,12 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
     # Get parameters from the PRM dictionary.
     chunk_size = prm.get('chunk_size', None)
     chunk_overlap = prm.get('chunk_overlap', 0)
+    nchannels = prm.get('nchannels', None)
     
     # Ensure a RawDataReader is instanciated.
-    # TODO: concatenate DAT files
     if raw_data is not None:
         if not isinstance(raw_data, BaseRawDataReader):
-            raw_data = read_raw(raw_data)
+            raw_data = read_raw(raw_data, nchannels=nchannels)
     else:
         raw_data = read_raw(experiment)
     
@@ -119,6 +122,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
     # Loop through all chunks with overlap.
     for chunk in raw_data.chunks(chunk_size=chunk_size, 
                                  chunk_overlap=chunk_overlap,):
+                                 
         # Filter the (full) chunk.
         chunk_raw = chunk.data_chunk_full  # shape: (nsamples, nchannels)
         chunk_fil = apply_filter(chunk_raw, filter=filter)

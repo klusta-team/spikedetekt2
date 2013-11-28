@@ -58,8 +58,12 @@ def _convert_dtype(data, dtype=None):
     if not dtype:
         return data
     dtype0 = data.dtype
-    data_bis = data.astype(stype)
-    return data_bis
+    data_bis = data.astype(dtype)
+    if dtype0 == np.int16:
+        factor = 1e-4
+    else:
+        factor = 1
+    return data_bis * factor
     
     
 # -----------------------------------------------------------------------------
@@ -101,19 +105,22 @@ class Chunk(object):
 # -----------------------------------------------------------------------------
 class Excerpt(object):
     def __init__(self, data=None, nsamples=None, nchannels=None,
-                 bounds=None):
+                 bounds=None, dtype=None, recording=0):
         self._data = data
         if nsamples is None and nchannels is None:
             nsamples, nchannels = data.shape
         self.nsamples = nsamples
         self.nchannels = nchannels
+        self.dtype = dtype
+        self.recording = recording
         self.start, self.end = bounds
         self.size = self.end - self.start
         self.window = bounds
         
     @property
     def data(self):
-        return self._data[self.start:self.end,:]
+        excerpt = self._data[self.start:self.end,:]
+        return _convert_dtype(excerpt, self.dtype)
     
     def __repr__(self):
         return "<Excerpt [{0:d}:{1:d}], maxlen={2:d}>".format(
