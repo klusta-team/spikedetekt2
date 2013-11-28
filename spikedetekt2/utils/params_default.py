@@ -9,7 +9,7 @@ filter_butter_order = 3  # Order of Butterworth filter.
 # Chunks
 # ------
 chunk_size = int(1. * sample_rate)  # 1 second
-chunk_overlap = int(.01 * sample_rate)  # 10 ms
+chunk_overlap = int(.015 * sample_rate)  # 15 ms
 
 # Spike detection
 # ---------------

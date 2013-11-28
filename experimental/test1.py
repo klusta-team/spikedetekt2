@@ -7,6 +7,7 @@ import os
 import tempfile
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from spikedetekt2.dataio import (BaseRawDataReader, read_raw, create_files,
     open_files, close_files, add_recording, add_cluster_group, add_cluster,
@@ -23,18 +24,16 @@ filename = 'dat1s'
 
 sample_rate = 20000
 duration = 1.
-waveforms_nsamples = 20
 nchannels = 32
 chunk_size = 20000
 nsamples = int(sample_rate * duration)
 raw_data = np.load(os.path.join(DIRPATH, filename + '.npy'))
 
 prm = get_params(**{
-    'waveforms_nsamples': waveforms_nsamples, 
     'nchannels': nchannels,
     'sample_rate': sample_rate,
     'chunk_size': chunk_size,
-    'detect_spikes': 'positive',
+    'detect_spikes': 'negative',
 })
 prb = {'channel_groups': [
     {
@@ -73,33 +72,34 @@ def setup():
 
 def teardown():
     files = get_filenames(filename, dir=DIRPATH)
-    [os.remove(path) for path in itervalues(files)]
+    [os.remove(path) for path in itervalues(files) if os.path.exists(path)]
 
 
 # -----------------------------------------------------------------------------
 # Processing tests
 # -----------------------------------------------------------------------------
-def test1():
+def test1(dorun=True):
     
-    # Run the algorithm.
-    with Experiment(filename, dir=DIRPATH, mode='a') as exp:
-        run(raw_data, experiment=exp, prm=prm, probe=Probe(prb))
+    import galry.pyplot as plt
+    
+    if dorun:
+        teardown()
+        setup()
+        with Experiment(filename, dir=DIRPATH, mode='a') as exp:
+            run(raw_data, experiment=exp, prm=prm, probe=Probe(prb))
     
     # Open the data files.
     with Experiment(filename, dir=DIRPATH) as exp:
-        print exp
-        print exp._root
-        print(len(exp.channel_groups[0].spikes))
-    
-    
+        print len(exp.channel_groups[0].spikes)
+        cl = exp.channel_groups[0].spikes.cluster
+        fm = exp.channel_groups[0].spikes.features_masks
+        wr = exp.channel_groups[0].spikes.waveforms_raw
+        wf = exp.channel_groups[0].spikes.waveforms_filtered
+        
+        plt.plot(wf[:,:,20])
+        plt.show()
     
 if __name__ == '__main__':
-    setup()
     
-    try:
-        test1()
-    except:
-        raise
-    finally:
-        teardown()
+    test1(True)
     
