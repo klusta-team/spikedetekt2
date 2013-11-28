@@ -18,7 +18,9 @@ from spikedetekt2.dataio import NumPyRawDataReader, DatRawDataReader
 # -----------------------------------------------------------------------------
 DIRPATH = tempfile.mkdtemp()
 FILENAME = 'mydatfile.dat'
+FILENAME2 = 'mydatfile2.dat'
 PATH = os.path.join(DIRPATH, FILENAME)
+PATH2 = os.path.join(DIRPATH, FILENAME2)
 NSAMPLES = 20000
 NCHANNELS = 32
 
@@ -35,6 +37,16 @@ def dat_setup_1():
     
 def dat_teardown_1():
     os.remove(PATH)
+    
+def dat_setup_2():
+    trace = create_trace(NSAMPLES, NCHANNELS)
+    trace.tofile(PATH)
+    trace2 = create_trace(2 * NSAMPLES, NCHANNELS)
+    trace2.tofile(PATH2)
+    
+def dat_teardown_2():
+    os.remove(PATH)
+    os.remove(PATH2)
     
     
 # -----------------------------------------------------------------------------
@@ -61,9 +73,16 @@ def test_raw_data_1():
     
 @with_setup(dat_setup_1, dat_teardown_1)
 def test_raw_dat_1():
+    """Test 1 file with 20k samples."""
     with DatRawDataReader(PATH, dtype=np.int16, shape=(-1, NCHANNELS)) as reader:
         assert len([chunk for chunk in reader.chunks(NSAMPLES, 0)]) == 1
     
+@with_setup(dat_setup_2, dat_teardown_2)
+def test_raw_dat_2():
+    """Test the concatenation of 1 file with 20k samples and 1 other with 40k."""
+    with DatRawDataReader([PATH, PATH2], dtype=np.int16, shape=(-1, NCHANNELS)) as reader:
+        for chunk, rec in zip(reader.chunks(NSAMPLES, 0), [0, 1, 1]):
+            assert chunk.recording == rec
     
 def test_raw_data_iterator():
     data = np.random.randn(200, 4)

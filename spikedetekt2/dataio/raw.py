@@ -63,10 +63,14 @@ class DatRawDataReader(BaseRawDataReader):
             yield filename
             self._data = None
         
-    def chunks(self, *args, **kwargs):
-        for file in self.next_file():
-            for _ in super(DatRawDataReader, self).chunks(*args, **kwargs):
-                yield _
+    def chunks(self, chunk_size=None, chunk_overlap=None):
+        for i, file in enumerate(self.next_file()):
+            assert chunk_size is not None, "You need to specify a chunk size."""
+            for bounds in chunk_bounds(self._data.shape[0], 
+                                       chunk_size=chunk_size, 
+                                       overlap=chunk_overlap):
+                yield Chunk(self._data, bounds=bounds, dtype=self.dtype, 
+                            recording=i)
         
     def excerpts(self, *args, **kwargs):
         for file in self.next_file():
