@@ -243,8 +243,7 @@ class Spikes(Node):
         self.time_samples = self._node.time_samples
         self.time_fractional = self._node.time_fractional
         self.recording = self._node.recording
-        self.cluster = self._node.cluster
-        self.cluster_original = self._node.cluster_original
+        self.clusters = Clusters(self._files, self._node.clusters)
         
         # Get large datasets, that may be in external files.
         self.features_masks = self._get_child('features_masks')
@@ -293,8 +292,8 @@ class Spikes(Node):
         self.time_samples.append((time_samples,))
         self.time_fractional.append((time_fractional,))
         self.recording.append((recording,))
-        self.cluster.append((cluster,))
-        self.cluster_original.append((cluster_original,))
+        self.clusters.main.append((cluster,))
+        self.clusters.original.append((cluster_original,))
         self.features_masks.append(features_masks)
         self.waveforms_raw.append(waveforms_raw)
         self.waveforms_filtered.append(waveforms_filtered)
@@ -305,6 +304,13 @@ class Spikes(Node):
             
     def __len__(self):
         return self.time_samples.shape[0]
+        
+class Clusters(Node):
+    def __init__(self, files, node=None, root=None):
+        super(Clusters, self).__init__(files, node, root=root)        
+        # Each child of the Clusters group is assigned here.
+        for node in self._node._f_iter_nodes():
+            setattr(self, node._v_name, node)
         
 class Channel(Node):
     def __init__(self, files, node=None, root=None):

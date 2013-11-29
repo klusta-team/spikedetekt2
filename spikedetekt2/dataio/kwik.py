@@ -147,8 +147,9 @@ def create_kwik(path, experiment_name=None, prm=None, prb=None):
         file.createEArray(spikes, 'time_samples', tb.UInt64Atom(), (0,))
         file.createEArray(spikes, 'time_fractional', tb.UInt8Atom(), (0,))
         file.createEArray(spikes, 'recording', tb.UInt16Atom(), (0,))
-        file.createEArray(spikes, 'cluster', tb.UInt32Atom(), (0,))
-        file.createEArray(spikes, 'cluster_original', tb.UInt32Atom(), (0,))
+        clusters = file.createGroup(spikes, 'clusters')
+        file.createEArray(clusters, 'main', tb.UInt32Atom(), (0,))
+        file.createEArray(clusters, 'original', tb.UInt32Atom(), (0,))
         
         fm = file.createGroup(spikes, 'features_masks')
         fm._f_setattr('hdf5_path', '{{kwx}}/channel_groups/{0:d}/features_masks'. \

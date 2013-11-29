@@ -119,13 +119,13 @@ def test_experiment_spikes():
         assert spikes.recording.dtype == np.uint16
         assert spikes.recording.ndim == 1
         
-        assert isinstance(spikes.cluster, tb.EArray)
-        assert spikes.cluster.dtype == np.uint32
-        assert spikes.cluster.ndim == 1
+        assert isinstance(spikes.clusters.main, tb.EArray)
+        assert spikes.clusters.main.dtype == np.uint32
+        assert spikes.clusters.main.ndim == 1
         
-        assert isinstance(spikes.cluster_original, tb.EArray)
-        assert spikes.cluster_original.dtype == np.uint32
-        assert spikes.cluster_original.ndim == 1
+        assert isinstance(spikes.clusters.original, tb.EArray)
+        assert spikes.clusters.original.dtype == np.uint32
+        assert spikes.clusters.original.ndim == 1
         
         assert isinstance(spikes.features_masks, tb.EArray)
         assert spikes.features_masks.dtype == np.float32
