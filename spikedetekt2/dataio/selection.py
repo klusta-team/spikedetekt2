@@ -143,10 +143,12 @@ def select(data, indices=None):
         if type(data) == tuple:
             data, process_fun = data
         else:
-            process_fun=None
+            process_fun = None
         return select_pytables(data, indices_argument,
                                process_fun=process_fun)
-    else:
+    elif hasattr(data, 'values'):
         if data.values.size == 0:
             return data
         return select_pandas(data, indices_argument)
+    else:
+        return select_pytables(data, indices_argument)

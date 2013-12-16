@@ -101,12 +101,16 @@ class ArrayProxy(object):
     @property
     def shape(self):
         return self._arr.shape[:-1]
-        
+    
     def __getitem__(self, item):
         if self._col is None:
             return self._arr[item]
         else:
-            return self._arr[item, ..., self._col]
+            if isinstance(item, tuple):
+                item += (self._col,)
+                return self._arr[item]
+            else:
+                return self._arr[item, ..., self._col]
         
 def get_row_shape(arr):
     """Return the shape of a row of an array."""
