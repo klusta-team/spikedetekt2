@@ -27,7 +27,8 @@ DIRPATH = tempfile.mkdtemp()
 
 def setup():
     # Create files.
-    prm = {'nfeatures': 3, 'waveforms_nsamples': 10, 'nchannels': 3}
+    prm = {'nfeatures': 3, 'waveforms_nsamples': 10, 'nchannels': 3,
+           'nfeatures_per_channel': 1}
     prb = {'channel_groups': [
         {
             'channels': [4, 6, 8],
