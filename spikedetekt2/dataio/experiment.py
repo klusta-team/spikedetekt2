@@ -235,8 +235,8 @@ class ChannelGroup(Node):
         self.user_data = NodeWrapper(self._node.user_data)
         
         self.channels = self._gen_children('channels', Channel)
-        self.clusters = self._gen_children('clusters', Cluster)
-        self.cluster_groups = self._gen_children('cluster_groups', ClusterGroup)
+        self.clusters = ClustersNode(self._files, self._node.clusters)
+        self.cluster_groups = ClusterGroupsNode(self._files, self._node.cluster_groups)
         
         self.spikes = Spikes(self._files, self._node.spikes)
         
@@ -315,6 +315,20 @@ class Clusters(Node):
         # Each child of the Clusters group is assigned here.
         for node in self._node._f_iter_nodes():
             setattr(self, node._v_name, node)
+        
+class ClustersNode(Node):
+    def __init__(self, files, node=None, root=None):
+        super(ClustersNode, self).__init__(files, node, root=root)        
+        # Each child of the group is assigned here.
+        for node in self._node._f_iter_nodes():
+            setattr(self, node._v_name, self._gen_children(node._v_name, Cluster))
+        
+class ClusterGroupsNode(Node):
+    def __init__(self, files, node=None, root=None):
+        super(ClusterGroupsNode, self).__init__(files, node, root=root)        
+        # Each child of the group is assigned here.
+        for node in self._node._f_iter_nodes():
+            setattr(self, node._v_name, self._gen_children(node._v_name, ClusterGroup))
         
 class Channel(Node):
     def __init__(self, files, node=None, root=None):

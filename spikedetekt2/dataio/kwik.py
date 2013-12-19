@@ -161,11 +161,17 @@ def create_kwik(path, experiment_name=None, prm=None, prb=None):
         wf._f_setattr('hdf5_path', '{{kwx}}/channel_groups/{0:d}/waveforms_filtered'. \
             format(igroup))
         
+        # TODO: add clusters 0, 1, 2, 3 by default
+        
         # Create clusters.
-        file.createGroup(group, 'clusters')
+        clusters = file.createGroup(group, 'clusters')
+        file.createGroup(clusters, 'main')
+        file.createGroup(clusters, 'original')
         
         # Create cluster groups.
-        file.createGroup(group, 'cluster_groups')
+        cluster_groups = file.createGroup(group, 'cluster_groups')
+        file.createGroup(cluster_groups, 'main')
+        file.createGroup(cluster_groups, 'original')
         
     # Create recordings.
     file.createGroup('/', 'recordings')
@@ -357,7 +363,7 @@ def add_event_type(fd, id=None, evt=None):
     kwik.createEArray(events, 'recording', tb.UInt16Atom(), (0,))
     kwik.createGroup(events, 'user_data')
     
-def add_cluster(fd, channel_group_id=None, id=None, 
+def add_cluster(fd, channel_group_id=None, id=None, clustering='main',
     cluster_group=None,
     mean_waveform_raw=None,
     mean_waveform_filtered=None,
@@ -368,7 +374,8 @@ def add_cluster(fd, channel_group_id=None, id=None,
     assert kwik is not None
     # The channel group id containing the new cluster group must be specified.
     assert channel_group_id is not None
-    clusters_path = '/channel_groups/{0:s}/clusters'.format(channel_group_id)
+    clusters_path = '/channel_groups/{0:s}/clusters/{1:s}'.format(
+        channel_group_id, clustering)
     if id is None:
         # If id is None, take the maximum integer index among the existing
         # recording names, + 1.
@@ -397,14 +404,16 @@ def add_cluster(fd, channel_group_id=None, id=None,
     kv = kwik.createGroup(app, 'klustaviewa')
     kv._f_setattr('color', None)
     
-def add_cluster_group(fd, channel_group_id=None, id=None, name=None):
+def add_cluster_group(fd, channel_group_id=None, id=None, clustering='main',
+                      name=None):
     """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""
     kwik = fd.get('kwik', None)
     # The KWIK needs to be there.
     assert kwik is not None
     # The channel group id containing the new cluster group must be specified.
     assert channel_group_id is not None
-    cluster_groups_path = '/channel_groups/{0:s}/cluster_groups'.format(channel_group_id)
+    cluster_groups_path = '/channel_groups/{0:s}/cluster_groups/{1:s}'.format(
+        channel_group_id, clustering)
     if id is None:
         # If id is None, take the maximum integer index among the existing
         # recording names, + 1.

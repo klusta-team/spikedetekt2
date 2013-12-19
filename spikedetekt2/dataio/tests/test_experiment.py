@@ -161,7 +161,7 @@ def test_experiment_add_spikes():
 def test_experiment_clusters():
     with Experiment('myexperiment', dir=DIRPATH) as exp:
         chgrp = exp.channel_groups[0]
-        cluster = chgrp.clusters[0]
+        cluster = chgrp.clusters.main[0]
         
         assert cluster.application_data
         assert cluster.user_data
@@ -174,7 +174,7 @@ def test_experiment_clusters():
 def test_experiment_cluster_groups():
     with Experiment('myexperiment', dir=DIRPATH) as exp:
         chgrp = exp.channel_groups[0]
-        cluster_group = chgrp.cluster_groups['noise']
+        cluster_group = chgrp.cluster_groups.main['noise']
         assert cluster_group.name == 'Noise'
         
         assert cluster_group.application_data
