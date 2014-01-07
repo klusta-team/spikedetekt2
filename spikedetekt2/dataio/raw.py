@@ -10,7 +10,7 @@ from nose import with_setup
 
 from experiment import Experiment
 from chunks import chunk_bounds, Chunk, Excerpt, excerpts
-from six import Iterator, string_types
+from spikedetekt2.utils.six import Iterator, string_types
 
 
 # -----------------------------------------------------------------------------
