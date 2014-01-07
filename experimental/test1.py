@@ -19,7 +19,7 @@ duration = 1.
 nchannels = 32
 chunk_size = 20000
 nsamples = int(sample_rate * duration)
-raw_data = np.load(os.path.join(DIRPATH, filename + '.npy'))
+raw_data = 'data/dat1s.dat'
 
 prm = get_params(**{
     'nchannels': nchannels,

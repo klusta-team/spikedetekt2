@@ -149,7 +149,7 @@ class Node(object):
         child = self._node._f_getChild(child_name)
         try:
             # There's a link that needs to be resolved: return it.
-            path = child._f_getattr('hdf5_path')
+            path = child._f_getAttr('hdf5_path')
             return _resolve_hdf5_path(self._files, path)
         except AttributeError:
             # No HDF5 external link: just return the normal child.
@@ -313,21 +313,21 @@ class Clusters(Node):
     def __init__(self, files, node=None, root=None):
         super(Clusters, self).__init__(files, node, root=root)        
         # Each child of the Clusters group is assigned here.
-        for node in self._node._f_iter_nodes():
+        for node in self._node._f_iterNodes():
             setattr(self, node._v_name, node)
         
 class ClustersNode(Node):
     def __init__(self, files, node=None, root=None):
         super(ClustersNode, self).__init__(files, node, root=root)        
         # Each child of the group is assigned here.
-        for node in self._node._f_iter_nodes():
+        for node in self._node._f_iterNodes():
             setattr(self, node._v_name, self._gen_children(node._v_name, Cluster))
         
 class ClusterGroupsNode(Node):
     def __init__(self, files, node=None, root=None):
         super(ClusterGroupsNode, self).__init__(files, node, root=root)        
         # Each child of the group is assigned here.
-        for node in self._node._f_iter_nodes():
+        for node in self._node._f_iterNodes():
             setattr(self, node._v_name, self._gen_children(node._v_name, ClusterGroup))
         
 class Channel(Node):
