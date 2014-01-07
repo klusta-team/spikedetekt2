@@ -100,15 +100,15 @@ def create_kwik(path, experiment_name=None, prm=None, prb=None):
     
     file = tb.openFile(path, mode='w')
     
-    file.root._f_setattr('kwik_version', 2)
-    file.root._f_setattr('name', experiment_name)
+    file.root._f_setAttr('kwik_version', 2)
+    file.root._f_setAttr('name', experiment_name)
 
     file.createGroup('/', 'application_data')
     
     # Set the SpikeDetekt parameters
     file.createGroup('/application_data', 'spikedetekt')
     for prm_name, prm_value in iteritems(prm):
-        file.root.application_data.spikedetekt._f_setattr(prm_name, prm_value)
+        file.root.application_data.spikedetekt._f_setAttr(prm_name, prm_value)
     
     file.createGroup('/', 'user_data')
     
@@ -117,8 +117,8 @@ def create_kwik(path, experiment_name=None, prm=None, prb=None):
     for igroup, group_info in enumerate(prb.get('channel_groups', [])):
         group = file.createGroup('/channel_groups', str(igroup))
         # group_info: channel, graph, geometry
-        group._f_setattr('name', 'channel_group_{0:d}'.format(igroup))
-        group._f_setattr('adjacency_graph', group_info.get('graph', np.zeros((0, 2))))
+        group._f_setAttr('name', 'channel_group_{0:d}'.format(igroup))
+        group._f_setAttr('adjacency_graph', group_info.get('graph', np.zeros((0, 2))))
         file.createGroup(group, 'application_data')
         file.createGroup(group, 'user_data')
         
@@ -128,15 +128,15 @@ def create_kwik(path, experiment_name=None, prm=None, prb=None):
         for channel_idx in channels:
             # channel is the absolute channel index.
             channel = file.createGroup(group.channels, str(channel_idx))
-            channel._f_setattr('name', 'channel_{0:d}'.format(channel_idx))
+            channel._f_setAttr('name', 'channel_{0:d}'.format(channel_idx))
             
             ############### TODO
-            channel._f_setattr('kwd_index', 0)
-            channel._f_setattr('ignored', False)
-            channel._f_setattr('position', group_info.get('geometry', {}). \
+            channel._f_setAttr('kwd_index', 0)
+            channel._f_setAttr('ignored', False)
+            channel._f_setAttr('position', group_info.get('geometry', {}). \
                 get(channel_idx, None))
-            channel._f_setattr('voltage_gain', 0.)
-            channel._f_setattr('display_threshold', 0.)
+            channel._f_setAttr('voltage_gain', 0.)
+            channel._f_setAttr('display_threshold', 0.)
             file.createGroup(channel, 'application_data')
             file.createGroup(channel.application_data, 'spikedetekt')
             file.createGroup(channel.application_data, 'klustaviewa')
@@ -152,13 +152,13 @@ def create_kwik(path, experiment_name=None, prm=None, prb=None):
         file.createEArray(clusters, 'original', tb.UInt32Atom(), (0,))
         
         fm = file.createGroup(spikes, 'features_masks')
-        fm._f_setattr('hdf5_path', '{{kwx}}/channel_groups/{0:d}/features_masks'. \
+        fm._f_setAttr('hdf5_path', '{{kwx}}/channel_groups/{0:d}/features_masks'. \
             format(igroup))
         wr = file.createGroup(spikes, 'waveforms_raw')
-        wr._f_setattr('hdf5_path', '{{kwx}}/channel_groups/{0:d}/waveforms_raw'. \
+        wr._f_setAttr('hdf5_path', '{{kwx}}/channel_groups/{0:d}/waveforms_raw'. \
             format(igroup))
         wf = file.createGroup(spikes, 'waveforms_filtered')
-        wf._f_setattr('hdf5_path', '{{kwx}}/channel_groups/{0:d}/waveforms_filtered'. \
+        wf._f_setAttr('hdf5_path', '{{kwx}}/channel_groups/{0:d}/waveforms_filtered'. \
             format(igroup))
         
         # TODO: add clusters 0, 1, 2, 3 by default
@@ -300,21 +300,21 @@ def add_recording(fd, id=None, name=None, sample_rate=None, start_time=None,
         else:
             name = id
     recording = kwik.createGroup('/recordings', id)
-    recording._f_setattr('name', name)
-    recording._f_setattr('start_time', start_time)
-    recording._f_setattr('start_sample', start_sample)
-    recording._f_setattr('sample_rate', sample_rate)
-    recording._f_setattr('bit_depth', bit_depth)
-    recording._f_setattr('band_high', band_high)
-    recording._f_setattr('band_low', band_low)
+    recording._f_setAttr('name', name)
+    recording._f_setAttr('start_time', start_time)
+    recording._f_setAttr('start_sample', start_sample)
+    recording._f_setAttr('sample_rate', sample_rate)
+    recording._f_setAttr('bit_depth', bit_depth)
+    recording._f_setAttr('band_high', band_high)
+    recording._f_setAttr('band_low', band_low)
     
     kwik_raw = kwik.createGroup('/recordings/' + id, 'raw')
     kwik_high = kwik.createGroup('/recordings/' + id, 'high')
     kwik_low = kwik.createGroup('/recordings/' + id, 'low')
     
-    kwik_raw._f_setattr('hdf5_path', '{raw.kwd}/recordings/' + id)
-    kwik_high._f_setattr('hdf5_path', '{high.kwd}/recordings/' + id)
-    kwik_low._f_setattr('hdf5_path', '{low.kwd}/recordings/' + id)
+    kwik_raw._f_setAttr('hdf5_path', '{raw.kwd}/recordings/' + id)
+    kwik_high._f_setAttr('hdf5_path', '{high.kwd}/recordings/' + id)
+    kwik_low._f_setAttr('hdf5_path', '{low.kwd}/recordings/' + id)
     
     kwik.createGroup('/recordings/' + id, 'user_data')
         
@@ -322,7 +322,7 @@ def add_recording(fd, id=None, name=None, sample_rate=None, start_time=None,
         kwd = fd.get(type, None)
         if kwd:
             recording = kwd.createGroup('/recordings', id)    
-            recording._f_setattr('downsample_factor', downsample_factor)
+            recording._f_setAttr('downsample_factor', downsample_factor)
             
             dataset = kwd.createEArray(recording, 'data', 
                               tb.Int16Atom(), 
@@ -356,7 +356,7 @@ def add_event_type(fd, id=None, evt=None):
     
     app = kwik.createGroup(event_type, 'application_data')
     kv = kwik.createGroup(app, 'klustaviewa')
-    kv._f_setattr('color', None)
+    kv._f_setAttr('color', None)
     
     events = kwik.createGroup(event_type, 'events')
     kwik.createEArray(events, 'time_samples', tb.UInt64Atom(), (0,))
@@ -387,22 +387,22 @@ def add_cluster(fd, channel_group_id=None, id=None, clustering='main',
             id = '0'
     cluster = kwik.createGroup(clusters_path, id)
     
-    cluster._f_setattr('cluster_group', cluster_group)
-    cluster._f_setattr('mean_waveform_raw', mean_waveform_raw)
-    cluster._f_setattr('mean_waveform_filtered', mean_waveform_filtered)
+    cluster._f_setAttr('cluster_group', cluster_group)
+    cluster._f_setAttr('mean_waveform_raw', mean_waveform_raw)
+    cluster._f_setAttr('mean_waveform_filtered', mean_waveform_filtered)
     
     # TODO
     quality = kwik.createGroup(cluster, 'quality_measures')
-    quality._f_setattr('isolation_distance', None)
-    quality._f_setattr('matrix_isolation', None)
-    quality._f_setattr('refractory_violation', None)
-    quality._f_setattr('amplitude', None)
+    quality._f_setAttr('isolation_distance', None)
+    quality._f_setAttr('matrix_isolation', None)
+    quality._f_setAttr('refractory_violation', None)
+    quality._f_setAttr('amplitude', None)
     
     kwik.createGroup(cluster, 'user_data')
     
     app = kwik.createGroup(cluster, 'application_data')
     kv = kwik.createGroup(app, 'klustaviewa')
-    kv._f_setattr('color', None)
+    kv._f_setAttr('color', None)
     
 def add_cluster_group(fd, channel_group_id=None, id=None, clustering='main',
                       name=None):
@@ -430,12 +430,12 @@ def add_cluster_group(fd, channel_group_id=None, id=None, clustering='main',
         else:
             name = id
     cluster_group = kwik.createGroup(cluster_groups_path, id)
-    cluster_group._f_setattr('name', name)
+    cluster_group._f_setAttr('name', name)
     
     kwik.createGroup(cluster_group, 'user_data')
     
     app = kwik.createGroup(cluster_group, 'application_data')
     kv = kwik.createGroup(app, 'klustaviewa')
-    kv._f_setattr('color', None)
+    kv._f_setAttr('color', None)
     
     
