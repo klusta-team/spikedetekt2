@@ -23,11 +23,14 @@ def bandpass_filter(**prm):
 
 def apply_filter(x, filter=None):
     b, a = filter
-    # out_arr = np.zeros_like(x)
-    # for i_ch in range(x.shape[1]):
-        # out_arr[:, i_ch] = signal.filtfilt(b, a, x[:, i_ch]) 
-    # return out_arr
-    return signal.filtfilt(b, a, x, axis=0)
+    try:
+        out_arr = signal.filtfilt(b, a, x, axis=0)
+    except TypeError:   
+        out_arr = np.zeros_like(x)
+        for i_ch in range(x.shape[1]):
+            out_arr[:, i_ch] = signal.filtfilt(b, a, x[:, i_ch]) 
+    return out_arr
+    #return signal.filtfilt(b, a, x, axis=0)
 
 
 # -----------------------------------------------------------------------------
