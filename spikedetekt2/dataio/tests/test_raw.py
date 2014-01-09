@@ -9,8 +9,10 @@ import shutil
 
 import numpy as np
 from nose import with_setup
+import tables as tb
 
-from spikedetekt2.dataio import NumPyRawDataReader, DatRawDataReader
+from spikedetekt2.dataio import (NumPyRawDataReader, DatRawDataReader,
+    create_kwd, convert_dat_to_kwd)
 from spikedetekt2.utils import create_trace
 
 
@@ -22,8 +24,8 @@ FILENAME = 'mydatfile.dat'
 FILENAME2 = 'mydatfile2.dat'
 PATH = os.path.join(DIRPATH, FILENAME)
 PATH2 = os.path.join(DIRPATH, FILENAME2)
-NSAMPLES = 20000
-NCHANNELS = 32
+NSAMPLES = 2000
+NCHANNELS = 4
 
 def dat_setup_1():
     trace = create_trace(NSAMPLES, NCHANNELS)
@@ -83,4 +85,31 @@ def test_raw_data_iterator():
     rd = NumPyRawDataReader(data)
     assert len([ch for ch in rd.chunks(chunk_size=100, chunk_overlap=20)]) == 3
     
+@with_setup(dat_setup_2, dat_teardown_2)
+def test_convert():
+    """Test conversion from dat to kwd."""
+    # Create the DAT reader with two DAT files.
+    dat_reader = DatRawDataReader([PATH, PATH2], 
+        dtype=np.int16, dtype_to=np.int16, shape=(-1, NCHANNELS))
     
+    # Create an empty KWD file.
+    kwd_file = "test.kwd"
+    create_kwd(kwd_file)
+    
+    # Convert from DAT to the newly created KWD file.
+    convert_dat_to_kwd(dat_reader, kwd_file)
+    
+    # Now, check that the conversion worked. Read the data in DAT and KWD
+    # and check the arrays are the same.
+    f = tb.openFile(kwd_file, 'r')
+    # Load full KWD data.
+    data_kwd = np.vstack([f.root.recordings._f_getChild('0').data,
+                          f.root.recordings._f_getChild('1').data])
+    # Load full DAT data.
+    data_dat = np.vstack([chunk.data_chunk_full 
+                          for chunk in dat_reader.chunks(20000)])
+    # Assert the two are equal.
+    assert np.array_equal(data_kwd, data_dat)
+    f.close()
+    
+    os.remove(kwd_file)

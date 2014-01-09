@@ -12,6 +12,7 @@ from collections import OrderedDict, Iterable
 import numpy as np
 import tables as tb
 
+from utils import convert_dtype
 from spikedetekt2.utils.six import itervalues, iteritems, string_types
 
 # Disable PyTables' NaturalNameWarning due to nodes which have names starting 
@@ -321,20 +322,40 @@ def add_recording(fd, id=None, name=None, sample_rate=None, start_time=None,
     for type in RAW_TYPES:
         kwd = fd.get(type, None)
         if kwd:
-            recording = kwd.createGroup('/recordings', id)    
-            recording._f_setAttr('downsample_factor', downsample_factor)
+            add_recording_in_kwd(kwd, recording_id=id,
+                                 downsample_factor=downsample_factor,
+                                 nchannels=nchannels, 
+                                 nsamples=nsamples, 
+                                 data=data)
+    
+def add_recording_in_kwd(kwd, recording_id=0,
+                         downsample_factor=None, nchannels=None, 
+                         nsamples=None, data=None):
+    if isinstance(kwd, string_types):
+        kwd = open_file(kwd, 'a')
+        to_close = True
+    else:
+        to_close = False
+    
+    recording = kwd.createGroup('/recordings', str(recording_id))
+    recording._f_setAttr('downsample_factor', downsample_factor)
+    
+    dataset = kwd.createEArray(recording, 'data', 
+                               tb.Int16Atom(), 
+                               (0, nchannels), expectedrows=nsamples)
+    
+    # Add raw data.
+    if data is not None:
+        assert data.shape[1] == nchannels
+        data_int16 = convert_dtype(data, np.int16)
+        dataset.append(data_int16)
             
-            dataset = kwd.createEArray(recording, 'data', 
-                              tb.Int16Atom(), 
-                              (0, nchannels), expectedrows=nsamples)
-            
-            # Add raw data.
-            if type == 'kwd' and data is not None:
-                assert data.shape[1] == nchannels
-                dataset.append(data)
-                              
-            kwd.createGroup(recording, 'filter')
-            # TODO: filter
+    kwd.createGroup(recording, 'filter')
+    # TODO: filter
+    if to_close:
+        kwd.close()
+    
+    return kwd
     
 def add_event_type(fd, id=None, evt=None):
     """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""

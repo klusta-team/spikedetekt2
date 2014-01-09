@@ -24,19 +24,25 @@ _dtype_factors = {
     (np.float32, np.int8): _maxint8,
 }
 
+def _get_dtype(dtype):
+    if isinstance(dtype, np.dtype):
+        return dtype.type
+    else:
+        return dtype
+
 def convert_dtype(data, dtype=None):
     if not dtype:
         return data
     dtype_old = data.dtype
     if dtype_old == dtype:
         return data
-    data_new = data.astype(dtype)
-    factor = _dtype_factors.get((dtype_old, dtype), 1)
+    key = (_get_dtype(dtype_old), _get_dtype(dtype))
+    factor = _dtype_factors.get(key, 1)
     # We avoid unnecessary array copy when factor == 1
     if factor != 1:
-        return data_new * factor
+        return (data * factor).astype(dtype)
     else:
-        return data_new 
+        return data.astype(dtype) 
 
 
 # -----------------------------------------------------------------------------

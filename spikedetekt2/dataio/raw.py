@@ -6,8 +6,10 @@
 import os
 
 import numpy as np
+import tables as tb
 from nose import with_setup
 
+from kwik import open_file, add_recording_in_kwd
 from experiment import Experiment
 from chunks import chunk_bounds, Chunk, Excerpt, excerpts
 from spikedetekt2.utils.six import Iterator, string_types
@@ -41,15 +43,28 @@ class NumPyRawDataReader(BaseRawDataReader):
 
 class DatRawDataReader(BaseRawDataReader):
     """Read a DAT file by chunks."""
-    def __init__(self, filenames, dtype=None, shape=None, len=None):
+    def __init__(self, filenames, dtype=None, dtype_to=None, 
+                 shape=None, len=None):
         """
-        len is the length of the array. By default, None = full length of the 
-        data.
+        
+        Arguments:
+        * dtype: the dtype of the DAT file.
+        * dtype_to: the dtype of the chunks to read.
+        * len: length of the array. By default, None = full length of the 
+          data.
         """
         if not isinstance(filenames, list):
             filenames = [filenames]
         self.filenames = filenames
+        
+        if dtype is None:
+            dtype = np.int16
         self.dtype = np.dtype(dtype)
+        
+        if dtype_to is None:
+            dtype_to = np.int16
+        self.dtype_to = np.dtype(dtype_to)
+        
         self.len = len
         self._data = None
         _, self.nchannels = shape
@@ -60,8 +75,8 @@ class DatRawDataReader(BaseRawDataReader):
             size = os.stat(filename).st_size
             row_size = self.nchannels * self.dtype.itemsize
             assert size % row_size == 0
-            nsamples = size // row_size
-            shape = (nsamples, self.nchannels)
+            self.nsamples = size // row_size
+            shape = (self.nsamples, self.nchannels)
             self._data = np.memmap(filename, dtype=self.dtype,
                                    mode='r',
                                    offset=0,
@@ -69,7 +84,7 @@ class DatRawDataReader(BaseRawDataReader):
             yield filename
             self._data = None
         
-    def chunks(self, chunk_size=None, chunk_overlap=None):
+    def chunks(self, chunk_size=None, chunk_overlap=0):
         for i, file in enumerate(self.next_file()):
             assert chunk_size is not None, "You need to specify a chunk size."""
             # Use the full length of the data...
@@ -81,7 +96,7 @@ class DatRawDataReader(BaseRawDataReader):
             for bounds in chunk_bounds(len, 
                                        chunk_size=chunk_size, 
                                        overlap=chunk_overlap):
-                yield Chunk(self._data, bounds=bounds, dtype=np.float32, 
+                yield Chunk(self._data, bounds=bounds, dtype=self.dtype_to, 
                             recording=i)
         
     def excerpts(self, nexcerpts=None, excerpt_size=None):
@@ -89,7 +104,7 @@ class DatRawDataReader(BaseRawDataReader):
             for bounds in excerpts(self._data.shape[0],
                                    nexcerpts=nexcerpts, 
                                    excerpt_size=excerpt_size):
-                yield Excerpt(self._data, bounds=bounds, dtype=np.float32, 
+                yield Excerpt(self._data, bounds=bounds, dtype=self.dtype_to, 
                               recording=i)
         
     def __enter__(self):
@@ -119,3 +134,19 @@ def read_raw(raw, nchannels=None):
         else:
             raise ArgumentError("Unknown file extension for the raw data.")
             
+def convert_dat_to_kwd(dat_reader, kwd_file):
+    with open_file(kwd_file, 'a') as kwd:
+        for chunk in dat_reader.chunks(20000):
+            data = chunk.data_chunk_full
+            rec = chunk.recording
+            try:
+                # Add the data to the KWD file, in /recordings/[X]/data.
+                kwd.root.recordings._f_getChild(str(rec)).data.append(data)
+            except tb.NoSuchNodeError:
+                # If /recordings/[X] does not exist, add this recording
+                # to the KWD file and the data as well.
+                add_recording_in_kwd(kwd, recording_id=rec,
+                                     nchannels=chunk.nchannels,
+                                     nsamples=chunk.nsamples,
+                                     data=data)
+                
