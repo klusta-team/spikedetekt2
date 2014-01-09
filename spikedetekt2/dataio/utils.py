@@ -13,11 +13,15 @@ import numpy as np
 # -----------------------------------------------------------------------------
 _maxint16 = 2.**15-1
 _maxint16inv = 1./_maxint16
+_maxint8 = 127
+_maxint8inv = 1./255
 _dtype_factors = {
     (np.int16, np.float32): _maxint16inv,
     (np.int16, np.float64): _maxint16inv,
     (np.float32, np.int16): _maxint16,
     (np.float64, np.int16): _maxint16,
+    (np.int8, np.float32): _maxint8inv,
+    (np.float32, np.int8): _maxint8,
 }
 
 def convert_dtype(data, dtype=None):

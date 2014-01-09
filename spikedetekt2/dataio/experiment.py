@@ -299,9 +299,9 @@ class Spikes(Node):
         self.recording.append((recording,))
         self.clusters.main.append((cluster,))
         self.clusters.original.append((cluster_original,))
-        self.features_masks.append(convert_dtype(features_masks))
-        self.waveforms_raw.append(convert_dtype(waveforms_raw))
-        self.waveforms_filtered.append(convert_dtype(waveforms_filtered))
+        self.features_masks.append(features_masks)
+        self.waveforms_raw.append(convert_dtype(waveforms_raw, np.int16))
+        self.waveforms_filtered.append(convert_dtype(waveforms_filtered, np.int16))
     
     def __getitem__(self, item):
         raise NotImplementedError("""It is not possible to select entire spikes 
