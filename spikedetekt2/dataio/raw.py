@@ -109,7 +109,13 @@ def read_raw(raw, nchannels=None):
         # TODO: read from Experiment instance
         raise NotImplementedError("Reading from KWIK raw data file (.kwd).")
     elif isinstance(raw, (string_types, list)):
-        assert nchannels > 0, ("The number of channels must be specified "
-            "in order to read from a .dat file.")
-        return DatRawDataReader(raw, dtype=np.int16, shape=(0, nchannels))
-    
+        if raw.endswith('.dat'):
+            assert nchannels > 0, ("The number of channels must be specified "
+                "in order to read from a .dat file.")
+            return DatRawDataReader(raw, dtype=np.int16, shape=(0, nchannels))
+        elif raw.endswith('.kwd'):
+            raise NotImplementedError(("Reading raw data from KWD files is not"
+            " implemented yet."))
+        else:
+            raise ArgumentError("Unknown file extension for the raw data.")
+            

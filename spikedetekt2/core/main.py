@@ -106,7 +106,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
     chunk_overlap = prm.get('chunk_overlap', 0)
     nchannels = prm.get('nchannels', None)
     
-    # Ensure a RawDataReader is instanciated.
+    # Ensure a RawDataReader is instantiated.
     if raw_data is not None:
         if not isinstance(raw_data, BaseRawDataReader):
             raw_data = read_raw(raw_data, nchannels=nchannels)
