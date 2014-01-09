@@ -5,6 +5,8 @@
 # -----------------------------------------------------------------------------
 import numpy as np
 
+from spikedetekt2.dataio.utils import convert_dtype
+
 
 # -----------------------------------------------------------------------------
 # Chunking functions
@@ -54,17 +56,6 @@ def excerpts(nsamples, nexcerpts=None, excerpt_size=None):
         end = min(start + excerpt_size, nsamples)
         yield start, end
     
-def _convert_dtype(data, dtype=None):
-    if not dtype:
-        return data
-    dtype0 = data.dtype
-    data_bis = data.astype(dtype)
-    if dtype0 == np.int16:
-        factor = 1e-4
-    else:
-        factor = 1
-    return data_bis * factor
-    
     
 # -----------------------------------------------------------------------------
 # Chunk class
@@ -86,12 +77,12 @@ class Chunk(object):
     @property
     def data_chunk_full(self):
         chunk = self._data[self.s_start:self.s_end,:]
-        return _convert_dtype(chunk, self.dtype)
+        return convert_dtype(chunk, self.dtype)
     
     @property
     def data_chunk_keep(self):
         chunk =  self._data[self.keep_start:self.keep_end,:]
-        return _convert_dtype(chunk, self.dtype)
+        return convert_dtype(chunk, self.dtype)
     
     def __repr__(self):
         return "<Chunk [{0:d}|{1:d}|{2:d}|{3:d}], maxlen={4:d}, recording {recording}>".format(
@@ -120,7 +111,7 @@ class Excerpt(object):
     @property
     def data(self):
         excerpt = self._data[self.start:self.end,:]
-        return _convert_dtype(excerpt, self.dtype)
+        return convert_dtype(excerpt, self.dtype)
     
     def __repr__(self):
         return "<Excerpt [{0:d}:{1:d}], maxlen={2:d}>".format(

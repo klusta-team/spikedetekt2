@@ -14,6 +14,7 @@ import tables as tb
 from selection import select
 from spikedetekt2.dataio.kwik import (get_filenames, open_files, close_files
     )
+from spikedetekt2.dataio.utils import convert_dtype
 from spikedetekt2.utils.six import (iteritems, string_types, iterkeys, 
     itervalues, next)
 from spikedetekt2.utils.wrap import wrap
@@ -298,9 +299,9 @@ class Spikes(Node):
         self.recording.append((recording,))
         self.clusters.main.append((cluster,))
         self.clusters.original.append((cluster_original,))
-        self.features_masks.append(features_masks)
-        self.waveforms_raw.append(waveforms_raw)
-        self.waveforms_filtered.append(waveforms_filtered)
+        self.features_masks.append(convert_dtype(features_masks))
+        self.waveforms_raw.append(convert_dtype(waveforms_raw))
+        self.waveforms_filtered.append(convert_dtype(waveforms_filtered))
     
     def __getitem__(self, item):
         raise NotImplementedError("""It is not possible to select entire spikes 

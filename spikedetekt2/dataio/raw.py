@@ -41,11 +41,16 @@ class NumPyRawDataReader(BaseRawDataReader):
 
 class DatRawDataReader(BaseRawDataReader):
     """Read a DAT file by chunks."""
-    def __init__(self, filenames, dtype=None, shape=None):
+    def __init__(self, filenames, dtype=None, shape=None, len=None):
+        """
+        len is the length of the array. By default, None = full length of the 
+        data.
+        """
         if not isinstance(filenames, list):
             filenames = [filenames]
         self.filenames = filenames
         self.dtype = np.dtype(dtype)
+        self.len = len
         self._data = None
         _, self.nchannels = shape
         
@@ -67,7 +72,13 @@ class DatRawDataReader(BaseRawDataReader):
     def chunks(self, chunk_size=None, chunk_overlap=None):
         for i, file in enumerate(self.next_file()):
             assert chunk_size is not None, "You need to specify a chunk size."""
-            for bounds in chunk_bounds(self._data.shape[0], 
+            # Use the full length of the data...
+            if self.len is None:
+                len = self._data.shape[0]
+            else:
+            # ... or restrict the length of the file.
+                len = self.len
+            for bounds in chunk_bounds(len, 
                                        chunk_size=chunk_size, 
                                        overlap=chunk_overlap):
                 yield Chunk(self._data, bounds=bounds, dtype=np.float32, 

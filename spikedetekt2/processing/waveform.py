@@ -148,6 +148,7 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     s_peak = int(s_fracpeak)
     # Get block of given size around peaksample.
     wave = get_padded(chunk_fil, s_peak - s_before - 1, s_peak + s_after + 2)
+    
     # Perform interpolation around the fractional peak.
     old_s = np.arange(s_peak - s_before - 1, s_peak + s_after + 2)
     new_s = np.arange(s_peak - s_before, s_peak + s_after) + (s_fracpeak - s_peak)

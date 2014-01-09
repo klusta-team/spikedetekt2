@@ -55,6 +55,7 @@ def extract_waveforms(chunk_detect=None, threshold=None,
     
 def add_waveform(experiment, waveform, **prm):
     """Add a Waveform instance to an Experiment."""
+    
     experiment.channel_groups[waveform.channel_group].spikes.add(
         time_samples=waveform.s_offset, 
         time_fractional=waveform.s_frac_part,
@@ -146,7 +147,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
         waveforms = extract_waveforms(chunk_detect=chunk_detect,
             threshold=threshold, chunk_fil=chunk_fil, chunk_raw=chunk_raw, 
             probe=probe, components=components, **prm)
-                        
+        
         # We sort waveforms by increasing order of fractional time.
         [add_waveform(experiment, waveform) for waveform in sorted(waveforms)]
         
