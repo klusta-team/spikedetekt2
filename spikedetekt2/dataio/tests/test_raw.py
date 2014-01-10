@@ -12,7 +12,7 @@ from nose import with_setup
 import tables as tb
 
 from spikedetekt2.dataio import (NumPyRawDataReader, DatRawDataReader,
-    create_kwd, convert_dat_to_kwd)
+    create_kwd, convert_dat_to_kwd, add_recording_in_kwd, read_raw)
 from spikedetekt2.utils import create_trace
 
 
@@ -22,6 +22,7 @@ from spikedetekt2.utils import create_trace
 DIRPATH = tempfile.mkdtemp()
 FILENAME = 'mydatfile.dat'
 FILENAME2 = 'mydatfile2.dat'
+FILENAME_KWD = "test.kwd"
 PATH = os.path.join(DIRPATH, FILENAME)
 PATH2 = os.path.join(DIRPATH, FILENAME2)
 NSAMPLES = 2000
@@ -44,6 +45,14 @@ def dat_teardown_2():
     os.remove(PATH)
     os.remove(PATH2)
     
+def kwd_setup():
+    # Create an empty KWD file.
+    create_kwd(FILENAME_KWD)
+    data = create_trace(NSAMPLES, NCHANNELS)
+    add_recording_in_kwd(FILENAME_KWD, data=data)
+    
+def kwd_teardown():
+    os.remove(FILENAME_KWD)
     
 # -----------------------------------------------------------------------------
 # Chunking Tests
@@ -67,6 +76,10 @@ def test_raw_data_1():
     
     assert str(ch)
     
+    
+# -----------------------------------------------------------------------------
+# DAT Reader Tests
+# -----------------------------------------------------------------------------
 @with_setup(dat_setup_1, dat_teardown_1)
 def test_raw_dat_1():
     """Test 1 file with 20k samples."""
@@ -80,11 +93,27 @@ def test_raw_dat_2():
         for chunk, rec in zip(reader.chunks(NSAMPLES, 0), [0, 1, 1]):
             assert chunk.recording == rec
     
+    
+# -----------------------------------------------------------------------------
+# KWD Reader Tests
+# -----------------------------------------------------------------------------
+@with_setup(kwd_setup, kwd_teardown)
+def test_raw_kwd_1():
+    with read_raw(FILENAME_KWD) as reader:
+        data = np.vstack([chunk.data_chunk_full 
+                          for chunk in reader.chunks(20000)])
+        assert data.shape == (NSAMPLES, NCHANNELS)
+        assert data.dtype == np.int16
+    
 def test_raw_data_iterator():
     data = np.random.randn(200, 4)
     rd = NumPyRawDataReader(data)
     assert len([ch for ch in rd.chunks(chunk_size=100, chunk_overlap=20)]) == 3
     
+    
+# -----------------------------------------------------------------------------
+# DAT ==> KWD conversion Tests
+# -----------------------------------------------------------------------------
 @with_setup(dat_setup_2, dat_teardown_2)
 def test_convert():
     """Test conversion from dat to kwd."""

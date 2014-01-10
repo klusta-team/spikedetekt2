@@ -337,6 +337,9 @@ def add_recording_in_kwd(kwd, recording_id=0,
     else:
         to_close = False
     
+    if data is not None:
+        nsamples, nchannels = data.shape
+    
     recording = kwd.createGroup('/recordings', str(recording_id))
     recording._f_setAttr('downsample_factor', downsample_factor)
     

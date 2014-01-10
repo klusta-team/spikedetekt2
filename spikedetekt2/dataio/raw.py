@@ -19,43 +19,96 @@ from spikedetekt2.utils.six import Iterator, string_types
 # Raw data readers
 # -----------------------------------------------------------------------------
 class BaseRawDataReader(object):
-    def __init__(self, data, dtype=None):
-        self._data = data
-        self.dtype = dtype
-        self.nsamples, self.nchannels = data.shape
-        
-    def chunks(self, chunk_size=None, 
-                     chunk_overlap=None):
-        assert chunk_size is not None, "You need to specify a chunk size."""
-        for bounds in chunk_bounds(self._data.shape[0], 
-                                   chunk_size=chunk_size, 
-                                   overlap=chunk_overlap):
-            yield Chunk(self._data, bounds=bounds,)
+    def __init__(self, dtype_to=None):
+        self.dtype_to = dtype_to
+        self.nrecordings = 1
+    
+    def next_recording(self):
+        for self.recording in range(self.nrecordings):
+            yield self.recording, self.get_recording_data(self.recording)
+    
+    def get_recording_data(self, recording):
+        # TO BE OVERRIDEN
+        # return data
+        pass
+    
+    def chunks(self, chunk_size=None, chunk_overlap=0):
+        for recording, data in self.next_recording():
+            assert chunk_size is not None, "You need to specify a chunk size."""
+            for bounds in chunk_bounds(data.shape[0], 
+                                       chunk_size=chunk_size, 
+                                       overlap=chunk_overlap):
+                yield Chunk(data, bounds=bounds, dtype=self.dtype_to, 
+                            recording=recording)
         
     def excerpts(self, nexcerpts=None, excerpt_size=None):
-        for bounds in excerpts(self._data.shape[0],
-                               nexcerpts=nexcerpts, 
-                               excerpt_size=excerpt_size):
-            yield Excerpt(self._data, bounds=bounds)
-
+        for recording, data in self.next_recording():
+            for bounds in excerpts(data.shape[0],
+                                   nexcerpts=nexcerpts, 
+                                   excerpt_size=excerpt_size):
+                yield Excerpt(data, bounds=bounds, dtype=self.dtype_to, 
+                              recording=recording)
+        
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, *args):
+        pass
+        
 class NumPyRawDataReader(BaseRawDataReader):
-    pass
+    def __init__(self, data, dtype_to=None):
+        self._data = data
+        self.nsamples, self.nchannels = data.shape
+        super(NumPyRawDataReader, self).__init__(dtype_to=dtype_to)
 
+    def get_recording_data(self, recording):
+        return self._data
+        
+class ExperimentRawDataReader(BaseRawDataReader):
+    def __init__(self, experiment, dtype_to=None):
+        self.experiment = experiment
+        super(ExperimentRawDataReader, self).__init__(dtype_to=dtype_to)
+        
+    def get_recording_data(self, recording):
+        data = self.experiment.recordings[recording].data
+        return data
+
+class KwdRawDataReader(BaseRawDataReader):
+    def __init__(self, kwd, dtype_to=None):
+        
+        if isinstance(kwd, string_types):
+            kwd = open_file(kwd, 'r')
+            self.to_close = True
+        else:
+            self.to_close = False
+
+        self._kwd = kwd    
+        super(KwdRawDataReader, self).__init__(dtype_to=dtype_to)
+        
+    def get_recording_data(self, recording):
+        data = self._kwd.root.recordings._f_getChild(str(recording)).data
+        return data
+    
+    def __exit__(self, *args):
+        if self.to_close:
+            self._kwd.close()
+    
 class DatRawDataReader(BaseRawDataReader):
     """Read a DAT file by chunks."""
     def __init__(self, filenames, dtype=None, dtype_to=None, 
-                 shape=None, len=None):
+                 shape=None, datlen=None):
         """
         
         Arguments:
         * dtype: the dtype of the DAT file.
         * dtype_to: the dtype of the chunks to read.
-        * len: length of the array. By default, None = full length of the 
+        * datlen: length of the array. By default, None = full length of the 
           data.
         """
         if not isinstance(filenames, list):
             filenames = [filenames]
         self.filenames = filenames
+        self.nrecordings = len(self.filenames)
         
         if dtype is None:
             dtype = np.int16
@@ -65,53 +118,27 @@ class DatRawDataReader(BaseRawDataReader):
             dtype_to = np.int16
         self.dtype_to = np.dtype(dtype_to)
         
-        self.len = len
-        self._data = None
+        self.datlen = datlen
         _, self.nchannels = shape
         
-    def next_file(self):
-        for filename in self.filenames:
-            # Find file size.
-            size = os.stat(filename).st_size
-            row_size = self.nchannels * self.dtype.itemsize
-            assert size % row_size == 0
-            self.nsamples = size // row_size
-            shape = (self.nsamples, self.nchannels)
-            self._data = np.memmap(filename, dtype=self.dtype,
-                                   mode='r',
-                                   offset=0,
-                                   shape=shape)
-            yield filename
-            self._data = None
-        
-    def chunks(self, chunk_size=None, chunk_overlap=0):
-        for i, file in enumerate(self.next_file()):
-            assert chunk_size is not None, "You need to specify a chunk size."""
-            # Use the full length of the data...
-            if self.len is None:
-                len = self._data.shape[0]
-            else:
-            # ... or restrict the length of the file.
-                len = self.len
-            for bounds in chunk_bounds(len, 
-                                       chunk_size=chunk_size, 
-                                       overlap=chunk_overlap):
-                yield Chunk(self._data, bounds=bounds, dtype=self.dtype_to, 
-                            recording=i)
-        
-    def excerpts(self, nexcerpts=None, excerpt_size=None):
-        for i, file in enumerate(self.next_file()):
-            for bounds in excerpts(self._data.shape[0],
-                                   nexcerpts=nexcerpts, 
-                                   excerpt_size=excerpt_size):
-                yield Excerpt(self._data, bounds=bounds, dtype=self.dtype_to, 
-                              recording=i)
-        
-    def __enter__(self):
-        return self
-    
-    def __exit__(self, *args):
-        pass
+    def get_recording_data(self, recording):
+        filename = self.filenames[recording]
+        # Find file size.
+        size = os.stat(filename).st_size
+        row_size = self.nchannels * self.dtype.itemsize
+        assert size % row_size == 0
+        self.nsamples = size // row_size
+        shape = (self.nsamples, self.nchannels)
+        data = np.memmap(filename, dtype=self.dtype,
+                           mode='r',
+                           offset=0,
+                           shape=shape)
+        # Return full recording...
+        if self.datlen is None:
+            return data
+        # ... or restrict the length of the recording.
+        else:
+            return data[:self.datlen,:]
         
         
 # -----------------------------------------------------------------------------
@@ -121,16 +148,14 @@ def read_raw(raw, nchannels=None):
     if isinstance(raw, np.ndarray):
         return NumPyRawDataReader(raw)
     elif isinstance(raw, Experiment):
-        # TODO: read from Experiment instance
-        raise NotImplementedError("Reading from KWIK raw data file (.kwd).")
+        return ExperimentRawDataReader(raw)
     elif isinstance(raw, (string_types, list)):
         if raw.endswith('.dat'):
             assert nchannels > 0, ("The number of channels must be specified "
                 "in order to read from a .dat file.")
             return DatRawDataReader(raw, dtype=np.int16, shape=(0, nchannels))
         elif raw.endswith('.kwd'):
-            raise NotImplementedError(("Reading raw data from KWD files is not"
-            " implemented yet."))
+            return KwdRawDataReader(raw)
         else:
             raise ArgumentError("Unknown file extension for the raw data.")
             
