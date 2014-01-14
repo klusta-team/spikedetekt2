@@ -9,7 +9,8 @@ from spikedetekt2.dataio import BaseRawDataReader, read_raw, excerpt_step
 from spikedetekt2.processing import (bandpass_filter, apply_filter, 
     get_threshold, connected_components, extract_waveform,
     compute_pcs, project_pcs, DoubleThreshold)
-from spikedetekt2.utils import Probe, iterkeys
+from spikedetekt2.utils import (Probe, iterkeys, debug, info, warn, exception,
+    display_params)
 
 
 # -----------------------------------------------------------------------------
@@ -116,16 +117,23 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
     # TODO: when reading from .DAT file, convert into KWD at the same time
     # TODO: add_recording in Experiment as we go through the DAT files
     
+    # Log.
+    info("Starting process on {0:s}".format(str(raw_data)))
+    debug("Parameters: \n" + (display_params(prm)))
+    
     # Get the strong-pass filter.
     filter = bandpass_filter(**prm)
     
     # Compute the strong threshold across excerpts uniformly scattered across the
     # whole recording.
     threshold = get_threshold(raw_data, filter=filter, **prm)
+    debug("Threshold: " + str(threshold))
     
     # Loop through all chunks with overlap.
     for chunk in raw_data.chunks(chunk_size=chunk_size, 
                                  chunk_overlap=chunk_overlap,):
+        # Log.
+        info("Processing chunk {0:s}...".format(chunk))
                                  
         # Filter the (full) chunk.
         chunk_raw = chunk.data_chunk_full  # shape: (nsamples, nchannels)
@@ -147,6 +155,9 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
         waveforms = extract_waveforms(chunk_detect=chunk_detect,
             threshold=threshold, chunk_fil=chunk_fil, chunk_raw=chunk_raw, 
             probe=probe, components=components, **prm)
+        
+        # Log number of spikes in the chunk.
+        info("Found {0:d} spikes".format(len(waveforms)))
         
         # We sort waveforms by increasing order of fractional time.
         [add_waveform(experiment, waveform) for waveform in sorted(waveforms)]

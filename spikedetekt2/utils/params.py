@@ -3,6 +3,7 @@
 # Imports
 # -----------------------------------------------------------------------------
 import os
+import pprint
 
 from spikedetekt2.utils import python_to_pydict, to_lower, get_pydict
 from six import string_types, iteritems
@@ -43,3 +44,9 @@ def load_default_params(namespace=None):
     params_default = python_to_pydict(params_default_python, namespace)
     return to_lower(params_default)
 
+
+# -----------------------------------------------------------------------------
+# Utility functions
+# -----------------------------------------------------------------------------
+def display_params(prm):
+    return pprint.pformat(prm)

@@ -64,6 +64,11 @@ class NumPyRawDataReader(BaseRawDataReader):
     def get_recording_data(self, recording):
         return self._data
         
+    def __repr__(self):
+        return "<NumPyRawReader {0:d}x{1:d} {2:s} array>".format(
+            self.nsamples, self.nchannels, str(self._data.dtype)
+        )
+        
 class ExperimentRawDataReader(BaseRawDataReader):
     def __init__(self, experiment, dtype_to=None):
         self.experiment = experiment
@@ -73,6 +78,10 @@ class ExperimentRawDataReader(BaseRawDataReader):
         data = self.experiment.recordings[recording].data
         return data
 
+    def __repr__(self):
+        return "<ExperimentRawReader {0:s}>".format(
+            self.experiment)
+        
 class KwdRawDataReader(BaseRawDataReader):
     def __init__(self, kwd, dtype_to=None):
         
@@ -89,6 +98,10 @@ class KwdRawDataReader(BaseRawDataReader):
         data = self._kwd.root.recordings._f_getChild(str(recording)).data
         return data
     
+    def __repr__(self):
+        return "<KwdRawReader {0:s}>".format(
+            self._kwd.filename)
+        
     def __exit__(self, *args):
         if self.to_close:
             self._kwd.close()
@@ -140,7 +153,11 @@ class DatRawDataReader(BaseRawDataReader):
         else:
             return data[:self.datlen,:]
         
+    def __repr__(self):
+        return "<DatRawReader {0:s}>".format(
+            ', '.join(self.filenames))
         
+
 # -----------------------------------------------------------------------------
 # Main raw data reading function
 # -----------------------------------------------------------------------------

@@ -30,7 +30,8 @@ This software was developed by Cyrille Rossant, Shabnam Kadir, Dan Goodman, Kenn
 LOGGERS = {}
 log.LOGGERS = LOGGERS
 # Console logger.
-LOGGER = log.ConsoleLogger(name='{0:s}.console'.format(APPNAME))
+LOGGER = log.ConsoleLogger(name='{0:s}.console'.format(APPNAME),
+                           print_caller=False)
 log.register(LOGGER)
 
 sys.excepthook = log.handle_exception

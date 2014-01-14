@@ -9,15 +9,14 @@ import logging
 import traceback
 
 
-
 # -----------------------------------------------------------------------------
 # Utility functions
 # -----------------------------------------------------------------------------
 def get_log_format(debug=False):
-    if debug:
-        return ('%(asctime)s,%(msecs)03d  %(levelname)-7s  %(message)s')
-    else:
-        return '%(asctime)s  %(message)s'
+    # if debug:
+        # return ('%(asctime)s,%(msecs)03d  %(levelname)-7s  %(message)s')
+    # else:
+    return '%(asctime)s  %(message)s'
 
 def get_caller():
     tb = traceback.extract_stack()[-5]
