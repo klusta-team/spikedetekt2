@@ -47,12 +47,12 @@ def dat_teardown_2():
     
 def kwd_setup():
     # Create an empty KWD file.
-    create_kwd(FILENAME_KWD)
+    create_kwd(os.path.join(DIRPATH, FILENAME_KWD))
     data = create_trace(NSAMPLES, NCHANNELS)
-    add_recording_in_kwd(FILENAME_KWD, data=data)
+    add_recording_in_kwd(os.path.join(DIRPATH, FILENAME_KWD), data=data)
     
 def kwd_teardown():
-    os.remove(FILENAME_KWD)
+    os.remove(os.path.join(DIRPATH, FILENAME_KWD))
     
 # -----------------------------------------------------------------------------
 # Chunking Tests
@@ -99,7 +99,7 @@ def test_raw_dat_2():
 # -----------------------------------------------------------------------------
 @with_setup(kwd_setup, kwd_teardown)
 def test_raw_kwd_1():
-    with read_raw(FILENAME_KWD) as reader:
+    with read_raw(os.path.join(DIRPATH, FILENAME_KWD)) as reader:
         data = np.vstack([chunk.data_chunk_full 
                           for chunk in reader.chunks(20000)])
         assert data.shape == (NSAMPLES, NCHANNELS)
