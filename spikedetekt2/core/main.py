@@ -3,6 +3,8 @@
 # -----------------------------------------------------------------------------
 # Imports
 # -----------------------------------------------------------------------------
+import logging
+
 import numpy as np
 
 from spikedetekt2.dataio import BaseRawDataReader, read_raw, excerpt_step
@@ -10,7 +12,7 @@ from spikedetekt2.processing import (bandpass_filter, apply_filter,
     get_threshold, connected_components, extract_waveform,
     compute_pcs, project_pcs, DoubleThreshold)
 from spikedetekt2.utils import (Probe, iterkeys, debug, info, warn, exception,
-    display_params)
+    display_params, FileLogger, register, unregister)
 
 
 # -----------------------------------------------------------------------------
@@ -89,7 +91,21 @@ def save_features(experiment, **prm):
         for i, waveform in enumerate(spikes.waveforms_filtered):
             features = project_pcs(waveform, pcs)
             spikes.features_masks[i,:,0] = features.ravel()
+    
+    
+# -----------------------------------------------------------------------------
+# File logger
+# -----------------------------------------------------------------------------
+def create_file_logger(filename):
+    # global LOGGER_FILE
+    LOGGER_FILE = FileLogger(filename, name='file', 
+        level=logging.DEBUG)
+    register(LOGGER_FILE)
+    return LOGGER_FILE
 
+def close_file_logger(LOGGER_FILE):
+    unregister(LOGGER_FILE)
+  
 
 # -----------------------------------------------------------------------------
 # Main loop
@@ -101,6 +117,9 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
     
     assert experiment is not None, ("An Experiment instance needs to be "
         "provided in order to write the output.")
+    
+    # Create file logger for the experiment.
+    LOGGER_FILE = create_file_logger(experiment.gen_filename('log'))
     
     # Get parameters from the PRM dictionary.
     chunk_size = prm.get('chunk_size', None)
@@ -165,4 +184,5 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
     # Feature extraction.
     save_features(experiment, **prm)
     
+    close_file_logger(LOGGER_FILE)
     

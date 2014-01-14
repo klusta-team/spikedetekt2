@@ -85,6 +85,9 @@ def test_run_1():
     # Open the data files.
     with Experiment('myexperiment', dir=DIRPATH) as exp:
         print(len(exp.channel_groups[0].spikes))
+        # Assert the log file exists.
+        logfile = exp.gen_filename('log')
+        assert os.path.exists(logfile)
     
 def test_run_2():
     """Read from .dat file."""

@@ -210,6 +210,11 @@ class Experiment(Node):
         self.recordings = self._gen_children('recordings', Recording)
         self.event_types = self._gen_children('event_types', EventType)
         
+    def gen_filename(self, extension):
+        if extension.startswith('.'):
+            extension = extension[1:]
+        return os.path.splitext(self._filenames['kwik'])[0] + '.' + extension
+        
     def __enter__(self):
         return self
     
