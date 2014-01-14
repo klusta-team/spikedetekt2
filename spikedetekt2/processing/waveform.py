@@ -10,6 +10,9 @@ from scipy.interpolate import interp1d
 # -----------------------------------------------------------------------------
 # Utility functions
 # -----------------------------------------------------------------------------
+class InterpolationError(Exception):
+    pass
+
 def get_padded(Arr, Start, End):
     '''
     Returns Arr[Start:End] filling in with zeros outside array bounds
@@ -46,7 +49,7 @@ class Waveform(object):
         self.masks = masks
         self.s_min = s_min  # start of the waveform, relative to the start
                             # of the chunk
-        self.s_start = s_start
+        self.s_start = s_start  # start of the chunk, absolute (wrt the exp)
         # peak fractional time of the waveform, absolute (relative to the exp)
         self.sf_offset = s_fracpeak + s_start
         self.s_offset = int(self.sf_offset)
@@ -113,6 +116,7 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     s_min, s_max = np.amin(comp_s) - 3, np.amax(comp_s) + 4  
     s_min = max(s_min, 0)
     s_max = min(s_max, nsamples)
+    s_offset = s_start + s_min  # absolute offset of the waveform (wrt the exp)
     
     # Extract the waveform values from the data.
     # comp shape: (some_length, nchannels)
@@ -155,7 +159,8 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     try:
         f = interp1d(old_s, wave, bounds_error=True, kind='cubic', axis=0)
     except ValueError: 
-        raise InterpolationError
+        raise InterpolationError("Interpolation error at time {0:d}".format(
+                                 s_offset))
     wave_aligned = f(new_s)
     
     # Get unfiltered spike.

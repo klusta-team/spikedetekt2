@@ -43,17 +43,25 @@ def extract_waveforms(chunk_detect=None, threshold=None,
     # +/-chunk, or abs(chunk), depending on the parameter 'detect_spikes'.
     chunk_extract = chunk_detect  # shape: (nsamples, nchannels)
     # This is a list of Waveform instances.
-    waveforms = [extract_waveform(component,
-                                  chunk_extract=chunk_extract,
-                                  chunk_fil=chunk_fil,
-                                  chunk_raw=chunk_raw,
-                                  threshold_strong=threshold.strong,
-                                  threshold_weak=threshold.weak,
-                                  probe=probe,
-                                  **prm) 
-                 for component in components]
+    waveforms = []
+    for component in components:
+        try:
+            w = extract_waveform(component,
+                                 chunk_extract=chunk_extract,
+                                 chunk_fil=chunk_fil,
+                                 chunk_raw=chunk_raw,
+                                 threshold_strong=threshold.strong,
+                                 threshold_weak=threshold.weak,
+                                 probe=probe,
+                                 **prm)
+            if w is not None:
+                waveforms.append(w)
+        except Exception as e:
+            # Log any exception occurring during waveform extraction.
+            warn(str(e))
+            
     # Remove skipped waveforms (in overlapping chunk sections).
-    waveforms = [w for w in waveforms if w is not None]
+    # waveforms = [w for w in waveforms if w is not None]
     return waveforms
     
 def add_waveform(experiment, waveform, **prm):
