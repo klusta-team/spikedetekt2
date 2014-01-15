@@ -176,9 +176,9 @@ def read_raw(raw, nchannels=None):
         else:
             raise ArgumentError("Unknown file extension for the raw data.")
             
-def convert_dat_to_kwd(dat_reader, kwd_file):
+def convert_dat_to_kwd(dat_reader, kwd_file, chunk_size=20000):
     with open_file(kwd_file, 'a') as kwd:
-        for chunk in dat_reader.chunks(20000):
+        for chunk in dat_reader.chunks(chunk_size):
             data = chunk.data_chunk_full
             rec = chunk.recording
             try:
