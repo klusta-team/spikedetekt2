@@ -139,7 +139,10 @@ class DatRawDataReader(BaseRawDataReader):
         # Find file size.
         size = os.stat(filename).st_size
         row_size = self.nchannels * self.dtype.itemsize
-        assert size % row_size == 0
+        if size % row_size != 0:
+            raise ValueError(("Shape error: the file {f} has S={s} bytes, "
+                "but there are C={c} channels. C should be a divisor of S."
+                "").format(f=filename, s=size, c=self.nchannels))
         self.nsamples = size // row_size
         shape = (self.nsamples, self.nchannels)
         data = np.memmap(filename, dtype=self.dtype,
