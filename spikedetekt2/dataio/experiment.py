@@ -19,7 +19,6 @@ from spikedetekt2.utils.six import (iteritems, string_types, iterkeys,
     itervalues, next)
 from spikedetekt2.utils.wrap import wrap
 
-
 # -----------------------------------------------------------------------------
 # Utility functions
 # -----------------------------------------------------------------------------
@@ -277,17 +276,24 @@ class Spikes(Node):
                 features = np.zeros((1, self.nfeatures), dtype=np.float32)
             if masks is None:
                 masks = np.zeros((1, self.nfeatures), dtype=np.float32)
+            
             # Ensure features and masks have the right number of dimensions.
+            # features.shape is (1, nfeatures)
+            # masks.shape is however  (nchannels,)
             if features.ndim == 1:
                 features = np.expand_dims(features, axis=0)
             if masks.ndim == 1:
                 masks = np.expand_dims(masks, axis=0)
+            
+            # masks.shape is now    (1,nchannels,)
             # Tile the masks if needed: same mask value on each channel.
             if masks.shape[1] < features.shape[1]:
                 nfeatures_per_channel = features.shape[1] // masks.shape[1]
-                masks = np.tile(masks, (1, nfeatures_per_channel))
+                masks = np.repeat(masks, nfeatures_per_channel, axis = 1)
+            # # masks.shape is (1, nfeatures) - what we want
             # Concatenate features and masks
             features_masks = np.dstack((features, masks))
+            
             
         if waveforms_raw is None:
             waveforms_raw = empty_row(self.waveforms_raw)

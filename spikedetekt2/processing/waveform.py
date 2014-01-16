@@ -6,7 +6,6 @@
 import numpy as np
 from scipy.interpolate import interp1d
 
-
 # -----------------------------------------------------------------------------
 # Utility functions
 # -----------------------------------------------------------------------------
@@ -110,7 +109,7 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     # Get binary mask.
     masks_bin = np.zeros(nchannels, dtype=np.bool)  # shape: (nchannels,)
     masks_bin[sorted(set(comp_ch))] = 1
-    
+        
     # Get the temporal window around the waveform.
     # These values are relative to the start of the chunk.
     s_min, s_max = np.amin(comp_s) - 3, np.amax(comp_s) + 4  
