@@ -20,6 +20,7 @@ excerpt_size = int(1. * sample_rate)
 threshold_strong_std_factor = 4.5
 threshold_weak_std_factor = 2.
 detect_spikes = 'negative'
+#precomputed_threshold = None
 
 # Connected component
 # -------------------
@@ -27,8 +28,8 @@ connected_component_join_size = int(.00005 * sample_rate)
 
 # Spike extraction
 # ----------------
-extract_s_before = 10
-extract_s_after = 10
+extract_s_before = 16
+extract_s_after = 16
 waveforms_nsamples = extract_s_before + extract_s_after
 
 # Features

@@ -15,6 +15,8 @@ from spikedetekt2.utils import (Probe, iterkeys, debug, info, warn, exception,
     display_params, FileLogger, register, unregister)
 
 
+from collections import namedtuple
+
 # -----------------------------------------------------------------------------
 # Processing
 # -----------------------------------------------------------------------------
@@ -133,6 +135,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
     chunk_size = prm.get('chunk_size', None)
     chunk_overlap = prm.get('chunk_overlap', 0)
     nchannels = prm.get('nchannels', None)
+    precomputed_threshold = prm.get('precomputed_threshold',None)
     
     # Ensure a RawDataReader is instantiated.
     if raw_data is not None:
@@ -153,8 +156,14 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
     
     # Compute the strong threshold across excerpts uniformly scattered across the
     # whole recording.
-    threshold = get_threshold(raw_data, filter=filter, **prm)
-    debug("Threshold: " + str(threshold))
+    if precomputed_threshold is not None:
+        DoubleThreshold = namedtuple('DoubleThreshold', ['strong', 'weak'])
+        threshold = DoubleThreshold(strong=precomputed_threshold[0], weak=precomputed_threshold[1])
+        debug("Threshold: " + str(threshold))
+    else:
+        threshold = get_threshold(raw_data, filter=filter, **prm)
+        debug("Threshold: " + str(threshold))
+        
     
     # Loop through all chunks with overlap.
     for chunk in raw_data.chunks(chunk_size=chunk_size, 
