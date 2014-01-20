@@ -14,6 +14,7 @@ import tables as tb
 
 from utils import convert_dtype
 from spikedetekt2.utils.six import itervalues, iteritems, string_types
+from spikedetekt2.utils import warn, debug
 
 # Disable PyTables' NaturalNameWarning due to nodes which have names starting 
 # with an integer.
@@ -53,8 +54,9 @@ def open_file(path, mode=None):
     try:
         f = tb.openFile(path, mode)
         return f
-    except IOError:
-        raise
+    except IOError as e:
+        warn("IOError: " + str(e.message))
+        return
 
 def open_files(name, dir=None, mode=None):
     filenames = get_filenames(name, dir=dir)
@@ -67,7 +69,7 @@ def close_files(name, dir=None):
         files = [open_file(filename) for filename in itervalues(filenames)]
     else:
         files = itervalues(name)
-    [file.close() for file in files]
+    [file.close() for file in files if file is not None]
     
 def files_exist(name, dir=None):
     files = get_filenames(name, dir=dir)

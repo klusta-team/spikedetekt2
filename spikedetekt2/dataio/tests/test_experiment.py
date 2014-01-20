@@ -217,4 +217,15 @@ def test_experiment_repr():
     with Experiment('myexperiment', dir=DIRPATH) as exp:
         s = str(exp)
         
+def test_experiment_repr_nokwd():
+    kwd = os.path.join(DIRPATH, 'myexperiment.raw.kwd')
+    kwd2 = os.path.join(DIRPATH, 'myexperiment2.raw.kwd')
+    
+    # Move a KWD file and test if Experiment works without KWD.
+    os.rename(kwd, kwd2)
+    
+    with Experiment('myexperiment', dir=DIRPATH) as exp:
+        s = str(exp)
+    
+    os.rename(kwd2, kwd)    
         

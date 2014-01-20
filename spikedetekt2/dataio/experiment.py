@@ -197,7 +197,12 @@ class Experiment(Node):
         self._prm = prm
         if self._files is None:
             self._files = open_files(self.name, dir=self._dir, mode=self._mode)
-        self._filenames = {type: os.path.realpath(file.filename)
+        def _get_filename(file):
+            if file is None:
+                return None
+            else:
+                return os.path.realpath(file.filename)
+        self._filenames = {type: _get_filename(file)
             for type, file in iteritems(self._files)}
         super(Experiment, self).__init__(self._files)
         self._root = self._node
