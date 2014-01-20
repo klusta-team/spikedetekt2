@@ -164,7 +164,7 @@ class DatRawDataReader(BaseRawDataReader):
 # -----------------------------------------------------------------------------
 # Main raw data reading function
 # -----------------------------------------------------------------------------
-def read_raw(raw, nchannels=None):
+def read_raw(raw, nchannels=None, datlen=None):
     if isinstance(raw, np.ndarray):
         return NumPyRawDataReader(raw)
     elif isinstance(raw, Experiment):
@@ -173,7 +173,8 @@ def read_raw(raw, nchannels=None):
         if raw.endswith('.dat'):
             assert nchannels > 0, ("The number of channels must be specified "
                 "in order to read from a .dat file.")
-            return DatRawDataReader(raw, dtype=np.int16, shape=(0, nchannels))
+            return DatRawDataReader(raw, dtype=np.int16, shape=(0, nchannels),
+                                    datlen=datlen)
         elif raw.endswith('.kwd'):
             return KwdRawDataReader(raw)
         else:

@@ -187,6 +187,11 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
             probe_adjacency_list=probe.adjacency_list,
             chunk=chunk, **prm)
         
+        for c in components:
+            print c
+            
+        np.savez('chunks.npz', chunk_raw=chunk_raw, chunk_fil=chunk_fil, chunk_threshold=chunk_threshold)
+        
         # Now we extract the spike in each component.
         waveforms = extract_waveforms(chunk_detect=chunk_detect,
             threshold=threshold, chunk_fil=chunk_fil, chunk_raw=chunk_raw, 
