@@ -395,6 +395,8 @@ def add_cluster(fd, channel_group_id=None, id=None, clustering='main',
     mean_waveform_filtered=None,
     ):
     """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""
+    if channel_group_id is None:
+        channel_group_id = '0'
     kwik = fd.get('kwik', None)
     # The KWIK needs to be there.
     assert kwik is not None
@@ -433,6 +435,8 @@ def add_cluster(fd, channel_group_id=None, id=None, clustering='main',
 def add_cluster_group(fd, channel_group_id=None, id=None, clustering='main',
                       name=None):
     """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""
+    if channel_group_id is None:
+        channel_group_id = '0'
     kwik = fd.get('kwik', None)
     # The KWIK needs to be there.
     assert kwik is not None
