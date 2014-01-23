@@ -6,6 +6,7 @@
 import os
 import re
 from itertools import chain
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
@@ -136,10 +137,10 @@ class Node(object):
         
     def _gen_children(self, container_name, child_class):
         """Return a dictionary {child_id: child_instance}."""
-        return {
-            _get_child_id(child): child_class(self._files, child, root=self._root)
+        return OrderedDict([
+            (_get_child_id(child), child_class(self._files, child, root=self._root))
                 for child in self._node._f_getChild(container_name)
-            }
+            ])
     
     def _get_child(self, child_name):
         """Return the child specified by its name.
