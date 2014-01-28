@@ -390,10 +390,10 @@ def add_event_type(fd, id=None, evt=None):
     kwik.createGroup(events, 'user_data')
     
 def add_cluster(fd, channel_group_id=None, id=None, clustering='main',
-    cluster_group=None,
-    mean_waveform_raw=None,
-    mean_waveform_filtered=None,
-    ):
+                cluster_group=None, color=None,
+                mean_waveform_raw=None,
+                mean_waveform_filtered=None,
+                ):
     """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""
     if channel_group_id is None:
         channel_group_id = '0'
@@ -430,7 +430,7 @@ def add_cluster(fd, channel_group_id=None, id=None, clustering='main',
     
     app = kwik.createGroup(cluster, 'application_data')
     kv = kwik.createGroup(app, 'klustaviewa')
-    kv._f_setAttr('color', None)
+    kv._f_setAttr('color', color)
     
 def add_cluster_group(fd, channel_group_id=None, id=None, clustering='main',
                       name=None):
