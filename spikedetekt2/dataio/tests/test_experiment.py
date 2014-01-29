@@ -164,6 +164,9 @@ def test_experiment_clusters():
         chgrp = exp.channel_groups[0]
         cluster = chgrp.clusters.main[0]
         
+        print(chgrp.clusters)
+        print(chgrp.clusters.main)
+        
         assert cluster.application_data
         assert cluster.user_data
         assert cluster.quality_measures

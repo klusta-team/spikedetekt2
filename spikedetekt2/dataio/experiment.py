@@ -135,11 +135,17 @@ class Node(object):
         self._node = node
         self._root = root
         
-    def _gen_children(self, container_name, child_class):
+    def _gen_children(self, container_name=None, child_class=None):
         """Return a dictionary {child_id: child_instance}."""
+        # The container with the children is either the current node, or
+        # a child of this node.
+        if container_name is None:
+            container = self._node
+        else:
+            container = self._node._f_getChild(container_name)
         return OrderedDict([
             (_get_child_id(child), child_class(self._files, child, root=self._root))
-                for child in self._node._f_getChild(container_name)
+                for child in container
             ])
     
     def _get_child(self, child_name):
@@ -339,7 +345,16 @@ class ClustersNode(Node):
         super(ClustersNode, self).__init__(files, node, root=root)        
         # Each child of the group is assigned here.
         for node in self._node._f_iterNodes():
-            setattr(self, node._v_name, self._gen_children(node._v_name, Cluster))
+            # setattr(self, node._v_name, self._gen_children(node._v_name, Cluster))
+            setattr(self, node._v_name, Clustering(self._files, node))
+        
+class Clustering(Node):
+    def __init__(self, files, node=None, root=None):
+        super(Clustering, self).__init__(files, node, root=root)        
+        self._dict = self._gen_children(child_class=Cluster)
+        
+    def __getitem__(self, item):
+        return self._dict[item]
         
 class ClusterGroupsNode(Node):
     def __init__(self, files, node=None, root=None):
