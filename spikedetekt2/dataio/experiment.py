@@ -340,30 +340,45 @@ class Clusters(Node):
         for node in self._node._f_iterNodes():
             setattr(self, node._v_name, node)
         
+class Clustering(Node):
+    def __init__(self, files, node=None, root=None, child_class=None):
+        super(Clustering, self).__init__(files, node, root=root)        
+        self._dict = self._gen_children(child_class=child_class)
+
+    def __getitem__(self, item):
+        return self._dict[item]
+        
+    def __iter__(self):
+        return self._dict.__iter__()
+
+    def __len__(self):
+        return len(self._dict)
+
+    def __contains__(self, v):
+        return v in self._dict
+
+    def keys(self):
+        return self._dict.keys()
+
+    def values(self):
+        return self._dict.values()
+
+    def iteritems(self):
+        return self._dict.iteritems()
+        
 class ClustersNode(Node):
     def __init__(self, files, node=None, root=None):
         super(ClustersNode, self).__init__(files, node, root=root)        
         # Each child of the group is assigned here.
         for node in self._node._f_iterNodes():
-            setattr(self, node._v_name, Clustering(self._files, node))
-        
-class Clustering(Node):
-    def __init__(self, files, node=None, root=None):
-        super(Clustering, self).__init__(files, node, root=root)        
-        self._dict = self._gen_children(child_class=Cluster)
-
-    def __getitem__(self, item):
-        return self._dict[item]
-        
-    def keys(self):
-        return self._dict.keys()
+            setattr(self, node._v_name, Clustering(self._files, node, child_class=Cluster))
         
 class ClusterGroupsNode(Node):
     def __init__(self, files, node=None, root=None):
         super(ClusterGroupsNode, self).__init__(files, node, root=root)        
         # Each child of the group is assigned here.
         for node in self._node._f_iterNodes():
-            setattr(self, node._v_name, self._gen_children(node._v_name, ClusterGroup))
+            setattr(self, node._v_name, Clustering(self._files, node, child_class=ClusterGroup))
         
 class Channel(Node):
     def __init__(self, files, node=None, root=None):
