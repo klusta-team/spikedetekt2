@@ -355,6 +355,9 @@ class Clustering(Node):
     def __getitem__(self, item):
         return self._dict[item]
         
+    def keys(self):
+        return self._dict.keys()
+        
 class ClusterGroupsNode(Node):
     def __init__(self, files, node=None, root=None):
         super(ClusterGroupsNode, self).__init__(files, node, root=root)        
