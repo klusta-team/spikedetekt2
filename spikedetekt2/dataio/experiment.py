@@ -345,14 +345,13 @@ class ClustersNode(Node):
         super(ClustersNode, self).__init__(files, node, root=root)        
         # Each child of the group is assigned here.
         for node in self._node._f_iterNodes():
-            # setattr(self, node._v_name, self._gen_children(node._v_name, Cluster))
             setattr(self, node._v_name, Clustering(self._files, node))
         
 class Clustering(Node):
     def __init__(self, files, node=None, root=None):
         super(Clustering, self).__init__(files, node, root=root)        
         self._dict = self._gen_children(child_class=Cluster)
-        
+
     def __getitem__(self, item):
         return self._dict[item]
         
