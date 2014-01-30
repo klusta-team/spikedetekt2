@@ -16,7 +16,7 @@ from spikedetekt2.dataio.kwik import (add_recording, create_files, open_files,
     close_files, add_event_type, add_cluster_group, get_filenames,
     add_cluster)
 from spikedetekt2.dataio.experiment import (Experiment, _resolve_hdf5_path,
-    ArrayProxy)
+    ArrayProxy, DictVectorizer)
 from spikedetekt2.utils.six import itervalues
 
 
@@ -140,6 +140,30 @@ def test_experiment_spikes():
         assert spikes.waveforms_filtered.dtype == np.int16
         assert spikes.waveforms_filtered.ndim == 3
 
+def test_experiment_setattr():
+    with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:
+        chgrp = exp.channel_groups[0]
+        color0 = chgrp.clusters.main[0].application_data.klustaviewa.color
+        # By default, the cluster's color is None.
+        assert color0 is None
+        # Set it to 0.
+        chgrp.clusters.main[0].application_data.klustaviewa.color = 0
+        # We check that the color has changed in the file.
+        assert chgrp.clusters.main[0].application_data.klustaviewa._f_getAttr('color') == 0
+    
+    # Close and open the file.
+    with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:
+        chgrp = exp.channel_groups[0]
+        # Check that the change has been saved on disk.
+        assert chgrp.clusters.main[0].application_data.klustaviewa.color == 0
+        # Set back the field to its original value.
+        chgrp.clusters.main[0].application_data.klustaviewa.color = color0
+        
+# def test_experiment_vectorizer():
+    # with Experiment('myexperiment', dir=DIRPATH) as exp:
+        # clustering = exp.channel_groups[0].spikes.clusters.main
+        # DictVectorizer
+        
 @with_setup(setup,)  # Create brand new files.
 def test_experiment_add_spikes():
     with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:

@@ -171,14 +171,41 @@ class NodeWrapper(object):
         return self._node[key]
         
     def __getattr__(self, key):
+        # Do not override if key is an attribute of this class.
+        if key.startswith('_'):
+            try:
+                return self.__dict__[key]
+            # Accept nodewrapper._method if _method is a method of the PyTables
+            # Node object.
+            except KeyError:
+                return getattr(self._node, key)
         try:
+            # Return the wrapped node if the child is a group.
             attr = getattr(self._node, key)
             if isinstance(attr, tb.Group):
                 return NodeWrapper(attr)
             else:
                 return attr
+        # Return the attribute.
         except:
-            return self._node._f_getAttr(key)
+            try:
+                return self._node._f_getAttr(key)
+            except AttributeError:
+                raise "{key} needs to be an attribute of {node}".format(
+                    key=key, node=self._node._v_name)
+            
+    def __setattr__(self, key, value):
+        if key.startswith('_'):
+            self.__dict__[key] = value
+            return
+        # Ensure the key is an existing attribute to the current node.
+        try:
+            self._node._f_getAttr(key)
+        except AttributeError:
+            raise "{key} needs to be an attribute of {node}".format(
+                key=key, node=self._node._v_name)
+        # Set the attribute.
+        self._node._f_setAttr(key, value)
             
     def __dir__(self):
         return self._node.__dir__()
@@ -186,7 +213,37 @@ class NodeWrapper(object):
     def __repr__(self):
         return self._node.__repr__()
 
+class DictVectorizer(object):
+    """This object serves as a vectorized proxy for a dictionary of objects 
+    that have individual fields of interest. For example: d={k: obj.attr1}.
+    The object dv = DictVectorizer(d, lambda obj: obj.attr1) can be used as:
+    
+        dv[3]
+        dv[[1,2,5]]
+        dv[2:4]
+    
+    """
+    def __init__(self, dict, fun):
+        self._dict = dict
+        self._fun = fun
         
+    # def __getitem__(self, item):
+        # if hasattr(item, '__len__'):
+            # return np.array([self._fun(obj) 
+                             # for k, obj in self._dict.iteritems()])
+        # else:
+            # return self._dict[item]
+            
+    # def __setitem__(self, item, value):
+        # return
+        # if hasattr(item, '__len__'):
+            # for k, obj in self._dict.iteritems():
+                # # TODO
+                # pass
+        # else:
+            # return self._dict[item]
+        
+
 # -----------------------------------------------------------------------------
 # Experiment class and sub-classes.
 # -----------------------------------------------------------------------------
