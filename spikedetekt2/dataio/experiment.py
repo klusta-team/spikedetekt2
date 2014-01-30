@@ -422,6 +422,7 @@ class Clustering(Node):
     def __init__(self, files, node=None, root=None, child_class=None):
         super(Clustering, self).__init__(files, node, root=root)        
         self._dict = self._gen_children(child_class=child_class)
+        self.color = DictVectorizer(self._dict, 'application_data.klustaviewa.color')
 
     def __getitem__(self, item):
         return self._dict[item]
@@ -444,19 +445,27 @@ class Clustering(Node):
     def iteritems(self):
         return self._dict.iteritems()
         
+class ClustersClustering(Clustering):
+    def __init__(self, *args, **kwargs):
+        super(ClustersClustering, self).__init__(*args, **kwargs)
+        self.group = DictVectorizer(self._dict, 'cluster_group')
+        
+class ClusterGroupsClustering(Clustering):
+    pass
+        
 class ClustersNode(Node):
     def __init__(self, files, node=None, root=None):
         super(ClustersNode, self).__init__(files, node, root=root)        
         # Each child of the group is assigned here.
         for node in self._node._f_iterNodes():
-            setattr(self, node._v_name, Clustering(self._files, node, child_class=Cluster))
+            setattr(self, node._v_name, ClustersClustering(self._files, node, child_class=Cluster))
         
 class ClusterGroupsNode(Node):
     def __init__(self, files, node=None, root=None):
         super(ClusterGroupsNode, self).__init__(files, node, root=root)        
         # Each child of the group is assigned here.
         for node in self._node._f_iterNodes():
-            setattr(self, node._v_name, Clustering(self._files, node, child_class=ClusterGroup))
+            setattr(self, node._v_name, ClusterGroupsClustering(self._files, node, child_class=ClusterGroup))
         
 class Channel(Node):
     def __init__(self, files, node=None, root=None):

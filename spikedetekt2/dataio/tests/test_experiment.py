@@ -52,7 +52,7 @@ def setup():
                   nchannels=3,)
     add_event_type(files, 'myevents')
     add_cluster_group(files, channel_group_id='0', id='0', name='Noise')
-    add_cluster(files, channel_group_id='0',)
+    add_cluster(files, channel_group_id='0', cluster_group=0)
     
     # Close the files
     close_files(files)
@@ -209,6 +209,9 @@ def test_experiment_cluster_groups():
         
         assert cluster_group.application_data
         assert cluster_group.user_data
+        
+        assert np.array_equal(chgrp.cluster_groups.main.color[:], [1])
+        assert np.array_equal(chgrp.clusters.main.group[:], [0])
         
 def test_experiment_recordings():
     with Experiment('myexperiment', dir=DIRPATH) as exp:
