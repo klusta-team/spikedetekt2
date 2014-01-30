@@ -223,8 +223,8 @@ def test_add_event_type():
 @with_setup(setup_create, teardown_create)
 def test_add_cluster_group():
     files = open_files('myexperiment', dir=DIRPATH, mode='a')
-    add_cluster_group(files, channel_group_id='0', id='noise', name='Noise')
-    noise = files['kwik'].root.channel_groups.__getattr__('0').cluster_groups.main.noise
+    add_cluster_group(files, channel_group_id='0', id='0', name='Noise')
+    noise = files['kwik'].root.channel_groups.__getattr__('0').cluster_groups.main.__getattr__('0')
     
     assert noise._v_attrs.name == 'Noise'
     noise.application_data.klustaviewa._v_attrs.color

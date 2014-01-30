@@ -51,7 +51,7 @@ def setup():
     add_recording(files, 
                   sample_rate=sample_rate,
                   nchannels=nchannels)
-    add_cluster_group(files, channel_group_id='0', id='noise', name='Noise')
+    add_cluster_group(files, channel_group_id='0', id='0', name='Noise')
     add_cluster(files, channel_group_id='0',)
     
     # Close the files

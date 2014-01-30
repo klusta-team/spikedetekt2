@@ -51,7 +51,7 @@ def setup():
                   band_low=500.,
                   nchannels=3,)
     add_event_type(files, 'myevents')
-    add_cluster_group(files, channel_group_id='0', id='noise', name='Noise')
+    add_cluster_group(files, channel_group_id='0', id='0', name='Noise')
     add_cluster(files, channel_group_id='0',)
     
     # Close the files
@@ -144,8 +144,8 @@ def test_experiment_setattr():
     with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:
         chgrp = exp.channel_groups[0]
         color0 = chgrp.clusters.main[0].application_data.klustaviewa.color
-        # By default, the cluster's color is None.
-        assert color0 is None
+        # By default, the cluster's color is 1.
+        assert color0 == 1
         # Set it to 0.
         chgrp.clusters.main[0].application_data.klustaviewa.color = 0
         # We check that the color has changed in the file.
@@ -159,10 +159,12 @@ def test_experiment_setattr():
         # Set back the field to its original value.
         chgrp.clusters.main[0].application_data.klustaviewa.color = color0
         
-# def test_experiment_vectorizer():
-    # with Experiment('myexperiment', dir=DIRPATH) as exp:
-        # clustering = exp.channel_groups[0].spikes.clusters.main
-        # DictVectorizer
+def test_experiment_vectorizer():
+    with Experiment('myexperiment', dir=DIRPATH) as exp:
+        clustering = exp.channel_groups[0].clusters.main
+        dv = DictVectorizer(clustering, 'application_data.klustaviewa.color')
+        assert np.array_equal(dv[0], 1)
+        assert np.array_equal(dv[:], [1])
         
 @with_setup(setup,)  # Create brand new files.
 def test_experiment_add_spikes():
@@ -202,7 +204,7 @@ def test_experiment_clusters():
 def test_experiment_cluster_groups():
     with Experiment('myexperiment', dir=DIRPATH) as exp:
         chgrp = exp.channel_groups[0]
-        cluster_group = chgrp.cluster_groups.main['noise']
+        cluster_group = chgrp.cluster_groups.main[0]
         assert cluster_group.name == 'Noise'
         
         assert cluster_group.application_data

@@ -14,7 +14,7 @@ import tables as tb
 
 from utils import convert_dtype
 from spikedetekt2.utils.six import itervalues, iteritems, string_types
-from spikedetekt2.utils import warn, debug
+from spikedetekt2.utils import warn, debug, COLORS_COUNT
 
 # Disable PyTables' NaturalNameWarning due to nodes which have names starting 
 # with an integer.
@@ -430,10 +430,10 @@ def add_cluster(fd, channel_group_id=None, id=None, clustering='main',
     
     app = kwik.createGroup(cluster, 'application_data')
     kv = kwik.createGroup(app, 'klustaviewa')
-    kv._f_setAttr('color', color)
+    kv._f_setAttr('color', color or ((int(id) % (COLORS_COUNT - 1)) + 1))
     
 def add_cluster_group(fd, channel_group_id=None, id=None, clustering='main',
-                      name=None):
+                      name=None, color=None):
     """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""
     if channel_group_id is None:
         channel_group_id = '0'
@@ -466,6 +466,6 @@ def add_cluster_group(fd, channel_group_id=None, id=None, clustering='main',
     
     app = kwik.createGroup(cluster_group, 'application_data')
     kv = kwik.createGroup(app, 'klustaviewa')
-    kv._f_setAttr('color', None)
+    kv._f_setAttr('color', color or ((int(id) % (COLORS_COUNT - 1)) + 1))
     
     

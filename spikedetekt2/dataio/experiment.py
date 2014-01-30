@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import tables as tb
 
-from selection import select
+from selection import select, slice_to_indices
 from spikedetekt2.dataio.kwik import (get_filenames, open_files, close_files
     )
 from spikedetekt2.dataio.utils import convert_dtype
@@ -216,32 +216,53 @@ class NodeWrapper(object):
 class DictVectorizer(object):
     """This object serves as a vectorized proxy for a dictionary of objects 
     that have individual fields of interest. For example: d={k: obj.attr1}.
-    The object dv = DictVectorizer(d, lambda obj: obj.attr1) can be used as:
+    The object dv = DictVectorizer(d, 'attr1.subattr') can be used as:
     
         dv[3]
         dv[[1,2,5]]
         dv[2:4]
     
     """
-    def __init__(self, dict, fun):
+    def __init__(self, dict, path):
         self._dict = dict
-        self._fun = fun
+        self._path = path.split('.')
         
-    # def __getitem__(self, item):
-        # if hasattr(item, '__len__'):
-            # return np.array([self._fun(obj) 
-                             # for k, obj in self._dict.iteritems()])
-        # else:
-            # return self._dict[item]
+    def _get_path(self, key):
+        """Resolve the path recursively for a given key of the dictionary."""
+        val = self._dict[key]
+        for p in self._path:
+            val = getattr(val, p)
+        return val
+        
+    def _set_path(self, key, value):
+        """Resolve the path recursively for a given key of the dictionary,
+        and set a value."""
+        val = self._dict[key]
+        for p in self._path[:-1]:
+            val = getattr(val, p)
+        setattr(val, key, value)
+        
+    def __getitem__(self, item):
+        if isinstance(item, slice):
+            item = slice_to_indices(item, lenindices=len(self._dict))
+        if hasattr(item, '__len__'):
+            return np.array([self._get_path(k) for k in item])
+        else:
+            return self._get_path(item)
             
-    # def __setitem__(self, item, value):
-        # return
-        # if hasattr(item, '__len__'):
-            # for k, obj in self._dict.iteritems():
-                # # TODO
-                # pass
-        # else:
-            # return self._dict[item]
+    def __setitem__(self, item, value):
+        if key.startswith('_'):
+            self.__dict__[key] = value
+            return
+        if isinstance(item, slice):
+            item = slice_to_indices(item, lenindices=len(self._dict))
+        if hasattr(item, '__len__'):
+            if not hasattr(value, '__len__'):
+                value = [value] * len(item)
+            for k, val in zip(item, value):
+                self._set_path(k, value)
+        else:
+            return self._set_path(item, value)
         
 
 # -----------------------------------------------------------------------------

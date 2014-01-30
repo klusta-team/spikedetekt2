@@ -58,7 +58,7 @@ def select_pandas(data, indices, drop_empty_rows=True):
     return data_selected
     
 def slice_to_indices(indices, stop=None, lenindices=None):
-    start, step = indices.start or 0, indices.step or 1
+    start, step = (indices.start or 0), (indices.step or 1)
     if not stop:
         assert lenindices is not None
         # Infer stop such that indices and values have the same size.
