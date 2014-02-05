@@ -191,8 +191,8 @@ class NodeWrapper(object):
             try:
                 return self._node._f_getAttr(key)
             except AttributeError:
-                raise "{key} needs to be an attribute of {node}".format(
-                    key=key, node=self._node._v_name)
+                raise AttributeError(("{key} needs to be an attribute of "
+                    "{node}").format(key=key, node=self._node._v_name))
             
     def __setattr__(self, key, value):
         if key.startswith('_'):

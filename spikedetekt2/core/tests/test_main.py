@@ -22,7 +22,7 @@ DIRPATH = tempfile.mkdtemp()
 
 sample_rate = 20000.
 duration = 1.
-nchannels = 2
+nchannels = 8
 nsamples = int(sample_rate * duration)
 raw_data = .1 * np.random.randn(nsamples, nchannels)
 # Add "spikes".
