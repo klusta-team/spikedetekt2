@@ -21,12 +21,15 @@ def test_spikecache_1():
     spike_clusters = np.random.randint(size=nspikes, low=0, high=nclusters)
     
     sc = SpikeCache(spike_clusters=spike_clusters,
-                    cache_fraction=1.,
+                    cache_fraction=.1,
                     nspikes=nspikes,
                     features_masks=np.zeros((nspikes, 3*nchannels, 2)),
                     waveforms_raw=np.zeros((nspikes, 20, nchannels)),
                     waveforms_filtered=np.zeros((nspikes, 20, nchannels)))
 
                     
-    sc
+    ind, fm = sc.load_features_masks(.1)
+    
+    assert len(ind) == nspikes // 100
+    assert fm.shape[0] == nspikes // 100
     

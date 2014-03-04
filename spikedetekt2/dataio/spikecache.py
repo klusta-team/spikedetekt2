@@ -32,16 +32,24 @@ class SpikeCache(object):
         self.features_masks = features_masks
         self.waveforms_raw = waveforms_raw
         self.waveforms_filtered = waveforms_filtered
-        self.cache_features_masks = None
+        
+        self.features_masks_cached = None
+        self.cache_indices = None
+        
         
         assert self.nspikes == len(self.spike_clusters)
         assert self.nspikes == self.features_masks.shape[0]
         assert self.nspikes == self.waveforms_raw.shape[0]
         assert self.nspikes == self.waveforms_filtered.shape[0]
         
-    def cache_features_masks(self, offset=0):
+        assert cache_fraction > 0
         
-        self.cache_features_masks = self.features_masks[offset::k]
+    def cache_features_masks(self, offset=0):
+        k = np.clip(int(1. / self.cache_fraction), 1, self.nspikes)
+        # Load and save subset in feature_masks.
+        self.features_masks_cached = self.features_masks[offset::k,...]
+        self.cache_indices = np.arange(self.nspikes)[offset::k,...]
+        self.cache_size = len(self.cache_indices)
     
     def load_features_masks(self, fraction=None, clusters=None):
         """Load a subset of features & masks. 
@@ -54,6 +62,20 @@ class SpikeCache(object):
         """
         assert fraction is not None
         
+        # Cache susbet of features masks and save them in an array.
+        if self.features_masks_cached is None:
+            self.cache_features_masks()
+        
+        if clusters is None:
+            offset = 0
+            k = np.clip(int(1. / fraction), 1, self.cache_size)
+            
+            # Load and save subset from cache_feature_masks.
+            loaded_features_masks = self.features_masks_cached[offset::k,...]
+            loaded_indices = self.cache_indices[offset::k]
+            return loaded_indices, loaded_features_masks
+        else:
+            raise NotImplementedError()
            
     def load_waveforms(self, clusters=None, count=None):
         pass
