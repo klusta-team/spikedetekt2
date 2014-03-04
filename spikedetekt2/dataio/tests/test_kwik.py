@@ -20,7 +20,7 @@ from spikedetekt2.dataio.kwik import *
 DIRPATH = tempfile.mkdtemp()
 
 def setup_create():
-    prm = {'nfeatures': 3, 'waveforms_nsamples': 10}
+    prm = {'nfeatures': 3, 'waveforms_nsamples': 20}
     prb = {'channel_groups': [
         {
             'channels': [4, 6, 8],
@@ -104,7 +104,7 @@ def test_create_kwx():
     nchannels2 = 24
     nfeatures = 3*nchannels
     prm = {
-        'waveforms_nsamples': 20,
+        'waveforms_nsamples': waveforms_nsamples,
         'nfeatures': 3*nchannels,
     }
     prb = {'channel_groups': [
@@ -246,5 +246,17 @@ def test_add_cluster():
     cluster.application_data.klustaviewa._v_attrs.color
     cluster.user_data
     
+    close_files(files)
+
+@with_setup(setup_create, teardown_create)
+def test_add_spikes():
+    files = open_files('myexperiment', dir=DIRPATH, mode='a')
+    nspikes = 7
+    add_spikes(files, channel_group_id='0', time_samples=np.arange(nspikes),
+               features=np.random.randn(nspikes, 3))
+    spikes = files['kwx'].root.channel_groups.__getattr__('0')
+    assert spikes.waveforms_raw.shape == (nspikes, 20, 3)
+    assert spikes.waveforms_filtered.shape == (nspikes, 20, 3)
+    assert spikes.features_masks.shape == (nspikes, 3, 2)
     close_files(files)
 

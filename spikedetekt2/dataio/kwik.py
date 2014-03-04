@@ -12,7 +12,7 @@ from collections import OrderedDict, Iterable
 import numpy as np
 import tables as tb
 
-from utils import convert_dtype
+from utils import convert_dtype, ensure_vector
 from spikedetekt2.utils.six import itervalues, iteritems, string_types
 from spikedetekt2.utils import warn, debug, COLORS_COUNT
 
@@ -78,7 +78,15 @@ def files_exist(name, dir=None):
 def delete_files(name, dir=None):
     files = get_filenames(name, dir=dir)
     [os.remove(path) for path in itervalues(files) if os.path.exists(path)]
-    
+      
+def get_row_shape(arr, nrows=1):
+    """Return the shape of a row of an array."""
+    return (nrows,) + arr.shape[1:]
+      
+def empty_row(arr, dtype=None, nrows=1):
+    """Create an empty row for a given array."""
+    return np.zeros(get_row_shape(arr, nrows=nrows), dtype=arr.dtype)
+        
 
 # -----------------------------------------------------------------------------
 # HDF5 file creation
@@ -468,4 +476,86 @@ def add_cluster_group(fd, channel_group_id=None, id=None, clustering='main',
     kv = kwik.createGroup(app, 'klustaviewa')
     kv._f_setAttr('color', color or ((int(id) % (COLORS_COUNT - 1)) + 1))
     
+def add_spikes(fd, channel_group_id=None, clustering='main',
+                time_samples=None, time_fractional=0,
+                recording=0, cluster=0, cluster_original=0,
+                features_masks=None, features=None, masks=None,
+                waveforms_raw=None, waveforms_filtered=None,):
+    """fd is returned by `open_files`: it is a dict {type: tb_file_handle}."""
+    if channel_group_id is None:
+        channel_group_id = '0'
+    kwik = fd.get('kwik', None)
+    kwx = fd.get('kwx', None)
+    # The KWIK needs to be there.
+    assert kwik is not None
+    # The channel group id containing the new cluster group must be specified.
+    assert channel_group_id is not None
+
+    spikes = kwik.root.channel_groups.__getattr__(channel_group_id).spikes
+        
+    ds_features_masks = kwx.root.channel_groups.__getattr__(channel_group_id).features_masks
+    ds_waveforms_raw = kwx.root.channel_groups.__getattr__(channel_group_id).waveforms_raw
+    ds_waveforms_filtered = kwx.root.channel_groups.__getattr__(channel_group_id).waveforms_filtered
+        
+    nfeatures = ds_features_masks.shape[1]
     
+    if features_masks is None:
+        # Default features and masks
+        if features is None:
+            features = np.zeros((1, nfeatures), dtype=np.float32)
+        if masks is None:
+            masks = np.zeros((features.shape[0], nfeatures), dtype=np.float32)
+        
+        # Ensure features and masks have the right number of dimensions.
+        # features.shape is (1, nfeatures)
+        # masks.shape is however  (nchannels,)
+        if features.ndim == 1:
+            features = np.expand_dims(features, axis=0)
+        if masks.ndim == 1:
+            masks = np.expand_dims(masks, axis=0)
+        
+        # masks.shape is now    (1,nchannels,)
+        # Tile the masks if needed: same mask value on each channel.
+        if masks.shape[1] < features.shape[1]:
+            nfeatures_per_channel = features.shape[1] // masks.shape[1]
+            masks = np.repeat(masks, nfeatures_per_channel, axis = 1)
+        # masks.shape is (1, nfeatures) - what we want
+        # Concatenate features and masks
+        features_masks = np.dstack((features, masks))
+        
+    time_samples = ensure_vector(time_samples)
+    nspikes = len(time_samples)
+    
+    time_fractional = ensure_vector(time_fractional, size=nspikes)
+    recording = ensure_vector(recording, size=nspikes)
+    cluster = ensure_vector(cluster, size=nspikes)
+    cluster_original = ensure_vector(cluster_original, size=nspikes)
+    
+    if waveforms_raw is None:
+        waveforms_raw = empty_row(ds_waveforms_raw, nrows=nspikes)
+    if waveforms_raw.ndim < 3:
+        waveforms_raw = np.expand_dims(waveforms_raw, axis=0)
+        
+    if waveforms_filtered is None:
+        waveforms_filtered = empty_row(ds_waveforms_filtered, nrows=nspikes)
+    if waveforms_filtered.ndim < 3:
+        waveforms_filtered = np.expand_dims(waveforms_filtered, axis=0)
+        
+    # Make sure we add the correct number of rows to every object.
+    assert len(time_samples) == nspikes
+    assert len(time_fractional) == nspikes
+    assert len(recording) == nspikes
+    assert len(cluster) == nspikes
+    assert len(cluster_original) == nspikes
+    assert features_masks.shape[0] == nspikes
+    assert waveforms_raw.shape[0] == nspikes
+    assert waveforms_filtered.shape[0] == nspikes
+        
+    spikes.time_samples.append(time_samples)
+    spikes.time_fractional.append(time_fractional)
+    spikes.recording.append(recording)
+    spikes.clusters.main.append(cluster)
+    spikes.clusters.original.append(cluster_original)
+    ds_features_masks.append(features_masks)
+    ds_waveforms_raw.append(convert_dtype(waveforms_raw, np.int16))
+    ds_waveforms_filtered.append(convert_dtype(waveforms_filtered, np.int16))

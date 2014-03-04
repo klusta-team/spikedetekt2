@@ -13,8 +13,8 @@ import pandas as pd
 import tables as tb
 
 from selection import select, slice_to_indices
-from spikedetekt2.dataio.kwik import (get_filenames, open_files, close_files
-    )
+from spikedetekt2.dataio.kwik import (get_filenames, open_files, close_files,
+    add_spikes)
 from spikedetekt2.dataio.utils import convert_dtype
 from spikedetekt2.utils.six import (iteritems, string_types, iterkeys, 
     itervalues, next)
@@ -112,14 +112,6 @@ class ArrayProxy(object):
                 return self._arr[item]
             else:
                 return self._arr[item, ..., self._col]
-        
-def get_row_shape(arr):
-    """Return the shape of a row of an array."""
-    return (1,) + arr.shape[1:]
-        
-def empty_row(arr, dtype=None):
-    """Create an empty row for a given array."""
-    return np.zeros(get_row_shape(arr), dtype=arr.dtype)
         
         
 # -----------------------------------------------------------------------------
@@ -354,55 +346,9 @@ class Spikes(Node):
         self.nfeatures = self.features.shape[1]
         self.masks = ArrayProxy(self.features_masks, col=1)
        
-    def add(self, time_samples=None, time_fractional=0,
-            recording=0, cluster=0, cluster_original=0,
-            features_masks=None, features=None, masks=None,
-            waveforms_raw=None, waveforms_filtered=None,
-            ):
+    def add(self, **kwargs):
         """Add a spike. Only `time_samples` is mandatory."""
-        if features_masks is None:
-            # Default features and masks
-            if features is None:
-                features = np.zeros((1, self.nfeatures), dtype=np.float32)
-            if masks is None:
-                masks = np.zeros((1, self.nfeatures), dtype=np.float32)
-            
-            # Ensure features and masks have the right number of dimensions.
-            # features.shape is (1, nfeatures)
-            # masks.shape is however  (nchannels,)
-            if features.ndim == 1:
-                features = np.expand_dims(features, axis=0)
-            if masks.ndim == 1:
-                masks = np.expand_dims(masks, axis=0)
-            
-            # masks.shape is now    (1,nchannels,)
-            # Tile the masks if needed: same mask value on each channel.
-            if masks.shape[1] < features.shape[1]:
-                nfeatures_per_channel = features.shape[1] // masks.shape[1]
-                masks = np.repeat(masks, nfeatures_per_channel, axis = 1)
-            # # masks.shape is (1, nfeatures) - what we want
-            # Concatenate features and masks
-            features_masks = np.dstack((features, masks))
-            
-            
-        if waveforms_raw is None:
-            waveforms_raw = empty_row(self.waveforms_raw)
-        if waveforms_raw.ndim < 3:
-            waveforms_raw = np.expand_dims(waveforms_raw, axis=0)
-            
-        if waveforms_filtered is None:
-            waveforms_filtered = empty_row(self.waveforms_filtered)
-        if waveforms_filtered.ndim < 3:
-            waveforms_filtered = np.expand_dims(waveforms_filtered, axis=0)
-            
-        self.time_samples.append((time_samples,))
-        self.time_fractional.append((time_fractional,))
-        self.recording.append((recording,))
-        self.clusters.main.append((cluster,))
-        self.clusters.original.append((cluster_original,))
-        self.features_masks.append(features_masks)
-        self.waveforms_raw.append(convert_dtype(waveforms_raw, np.int16))
-        self.waveforms_filtered.append(convert_dtype(waveforms_filtered, np.int16))
+        add_spikes(self._files, **kwargs)
     
     def __getitem__(self, item):
         raise NotImplementedError("""It is not possible to select entire spikes 

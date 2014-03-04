@@ -18,6 +18,7 @@ from spikedetekt2.dataio.kwik import (add_recording, create_files, open_files,
 from spikedetekt2.dataio.experiment import (Experiment, _resolve_hdf5_path,
     ArrayProxy, DictVectorizer)
 from spikedetekt2.utils.six import itervalues
+from spikedetekt2.utils.logger import info
 
 
 # -----------------------------------------------------------------------------
@@ -128,6 +129,24 @@ def test_experiment_spikes():
         assert isinstance(spikes.clusters.original, tb.EArray)
         assert spikes.clusters.original.dtype == np.uint32
         assert spikes.clusters.original.ndim == 1
+        
+        assert isinstance(spikes.features_masks, tb.EArray)
+        assert spikes.features_masks.dtype == np.float32
+        assert spikes.features_masks.ndim == 3
+        
+        assert isinstance(spikes.waveforms_raw, tb.EArray)
+        assert spikes.waveforms_raw.dtype == np.int16
+        assert spikes.waveforms_raw.ndim == 3
+        
+        assert isinstance(spikes.waveforms_filtered, tb.EArray)
+        assert spikes.waveforms_filtered.dtype == np.int16
+        assert spikes.waveforms_filtered.ndim == 3
+
+def test_experiment_features():
+    """Test the wrapper around features implementing a custom cache."""
+    with Experiment('myexperiment', dir=DIRPATH) as exp:
+        chgrp = exp.channel_groups[0]
+        spikes = chgrp.spikes
         
         assert isinstance(spikes.features_masks, tb.EArray)
         assert spikes.features_masks.dtype == np.float32
@@ -257,6 +276,7 @@ def test_experiment_repr_nokwd():
     # Move a KWD file and test if Experiment works without KWD.
     os.rename(kwd, kwd2)
     
+    info("The following error message is expected (part of the unit test)")
     with Experiment('myexperiment', dir=DIRPATH) as exp:
         s = str(exp)
     

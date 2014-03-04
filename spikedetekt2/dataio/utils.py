@@ -44,6 +44,18 @@ def convert_dtype(data, dtype=None):
     else:
         return data.astype(dtype) 
 
+def ensure_vector(data, size=None):
+    """Ensure data is a 1D vector."""
+    if isinstance(data, (list, tuple)):
+        data = np.array(data)
+    elif not isinstance(data, np.ndarray):
+        data = np.array([data])
+    assert data.ndim == 1
+    # If size is specified, tile the vector by this size.
+    if len(data) == 1 and size is not None:
+        data = np.tile(data, size)
+    return data
+    
 
 # -----------------------------------------------------------------------------
 # JSON functions

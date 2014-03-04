@@ -41,4 +41,9 @@ def test_convert_dtype():
         assert x_bis.dtype == dtype
         assert x.mean() != 0
     
+def test_ensure_vector():
+    assert np.array_equal(ensure_vector(1), [1])
+    assert np.array_equal(ensure_vector(1.), [1.])
+    assert np.array_equal(ensure_vector([1]), [1])
+    assert np.array_equal(ensure_vector([1,2]), [1, 2])
     
