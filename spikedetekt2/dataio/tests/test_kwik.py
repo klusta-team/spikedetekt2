@@ -252,8 +252,29 @@ def test_add_cluster():
 def test_add_spikes():
     files = open_files('myexperiment', dir=DIRPATH, mode='a')
     nspikes = 7
-    add_spikes(files, channel_group_id='0', time_samples=np.arange(nspikes),
-               features=np.random.randn(nspikes, 3))
+    
+    add_spikes(files, channel_group_id='0', 
+               time_samples=1,
+               )
+    add_spikes(files, channel_group_id='0', 
+               time_samples=np.arange(1),
+               features=np.random.randn(1, 3),
+               )
+    add_spikes(files, channel_group_id='0', 
+               time_samples=np.arange(2),
+               features=np.random.randn(2, 3),
+               masks=np.random.randn(2, 3),
+               )
+    add_spikes(files, channel_group_id='0', 
+               time_samples=np.arange(2),
+               waveforms_raw=np.random.randn(2, 20, 3),
+               )
+    add_spikes(files, channel_group_id='0', 
+               time_samples=4,
+               waveforms_raw=np.random.randn(20, 3),
+               waveforms_filtered=np.random.randn(20, 3),
+               )
+               
     spikes = files['kwx'].root.channel_groups.__getattr__('0')
     assert spikes.waveforms_raw.shape == (nspikes, 20, 3)
     assert spikes.waveforms_filtered.shape == (nspikes, 20, 3)

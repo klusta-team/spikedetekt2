@@ -493,6 +493,9 @@ def add_spikes(fd, channel_group_id=None, clustering='main',
 
     spikes = kwik.root.channel_groups.__getattr__(channel_group_id).spikes
         
+    time_samples = ensure_vector(time_samples)
+    nspikes = len(time_samples)
+    
     ds_features_masks = kwx.root.channel_groups.__getattr__(channel_group_id).features_masks
     ds_waveforms_raw = kwx.root.channel_groups.__getattr__(channel_group_id).waveforms_raw
     ds_waveforms_filtered = kwx.root.channel_groups.__getattr__(channel_group_id).waveforms_filtered
@@ -502,7 +505,7 @@ def add_spikes(fd, channel_group_id=None, clustering='main',
     if features_masks is None:
         # Default features and masks
         if features is None:
-            features = np.zeros((1, nfeatures), dtype=np.float32)
+            features = np.zeros((nspikes, nfeatures), dtype=np.float32)
         if masks is None:
             masks = np.zeros((features.shape[0], nfeatures), dtype=np.float32)
         
@@ -523,8 +526,6 @@ def add_spikes(fd, channel_group_id=None, clustering='main',
         # Concatenate features and masks
         features_masks = np.dstack((features, masks))
         
-    time_samples = ensure_vector(time_samples)
-    nspikes = len(time_samples)
     
     time_fractional = ensure_vector(time_fractional, size=nspikes)
     recording = ensure_vector(recording, size=nspikes)
