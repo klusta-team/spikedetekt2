@@ -20,6 +20,13 @@ from spikedetekt2.utils.six import (iteritems, string_types, iterkeys,
     itervalues, next)
 from spikedetekt2.utils.wrap import wrap
 
+def _select(arr, indices):
+    fm = np.empty((len(indices),) + arr.shape[1:], 
+                              dtype=arr.dtype)
+    for j, i in enumerate(indices):
+        fm[j:j+1,...] = arr[i:i+1,...]
+    return indices, fm
+
 class SpikeCache(object):
     def __init__(self, spike_clusters=None, cache_fraction=1.,
                  nspikes=None,
@@ -27,6 +34,7 @@ class SpikeCache(object):
                  waveforms_raw=None,
                  waveforms_filtered=None):
         self.spike_clusters = spike_clusters
+        # self.cluster_sizes = np.bincount(spike_clusters)
         self.cache_fraction = cache_fraction
         self.nspikes = nspikes
         self.features_masks = features_masks
@@ -75,17 +83,40 @@ class SpikeCache(object):
             return loaded_indices, loaded_features_masks
         else:
             # Find the indices of all spikes in the requested clusters
-            indices = np.in1d(self.spike_clusters, clusters)
+            indices = np.nonzero(np.in1d(self.spike_clusters, clusters))[0]
             if self.cache_fraction == 1.:
                 return indices, self.features_masks_cached[indices,...]
             else:
-                fm = np.empty((len(indices),) + self.features_masks.shape[1:], 
-                              dtype=self.features_masks.dtype)
-                for j, i in enumerate(indices):
-                    fm[j:j+1,...] = self.features_masks[i:i+1,...]
-                return indices, fm
+                return _select(self.features_masks, indices)
            
-    def load_waveforms(self, clusters=None, count=None, filtered=True):
-        pass
+    def load_waveforms(self, clusters=None, count=10, filtered=True):
+        """Load some waveforms from the requested clusters.
+        
+        Arguments:
+          * clusters: list of clusters
+          * count: max number of waveforms per cluster
+          * filtered=True: whether to load filtered or raw waveforms
+        
+        """
+        assert count > 0
+        nclusters = len(clusters)
+        indices = []
+        for cluster in clusters:
+            # Number of spikes to load for this cluster: count
+            # but we want this number to be < cluster size, and > 10 if possible
+            ind = np.nonzero(self.spike_clusters == cluster)[0]
+            cluster_size = len(ind)
+            if cluster_size == 0:
+                continue
+            nspikes = np.clip(count, min(cluster_size, 10),
+                                     max(cluster_size, count))
+            indices.append(ind[::len(ind)//nspikes])
+        # indices now contains some spike indices from the requested clusters
+        if len(indices) > 0:
+            indices = np.hstack(indices)
+        w = self.waveforms_filtered if filtered else self.waveforms_raw
+        return _select(w, indices)
+        
+        
         
         
