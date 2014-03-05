@@ -26,10 +26,17 @@ def test_spikecache_1():
                     features_masks=np.zeros((nspikes, 3*nchannels, 2)),
                     waveforms_raw=np.zeros((nspikes, 20, nchannels)),
                     waveforms_filtered=np.zeros((nspikes, 20, nchannels)))
-
                     
     ind, fm = sc.load_features_masks(.1)
     
     assert len(ind) == nspikes // 100
     assert fm.shape[0] == nspikes // 100
+    
+    ind, fm = sc.load_features_masks(clusters=[10, 20])
+    
+    assert len(ind) == fm.shape[0]
+    assert len(ind) == len(np.in1d(spike_clusters, (10, 20)))
+    
+    
+    
     

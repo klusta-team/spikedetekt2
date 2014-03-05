@@ -36,7 +36,6 @@ class SpikeCache(object):
         self.features_masks_cached = None
         self.cache_indices = None
         
-        
         assert self.nspikes == len(self.spike_clusters)
         assert self.nspikes == self.features_masks.shape[0]
         assert self.nspikes == self.waveforms_raw.shape[0]
@@ -60,7 +59,7 @@ class SpikeCache(object):
             the selected clusters.
             
         """
-        assert fraction is not None
+        assert fraction is not None or clusters is not None
         
         # Cache susbet of features masks and save them in an array.
         if self.features_masks_cached is None:
@@ -75,9 +74,18 @@ class SpikeCache(object):
             loaded_indices = self.cache_indices[offset::k]
             return loaded_indices, loaded_features_masks
         else:
-            raise NotImplementedError()
+            # Find the indices of all spikes in the requested clusters
+            indices = np.in1d(self.spike_clusters, clusters)
+            if self.cache_fraction == 1.:
+                return indices, self.features_masks_cached[indices,...]
+            else:
+                fm = np.empty((len(indices),) + self.features_masks.shape[1:], 
+                              dtype=self.features_masks.dtype)
+                for j, i in enumerate(indices):
+                    fm[j:j+1,...] = self.features_masks[i:i+1,...]
+                return indices, fm
            
-    def load_waveforms(self, clusters=None, count=None):
+    def load_waveforms(self, clusters=None, count=None, filtered=True):
         pass
         
         
