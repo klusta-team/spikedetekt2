@@ -24,19 +24,20 @@ def _select(arr, indices):
     fm = np.empty((len(indices),) + arr.shape[1:], 
                               dtype=arr.dtype)
     for j, i in enumerate(indices):
-        fm[j:j+1,...] = arr[i:i+1,...]
+        # fm[j:j+1,...] = arr[i:i+1,...]
+        fm[j,...] = arr[i,...]
     return indices, fm
 
 class SpikeCache(object):
     def __init__(self, spike_clusters=None, cache_fraction=1.,
-                 nspikes=None,
+                 # nspikes=None,
                  features_masks=None,
                  waveforms_raw=None,
                  waveforms_filtered=None):
-        self.spike_clusters = spike_clusters
+        self.spike_clusters = spike_clusters[:]
+        self.nspikes = len(self.spike_clusters)
         # self.cluster_sizes = np.bincount(spike_clusters)
         self.cache_fraction = cache_fraction
-        self.nspikes = nspikes
         self.features_masks = features_masks
         self.waveforms_raw = waveforms_raw
         self.waveforms_filtered = waveforms_filtered
@@ -46,7 +47,8 @@ class SpikeCache(object):
         
         assert self.nspikes == len(self.spike_clusters)
         assert self.nspikes == self.features_masks.shape[0]
-        assert self.nspikes == self.waveforms_raw.shape[0]
+        if self.waveforms_raw is not None:
+            assert self.nspikes == self.waveforms_raw.shape[0]
         assert self.nspikes == self.waveforms_filtered.shape[0]
         
         assert cache_fraction > 0
@@ -84,10 +86,9 @@ class SpikeCache(object):
         else:
             # Find the indices of all spikes in the requested clusters
             indices = np.nonzero(np.in1d(self.spike_clusters, clusters))[0]
-            if self.cache_fraction == 1.:
-                return indices, self.features_masks_cached[indices,...]
-            else:
-                return _select(self.features_masks, indices)
+            arr = (self.features_masks_cached 
+                   if self.cache_fraction == 1. else self.features_masks)
+            return _select(arr, indices)
            
     def load_waveforms(self, clusters=None, count=10, filtered=True):
         """Load some waveforms from the requested clusters.

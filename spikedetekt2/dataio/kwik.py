@@ -155,12 +155,17 @@ def create_kwik(path, experiment_name=None, prm=None, prb=None):
             
         # Create spikes.
         spikes = file.createGroup(group, 'spikes')
-        file.createEArray(spikes, 'time_samples', tb.UInt64Atom(), (0,))
-        file.createEArray(spikes, 'time_fractional', tb.UInt8Atom(), (0,))
-        file.createEArray(spikes, 'recording', tb.UInt16Atom(), (0,))
+        file.createEArray(spikes, 'time_samples', tb.UInt64Atom(), (0,),
+                          expectedrows=1000000)
+        file.createEArray(spikes, 'time_fractional', tb.UInt8Atom(), (0,),
+                          expectedrows=1000000)
+        file.createEArray(spikes, 'recording', tb.UInt16Atom(), (0,),
+                          expectedrows=1000000)
         clusters = file.createGroup(spikes, 'clusters')
-        file.createEArray(clusters, 'main', tb.UInt32Atom(), (0,))
-        file.createEArray(clusters, 'original', tb.UInt32Atom(), (0,))
+        file.createEArray(clusters, 'main', tb.UInt32Atom(), (0,),
+                          expectedrows=1000000)
+        file.createEArray(clusters, 'original', tb.UInt32Atom(), (0,),
+                          expectedrows=1000000)
         
         fm = file.createGroup(spikes, 'features_masks')
         fm._f_setAttr('hdf5_path', '{{kwx}}/channel_groups/{0:d}/features_masks'. \
@@ -232,19 +237,31 @@ def create_kwx(path, prb=None, prm=None, has_masks=True):
         file.createGroup('/channel_groups', 
                          '{0:d}'.format(ichannel_group))
                          
+        
+        # Determine a sensible chunk shape.
+        chunkrows = 10485760 // (nfeatures_ * 4)
+                         
         # Create the arrays.
         if has_masks:
             # Features + masks.
             file.createEArray(channel_group_path, 'features_masks',
-                              tb.Float32Atom(), (0, nfeatures_, 2))
+                              tb.Float32Atom(), (0, nfeatures_, 2),
+                              chunkshape=(chunkrows, nfeatures_, 2))
         else:
             file.createEArray(channel_group_path, 'features_masks',
-                              tb.Float32Atom(), (0, nfeatures_))
+                              tb.Float32Atom(), (0, nfeatures_),
+                              chunkshape=(chunkrows, nfeatures_))
+        
+        
+        # Determine a sensible chunk shape.
+        chunkrows = 10485760 // (waveforms_nsamples_ * nchannels_ * 2)
         
         file.createEArray(channel_group_path, 'waveforms_raw',
-                          tb.Int16Atom(), (0, waveforms_nsamples_, nchannels_))
+                          tb.Int16Atom(), (0, waveforms_nsamples_, nchannels_),
+                          chunkshape=(chunkrows, waveforms_nsamples_, nchannels_))
         file.createEArray(channel_group_path, 'waveforms_filtered',
-                          tb.Int16Atom(), (0, waveforms_nsamples_, nchannels_))
+                          tb.Int16Atom(), (0, waveforms_nsamples_, nchannels_),
+                          chunkshape=(chunkrows, waveforms_nsamples_, nchannels_))
                                                    
     file.close()
             

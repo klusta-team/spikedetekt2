@@ -22,7 +22,6 @@ def test_spikecache_1():
     
     sc = SpikeCache(spike_clusters=spike_clusters,
                     cache_fraction=.1,
-                    nspikes=nspikes,
                     features_masks=np.zeros((nspikes, 3*nchannels, 2)),
                     waveforms_raw=np.zeros((nspikes, 20, nchannels)),
                     waveforms_filtered=np.zeros((nspikes, 20, nchannels)))
@@ -49,7 +48,6 @@ def test_spikecache_2():
     
     sc = SpikeCache(spike_clusters=spike_clusters,
                     cache_fraction=.1,
-                    nspikes=nspikes,
                     features_masks=np.zeros((nspikes, 3*nchannels, 2)),
                     waveforms_raw=np.zeros((nspikes, 20, nchannels)),
                     waveforms_filtered=np.zeros((nspikes, 20, nchannels)))
