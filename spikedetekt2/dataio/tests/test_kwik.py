@@ -281,3 +281,27 @@ def test_add_spikes():
     assert spikes.features_masks.shape == (nspikes, 3, 2)
     close_files(files)
 
+@with_setup(setup_create, teardown_create)
+def test_to_contiguous():
+    """Convert an EArray to contiguous Array."""
+    files = open_files('myexperiment', dir=DIRPATH, mode='a')
+    
+    fm = files['kwx'].root.channel_groups.__getattr__('0').features_masks
+    s = fm.shape[1:]
+    a = fm.atom
+    
+    assert isinstance(fm, tb.EArray)
+    assert fm.shape[0] == 0
+    assert fm.shape[1:] == s
+    assert fm.atom == a
+    
+    to_contiguous(fm, nspikes=100)
+    
+    fm = files['kwx'].root.channel_groups.__getattr__('0').features_masks
+    assert isinstance(fm, tb.Array)
+    assert fm.shape[0] == 100
+    assert fm.shape[1:] == s
+    assert fm.atom == a
+    
+    close_files(files)
+

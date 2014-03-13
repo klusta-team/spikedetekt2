@@ -6,8 +6,10 @@
 import logging
 
 import numpy as np
+import tables as tb
 
-from spikedetekt2.dataio import BaseRawDataReader, read_raw, excerpt_step
+from spikedetekt2.dataio import (BaseRawDataReader, read_raw, excerpt_step,
+    to_contiguous)
 from spikedetekt2.processing import (bandpass_filter, apply_filter, 
     get_threshold, connected_components, extract_waveform,
     compute_pcs, project_pcs, DoubleThreshold)
@@ -86,6 +88,12 @@ def save_features(experiment, **prm):
         spikes = experiment.channel_groups[chgrp].spikes
         # Extract a subset of the saveforms.
         nspikes = len(spikes)
+        
+        # We convert the extendable features_masks array to a 
+        # contiguous array.
+        if prm.get('features_contiguous', True):
+            to_contiguous(spikes.features_masks, nspikes=nspikes)
+        
         # Skip the channel group if there are no spikes.
         if nspikes == 0:
             continue

@@ -281,6 +281,18 @@ def create_kwd(path, type='raw', prm=None,):#recordings=None,):
     
     file.close()
 
+def to_contiguous(node, nspikes=None):
+    """Convert an EArray to a contiguous Array."""
+    file = node._v_file
+    parent = node._v_parent
+    name = node._v_name
+    # arr = node._f_getChild(name)
+    shape = (nspikes,) + node.shape[1:]
+    atom = node.atom
+    file.removeNode(parent, name)
+    # We recreate it as a contiguous array.
+    file.createArray(parent, name, atom=atom, shape=shape)
+
 def create_files(name, dir=None, prm=None, prb=None):
     
     filenames = get_filenames(name, dir=dir)
@@ -519,10 +531,10 @@ def add_spikes(fd, channel_group_id=None, clustering='main',
         
     nfeatures = ds_features_masks.shape[1]
     
-    if features_masks is None:
-        # Default features and masks
-        if features is None:
-            features = np.zeros((nspikes, nfeatures), dtype=np.float32)
+    if features_masks is None and features is not None:
+        # # Default features and masks
+        # if features is None:
+            # features = np.zeros((nspikes, nfeatures), dtype=np.float32)
         if masks is None:
             masks = np.zeros((features.shape[0], nfeatures), dtype=np.float32)
         
@@ -565,7 +577,8 @@ def add_spikes(fd, channel_group_id=None, clustering='main',
     assert len(recording) == nspikes
     assert len(cluster) == nspikes
     assert len(cluster_original) == nspikes
-    assert features_masks.shape[0] == nspikes
+    if features_masks is not None:
+        assert features_masks.shape[0] == nspikes
     assert waveforms_raw.shape[0] == nspikes
     assert waveforms_filtered.shape[0] == nspikes
         
@@ -574,6 +587,7 @@ def add_spikes(fd, channel_group_id=None, clustering='main',
     spikes.recording.append(recording)
     spikes.clusters.main.append(cluster)
     spikes.clusters.original.append(cluster_original)
-    ds_features_masks.append(features_masks)
+    if features_masks is not None:
+        ds_features_masks.append(features_masks)
     ds_waveforms_raw.append(convert_dtype(waveforms_raw, np.int16))
     ds_waveforms_filtered.append(convert_dtype(waveforms_filtered, np.int16))

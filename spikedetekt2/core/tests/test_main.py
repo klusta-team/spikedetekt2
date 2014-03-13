@@ -84,7 +84,12 @@ def test_run_1():
     
     # Open the data files.
     with Experiment('myexperiment', dir=DIRPATH) as exp:
-        print(len(exp.channel_groups[0].spikes))
+        nspikes = len(exp.channel_groups[0].spikes)
+        print(nspikes)
+        assert exp.channel_groups[0].spikes.clusters.main.shape[0] == nspikes
+        assert exp.channel_groups[0].spikes.features_masks.shape[0] == nspikes
+        assert exp.channel_groups[0].spikes.waveforms_filtered.shape[0] == nspikes
+        
         # Assert the log file exists.
         logfile = exp.gen_filename('log')
         assert os.path.exists(logfile)
