@@ -258,11 +258,9 @@ def test_add_spikes():
                )
     add_spikes(files, channel_group_id='0', 
                time_samples=np.arange(1),
-               features=np.random.randn(1, 3),
                )
     add_spikes(files, channel_group_id='0', 
                time_samples=np.arange(2),
-               features=np.random.randn(2, 3),
                masks=np.random.randn(2, 3),
                )
     add_spikes(files, channel_group_id='0', 
@@ -278,7 +276,6 @@ def test_add_spikes():
     spikes = files['kwx'].root.channel_groups.__getattr__('0')
     assert spikes.waveforms_raw.shape == (nspikes, 20, 3)
     assert spikes.waveforms_filtered.shape == (nspikes, 20, 3)
-    assert spikes.features_masks.shape == (nspikes, 3, 2)
     close_files(files)
 
 @with_setup(setup_create, teardown_create)

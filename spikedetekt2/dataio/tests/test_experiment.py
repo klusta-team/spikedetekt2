@@ -200,10 +200,10 @@ def test_experiment_add_spikes():
         spikes.add(time_samples=2000)
         
         assert len(spikes) == 2
-        assert spikes.features_masks.shape == (2, 3, 2)
+        assert spikes.features_masks.shape == (0, 3, 2)
         
         assert isinstance(spikes.features, ArrayProxy)
-        assert spikes.features.shape == (2, 3)
+        assert spikes.features.shape == (0, 3)
         
 def test_experiment_clusters():
     with Experiment('myexperiment', dir=DIRPATH) as exp:
