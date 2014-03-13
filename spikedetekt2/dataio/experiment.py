@@ -16,6 +16,7 @@ from selection import select, slice_to_indices
 from spikedetekt2.dataio.kwik import (get_filenames, open_files, close_files,
     add_spikes)
 from spikedetekt2.dataio.utils import convert_dtype
+from spikedetekt2.dataio.spikecache import SpikeCache
 from spikedetekt2.utils.six import (iteritems, string_types, iterkeys, 
     itervalues, next)
 from spikedetekt2.utils.wrap import wrap
@@ -290,6 +291,9 @@ class Experiment(Node):
         self.channel_groups = self._gen_children('channel_groups', ChannelGroup)
         self.recordings = self._gen_children('recordings', Recording)
         self.event_types = self._gen_children('event_types', EventType)
+
+        # Initialize the spike cache of the first channel group.
+        self.channel_groups.itervalues().next().spikes.init_cache()
         
     def gen_filename(self, extension):
         if extension.startswith('.'):
@@ -349,6 +353,23 @@ class Spikes(Node):
     def add(self, **kwargs):
         """Add a spike. Only `time_samples` is mandatory."""
         add_spikes(self._files, **kwargs)
+    
+    def init_cache(self):
+        """Initialize the cache for the features & masks."""
+        self._spikecache = SpikeCache(
+            # TODO: handle multiple clusterings in the spike cache here
+            spike_clusters=self.clusters.main[:], 
+            features_masks=self.features_masks,
+            waveforms_raw=self.waveforms_raw,
+            waveforms_filtered=self.waveforms_filtered,
+            # TODO: put this value in the parameters
+            cache_fraction=1.,)
+    
+    def load_features_masks(self, *args, **kwargs):
+        self._spikecache.load_features_masks(*args, **kwargs)
+    
+    def load_waveforms(self, *args, **kwargs):
+        self._spikecache.load_waveforms(*args, **kwargs)
     
     def __getitem__(self, item):
         raise NotImplementedError("""It is not possible to select entire spikes 

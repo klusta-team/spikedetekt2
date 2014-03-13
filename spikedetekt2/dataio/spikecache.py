@@ -46,7 +46,6 @@ class SpikeCache(object):
         self.cache_indices = None
         
         assert self.nspikes == len(self.spike_clusters)
-        assert self.nspikes == self.features_masks.shape[0]
         if self.waveforms_raw is not None:
             assert self.nspikes == self.waveforms_raw.shape[0]
         assert self.nspikes == self.waveforms_filtered.shape[0]
@@ -90,7 +89,7 @@ class SpikeCache(object):
                    if self.cache_fraction == 1. else self.features_masks)
             return _select(arr, indices)
            
-    def load_waveforms(self, clusters=None, count=10, filtered=True):
+    def load_waveforms(self, clusters=None, count=20, filtered=True):
         """Load some waveforms from the requested clusters.
         
         Arguments:
