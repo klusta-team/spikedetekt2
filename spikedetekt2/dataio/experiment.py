@@ -184,8 +184,9 @@ class NodeWrapper(object):
             try:
                 return self._node._f_getAttr(key)
             except AttributeError:
-                raise AttributeError(("{key} needs to be an attribute of "
-                    "{node}").format(key=key, node=self._node._v_name))
+                warn(("{key} needs to be an attribute of "
+                     "{node}").format(key=key, node=self._node._v_name))
+                return None
             
     def __setattr__(self, key, value):
         if key.startswith('_'):
@@ -431,10 +432,11 @@ class ClustersClustering(Clustering):
         super(ClustersClustering, self).__init__(*args, **kwargs)
         self.group = DictVectorizer(self._dict, 'cluster_group')
         
-    def add_cluster(self, id=None, **kwargs):
+    def add_cluster(self, id=None, color=None, **kwargs):
         channel_group_id = self._node._v_parent._v_parent._v_name
         clustering = self._node._v_name
         add_cluster(self._files, channel_group_id=channel_group_id, 
+                    color=color,
                     id=str(id), clustering=clustering, **kwargs)
         self._update()
         
