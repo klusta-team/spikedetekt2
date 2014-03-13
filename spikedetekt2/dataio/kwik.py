@@ -292,6 +292,7 @@ def to_contiguous(node, nspikes=None):
     file.removeNode(parent, name)
     # We recreate it as a contiguous array.
     file.createArray(parent, name, atom=atom, shape=shape)
+    return parent._f_getChild(name)
 
 def create_files(name, dir=None, prm=None, prb=None):
     

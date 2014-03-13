@@ -35,5 +35,5 @@ waveforms_nsamples = extract_s_before + extract_s_after
 # --------
 nfeatures_per_channel = 3  # Number of features per channel.
 pca_nwaveforms_max = 10000
-features_contiguous = False  # Whether to make the features array contiguous
+features_contiguous = True  # Whether to make the features array contiguous
 

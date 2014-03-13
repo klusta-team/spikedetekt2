@@ -92,7 +92,12 @@ def save_features(experiment, **prm):
         # We convert the extendable features_masks array to a 
         # contiguous array.
         if prm.get('features_contiguous', True):
-            to_contiguous(spikes.features_masks, nspikes=nspikes)
+            # Make sure to update the PyTables node after the recreation,
+            # to avoid ClosedNodeError.
+            spikes.features_masks = to_contiguous(spikes.features_masks, nspikes=nspikes)
+        else:
+            warn(("The features array has not been converted to a contiguous "
+                  "array."))
         
         # Skip the channel group if there are no spikes.
         if nspikes == 0:
