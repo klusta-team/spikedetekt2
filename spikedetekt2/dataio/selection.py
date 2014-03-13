@@ -57,13 +57,15 @@ def select_pandas(data, indices, drop_empty_rows=True):
         data_selected = data_selected.dropna()
     return data_selected
     
-def slice_to_indices(indices, stop=None, lenindices=None):
+def slice_to_indices(indices, stop=None, lenindices=None, keys=None):
     start, step = (indices.start or 0), (indices.step or 1)
     if not stop:
         assert lenindices is not None
         # Infer stop such that indices and values have the same size.
         stop = np.floor(start + step*lenindices)
-    indices = np.arange(start, stop, step)
+    indices = np.arange(start, stop, step).astype(np.int32)
+    if keys is not None:
+        indices = np.array(keys)[indices]
     if not lenindices:
         lenindices = len(indices)
     assert len(indices) == lenindices

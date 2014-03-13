@@ -14,7 +14,7 @@ import tables as tb
 
 from selection import select, slice_to_indices
 from spikedetekt2.dataio.kwik import (get_filenames, open_files, close_files,
-    add_spikes)
+    add_spikes, add_cluster)
 from spikedetekt2.dataio.utils import convert_dtype
 from spikedetekt2.dataio.spikecache import SpikeCache
 from spikedetekt2.utils.six import (iteritems, string_types, iterkeys, 
@@ -220,6 +220,12 @@ class DictVectorizer(object):
         self._dict = dict
         self._path = path.split('.')
         
+    def keys(self):
+        return self._dict.keys()
+        
+    def values(self):
+        return self._dict.values()
+        
     def _get_path(self, key):
         """Resolve the path recursively for a given key of the dictionary."""
         val = self._dict[key]
@@ -237,7 +243,8 @@ class DictVectorizer(object):
         
     def __getitem__(self, item):
         if isinstance(item, slice):
-            item = slice_to_indices(item, lenindices=len(self._dict))
+            item = slice_to_indices(item, lenindices=len(self._dict), 
+                                    keys=sorted(self._dict.keys()))
         if hasattr(item, '__len__'):
             return np.array([self._get_path(k) for k in item])
         else:
@@ -326,10 +333,10 @@ class ChannelGroup(Node):
         self.user_data = NodeWrapper(self._node.user_data)
         
         self.channels = self._gen_children('channels', Channel)
-        self.clusters = ClustersNode(self._files, self._node.clusters)
-        self.cluster_groups = ClusterGroupsNode(self._files, self._node.cluster_groups)
+        self.clusters = ClustersNode(self._files, self._node.clusters, root=self._root)
+        self.cluster_groups = ClusterGroupsNode(self._files, self._node.cluster_groups, root=self._root)
         
-        self.spikes = Spikes(self._files, self._node.spikes)
+        self.spikes = Spikes(self._files, self._node.spikes, root=self._root)
         
 class Spikes(Node):
     def __init__(self, files, node=None, root=None):
@@ -338,7 +345,7 @@ class Spikes(Node):
         self.time_samples = self._node.time_samples
         self.time_fractional = self._node.time_fractional
         self.recording = self._node.recording
-        self.clusters = Clusters(self._files, self._node.clusters)
+        self.clusters = Clusters(self._files, self._node.clusters, root=self._root)
         
         # Get large datasets, that may be in external files.
         self.features_masks = self._get_child('features_masks')
@@ -379,6 +386,7 @@ class Spikes(Node):
         return self.time_samples.shape[0]
         
 class Clusters(Node):
+    """The parent of main, original, etc. Contains multiple clusterings."""
     def __init__(self, files, node=None, root=None):
         super(Clusters, self).__init__(files, node, root=root)        
         # Each child of the Clusters group is assigned here.
@@ -386,9 +394,14 @@ class Clusters(Node):
             setattr(self, node._v_name, node)
         
 class Clustering(Node):
+    """An actual clustering, with the cluster numbers for all spikes."""
     def __init__(self, files, node=None, root=None, child_class=None):
-        super(Clustering, self).__init__(files, node, root=root)        
-        self._dict = self._gen_children(child_class=child_class)
+        super(Clustering, self).__init__(files, node, root=root)
+        self._child_class = child_class
+        self._update()
+        
+    def _update(self):
+        self._dict = self._gen_children(child_class=self._child_class)
         self.color = DictVectorizer(self._dict, 'application_data.klustaviewa.color')
 
     def __getitem__(self, item):
@@ -413,19 +426,29 @@ class Clustering(Node):
         return self._dict.iteritems()
         
 class ClustersClustering(Clustering):
+    """An actual clustering, with color and group."""
     def __init__(self, *args, **kwargs):
         super(ClustersClustering, self).__init__(*args, **kwargs)
         self.group = DictVectorizer(self._dict, 'cluster_group')
+        
+    def add_cluster(self, id=None, **kwargs):
+        channel_group_id = self._node._v_parent._v_parent._v_name
+        clustering = self._node._v_name
+        add_cluster(self._files, channel_group_id=channel_group_id, 
+                    id=str(id), clustering=clustering, **kwargs)
+        self._update()
         
 class ClusterGroupsClustering(Clustering):
     pass
         
 class ClustersNode(Node):
+    """The parent of clustering types: main, original..."""
     def __init__(self, files, node=None, root=None):
-        super(ClustersNode, self).__init__(files, node, root=root)        
+        super(ClustersNode, self).__init__(files, node, root=root)
         # Each child of the group is assigned here.
         for node in self._node._f_iterNodes():
-            setattr(self, node._v_name, ClustersClustering(self._files, node, child_class=Cluster))
+            setattr(self, node._v_name, ClustersClustering(self._files, node, 
+                child_class=Cluster, root=self._root))
         
 class ClusterGroupsNode(Node):
     def __init__(self, files, node=None, root=None):
@@ -457,6 +480,7 @@ class Cluster(Node):
         self.mean_waveform_filtered = self._node._v_attrs.mean_waveform_filtered
         
         self.application_data = NodeWrapper(self._node.application_data)
+        self.color = self.application_data.klustaviewa.color
         self.user_data = NodeWrapper(self._node.user_data)
         self.quality_measures = NodeWrapper(self._node.quality_measures)
 

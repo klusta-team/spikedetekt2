@@ -26,7 +26,7 @@ from spikedetekt2.utils.logger import info
 # -----------------------------------------------------------------------------
 DIRPATH = tempfile.mkdtemp()
 
-def setup():
+def _setup(_name):
     # Create files.
     prm = {'nfeatures': 3, 'waveforms_nsamples': 10, 'nchannels': 3,
            'sample_rate': 20000.,
@@ -38,10 +38,10 @@ def setup():
             'geometry': {4: [0.4, 0.6], 6: [0.6, 0.8], 8: [0.8, 0.0]},
         }
     ]}
-    create_files('myexperiment', dir=DIRPATH, prm=prm, prb=prb)
+    create_files(_name, dir=DIRPATH, prm=prm, prb=prb)
     
     # Open the files.
-    files = open_files('myexperiment', dir=DIRPATH, mode='a')
+    files = open_files(_name, dir=DIRPATH, mode='a')
     
     # Add data.
     add_recording(files, 
@@ -59,10 +59,15 @@ def setup():
     # Close the files
     close_files(files)
 
-def teardown():
-    files = get_filenames('myexperiment', dir=DIRPATH)
+def _teardown(_name):
+    files = get_filenames(_name, dir=DIRPATH)
     [os.remove(path) for path in itervalues(files)]
 
+def setup(): _setup('myexperiment')
+def teardown(): _teardown('myexperiment')
+def setup2(): _setup('myexperiment2')
+def teardown2(): _teardown('myexperiment2')
+    
 
 # -----------------------------------------------------------------------------
 # Experiment creation tests
@@ -186,9 +191,9 @@ def test_experiment_vectorizer():
         assert np.array_equal(dv[0], 1)
         assert np.array_equal(dv[:], [1])
         
-@with_setup(setup,)  # Create brand new files.
+@with_setup(setup2, teardown2)  # Create brand new files.
 def test_experiment_add_spikes():
-    with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:
+    with Experiment('myexperiment2', dir=DIRPATH, mode='a') as exp:
         chgrp = exp.channel_groups[0]
         spikes = chgrp.spikes
         
@@ -204,6 +209,15 @@ def test_experiment_add_spikes():
         
         assert isinstance(spikes.features, ArrayProxy)
         assert spikes.features.shape == (0, 3)
+        
+@with_setup(setup2, teardown2)  # Create brand new files.
+def test_experiment_add_cluster():
+    with Experiment('myexperiment2', dir=DIRPATH, mode='a') as exp:
+        chgrp = exp.channel_groups[0]
+        chgrp.clusters.main.add_cluster(id=27, color=34)
+        assert 27 in chgrp.clusters.main.keys()
+        assert chgrp.clusters.main[27].color == 34
+        assert np.allclose(chgrp.clusters.main.color[:], [1, 34])
         
 def test_experiment_clusters():
     with Experiment('myexperiment', dir=DIRPATH) as exp:
