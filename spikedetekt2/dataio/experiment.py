@@ -202,7 +202,7 @@ class NodeWrapper(object):
         self._node._f_setAttr(key, value)
             
     def __dir__(self):
-        return self._node.__dir__()
+        return sorted(dir(self._node) + self._node._v_attrs._v_attrnames)
         
     def __repr__(self):
         return self._node.__repr__()
