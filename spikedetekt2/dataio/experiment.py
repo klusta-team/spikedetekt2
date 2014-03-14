@@ -374,10 +374,10 @@ class Spikes(Node):
             cache_fraction=1.,)
     
     def load_features_masks(self, *args, **kwargs):
-        self._spikecache.load_features_masks(*args, **kwargs)
+        return self._spikecache.load_features_masks(*args, **kwargs)
     
     def load_waveforms(self, *args, **kwargs):
-        self._spikecache.load_waveforms(*args, **kwargs)
+        return self._spikecache.load_waveforms(*args, **kwargs)
     
     def __getitem__(self, item):
         raise NotImplementedError("""It is not possible to select entire spikes 
