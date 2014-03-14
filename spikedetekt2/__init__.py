@@ -5,7 +5,7 @@ import os
 import sys
 import logging
 
-import spikedetekt2.utils.logger as log
+from spikedetekt2.utils import logger as log
 from utils import *
 from processing import *
 from core import *
