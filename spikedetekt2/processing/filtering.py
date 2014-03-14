@@ -5,7 +5,7 @@
 # -----------------------------------------------------------------------------
 import numpy as np
 from scipy import signal
-from spikedetekt2.utils.six.moves import range
+from kwiklib.utils.six.moves import range
 
 
 # -----------------------------------------------------------------------------

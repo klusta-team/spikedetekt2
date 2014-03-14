@@ -8,12 +8,12 @@ import logging
 import numpy as np
 import tables as tb
 
-from spikedetekt2.dataio import (BaseRawDataReader, read_raw, excerpt_step,
+from kwiklib.dataio import (BaseRawDataReader, read_raw, excerpt_step,
     to_contiguous)
 from spikedetekt2.processing import (bandpass_filter, apply_filter, 
     get_threshold, connected_components, extract_waveform,
     compute_pcs, project_pcs, DoubleThreshold)
-from spikedetekt2.utils import (Probe, iterkeys, debug, info, warn, exception,
+from kwiklib.utils import (Probe, iterkeys, debug, info, warn, exception,
     display_params, FileLogger, register, unregister)
 
 

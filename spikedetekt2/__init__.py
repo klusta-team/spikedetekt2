@@ -5,11 +5,11 @@ import os
 import sys
 import logging
 
-from spikedetekt2.utils import logger as log
-from utils import *
+from kwiklib.utils import logger as log
+from kwiklib.utils import *
 from processing import *
 from core import *
-from dataio import *
+from kwiklib.dataio import *
 
 
 # -----------------------------------------------------------------------------

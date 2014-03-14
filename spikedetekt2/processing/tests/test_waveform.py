@@ -6,7 +6,7 @@
 import numpy as np
 
 from spikedetekt2.processing import extract_waveform, Component
-from spikedetekt2.utils import Probe
+from kwiklib.utils import Probe
 
 
 # -----------------------------------------------------------------------------

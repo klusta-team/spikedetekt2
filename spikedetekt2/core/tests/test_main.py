@@ -8,11 +8,11 @@ import tempfile
 
 import numpy as np
 
-from spikedetekt2.dataio import (BaseRawDataReader, read_raw, create_files,
+from kwiklib.dataio import (BaseRawDataReader, read_raw, create_files,
     open_files, close_files, add_recording, add_cluster_group, add_cluster,
     get_filenames, Experiment, excerpts)
 from spikedetekt2.core import run
-from spikedetekt2.utils import itervalues, get_params, Probe, create_trace
+from kwiklib.utils import itervalues, get_params, Probe, create_trace
 
 
 # -----------------------------------------------------------------------------
