@@ -34,12 +34,12 @@ prm = get_params(**{
     'sample_rate': sample_rate,
     'detect_spikes': 'positive',
 })
-prb = {'channel_groups': [
+prb = {0:
     {
         'channels': list(range(nchannels)),
         'graph': [(i, i + 1) for i in range(nchannels - 1)],
     }
-]}
+}
 
 def setup():
     create_files('myexperiment', dir=DIRPATH, prm=prm, prb=prb)
