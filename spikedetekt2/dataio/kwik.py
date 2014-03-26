@@ -493,6 +493,14 @@ def add_cluster_group(fd, channel_group_id=None, id=None, clustering='main',
     kv = kwik.createGroup(app, 'klustaviewa')
     kv._f_setAttr('color', color or ((int(id) % (COLORS_COUNT - 1)) + 1))
     
+def _normalize_inplace(x):
+    if x is None:
+        return
+    if x.dtype in (np.float32, np.float64):
+        m, M = x.min(), x.max()
+        c = max(np.abs(m), np.abs(M))
+        x /= float(c)
+
 def add_spikes(fd, channel_group_id=None, clustering='main',
                 time_samples=None, time_fractional=0,
                 recording=0, cluster=0, cluster_original=0,
@@ -569,6 +577,11 @@ def add_spikes(fd, channel_group_id=None, clustering='main',
     assert waveforms_raw.shape[0] == nspikes
     assert waveforms_filtered.shape[0] == nspikes
         
+    # WARNING: need to normalize the waveforms before converting them to
+    # int16. They need to be in [-1,1].
+    _normalize_inplace(waveforms_raw)
+    _normalize_inplace(waveforms_filtered)
+    
     spikes.time_samples.append(time_samples)
     spikes.time_fractional.append(time_fractional)
     spikes.recording.append(recording)
