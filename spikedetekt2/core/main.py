@@ -91,7 +91,7 @@ def save_features(experiment, **prm):
             continue
         nwaveforms = min(nspikes, nwaveforms_max)
         step = excerpt_step(nspikes, nexcerpts=nwaveforms, excerpt_size=1)
-        waveforms_subset = spikes.waveforms_filtered[::step]
+        waveforms_subset = spikes.waveforms_filtered[::step,...]
         # Compute the PCs.
         pcs = compute_pcs(waveforms_subset, npcs=npcs)
         # Project the waveforms on the PCs and compute the features.

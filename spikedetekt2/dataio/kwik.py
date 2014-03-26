@@ -579,8 +579,8 @@ def add_spikes(fd, channel_group_id=None, clustering='main',
         
     # WARNING: need to normalize the waveforms before converting them to
     # int16. They need to be in [-1,1].
-    _normalize_inplace(waveforms_raw)
-    _normalize_inplace(waveforms_filtered)
+    # _normalize_inplace(waveforms_raw)
+    # _normalize_inplace(waveforms_filtered)
     
     spikes.time_samples.append(time_samples)
     spikes.time_fractional.append(time_fractional)
@@ -588,5 +588,10 @@ def add_spikes(fd, channel_group_id=None, clustering='main',
     spikes.clusters.main.append(cluster)
     spikes.clusters.original.append(cluster_original)
     ds_features_masks.append(features_masks)
-    ds_waveforms_raw.append(convert_dtype(waveforms_raw, np.int16))
-    ds_waveforms_filtered.append(convert_dtype(waveforms_filtered, np.int16))
+    
+    # HACK: disable normalization for the time being, to try to
+    # retrieve old output of SD1
+    # ds_waveforms_raw.append(convert_dtype(waveforms_raw, np.int16))
+    # ds_waveforms_filtered.append(convert_dtype(waveforms_filtered, np.int16))
+    ds_waveforms_raw.append(waveforms_raw.astype(np.int16))
+    ds_waveforms_filtered.append(waveforms_filtered.astype(np.int16))
