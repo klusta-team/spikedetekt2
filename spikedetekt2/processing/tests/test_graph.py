@@ -124,7 +124,7 @@ def test_components_C_5():
         
     
 # -----------------------------------------------------------------------------
-# Tests D: 5 time steps, varying join_size
+# Tests D: 5 time steps, varying connected_component_join_size
 # -----------------------------------------------------------------------------
 def test_components_D_1():
     _assert_components([
@@ -149,7 +149,7 @@ def test_components_D_2():
         ],  [[(1, 2), (2, 2), (2, 3), (3, 3), (4, 3), (4, 4)], 
              [(2, 0), (3, 0), (4, 1)],
              ],
-        join_size=1
+        connected_component_join_size=1
         )
         
 def test_components_D_3():
@@ -157,7 +157,7 @@ def test_components_D_3():
             [[(1, 2), (2, 2), (2, 3), (3, 3), (4, 3), (4, 4), 
               (2, 0), (3, 0), (4, 1)],
              ],
-        join_size=2
+        connected_component_join_size=2
         )
         
 
@@ -167,7 +167,7 @@ def test_components_D_3():
 def test_components_E_1():
     _assert_components(CHUNK,
             [],
-        join_size=0,
+        connected_component_join_size=0,
         chunk_strong=[
             [0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0],
@@ -181,7 +181,7 @@ def test_components_E_2():
     _assert_components(CHUNK,
             [[(1, 2)], 
              ],
-        join_size=0,
+        connected_component_join_size=0,
         chunk_strong=[
             [0, 0, 0, 0, 0],
             [0, 0, 1, 0, 0],
@@ -195,7 +195,7 @@ def test_components_E_3():
     _assert_components(CHUNK,
             [[(1, 2), (2, 2), (2, 3), (3, 3), (4, 3), (4, 4)],
              ],
-        join_size=1,
+        connected_component_join_size=1,
         chunk_strong=[
             [0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0],
@@ -210,7 +210,7 @@ def test_components_E_4():
             [[(1, 2), (2, 2), (2, 3), (3, 3), (4, 3), (4, 4), 
               (2, 0), (3, 0), (4, 1)],
              ],
-        join_size=2,
+        connected_component_join_size=2,
         chunk_strong=[
             [0, 0, 0, 0, 0],
             [0, 0, 1, 0, 0],
@@ -225,7 +225,7 @@ def test_components_E_5():
             [[(1, 2), (2, 2), (2, 3), (3, 3), (4, 3), (4, 4), 
               (2, 0), (3, 0), (4, 1)],
              ],
-        join_size=2,
+        connected_component_join_size=2,
         chunk_strong=[
             [0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0],

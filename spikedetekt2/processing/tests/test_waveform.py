@@ -37,7 +37,6 @@ CHUNK_STRONG = np.array([
         ])
 COMPONENT = np.array([(1, 2), (2, 2), (2, 3), 
                       (3, 3), (4, 3), (4, 4)])
-JOIN_SIZE = 1 
 THRESHOLD_STRONG = .8
 THRESHOLD_WEAK = .5
 CHUNK_EXTRACT = THRESHOLD_WEAK * np.random.rand(5, 5)

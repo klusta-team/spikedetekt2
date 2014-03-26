@@ -27,8 +27,11 @@ class Component(object):
             self.keep_start = chunk.keep_start
             self.keep_end = chunk.keep_end
             self.recording = chunk.recording
-            
+    
+    def __repr__(self):
+        return '<Component {0:s}>'.format(self.items)
 
+        
 # -----------------------------------------------------------------------------
 # Graph
 # -----------------------------------------------------------------------------
@@ -57,7 +60,7 @@ def connected_components(chunk_weak=None, chunk_strong=None,
     
     """
     
-    join_size = prm.get('join_size', 0)
+    join_size = prm.get('connected_component_join_size', 0)
     
     if probe_adjacency_list is None:
         probe_adjacency_list = {}
