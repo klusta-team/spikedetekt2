@@ -6,3 +6,4 @@ from probe import *
 from params import *
 from wrap import *
 from testing import *
+from debug_manual import *

@@ -36,4 +36,11 @@ waveforms_nsamples = extract_s_before + extract_s_after
 nfeatures_per_channel = 3  # Number of features per channel.
 pca_nwaveforms_max = 10000
 
+#Waveform alignment
+# -----------------
+weight_power = 1
 
+#Debug module (optional)
+#------------------------
+debug = False
+#observation_time_samples = [201621,184194,718817]

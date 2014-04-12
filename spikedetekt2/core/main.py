@@ -3,6 +3,7 @@
 # -----------------------------------------------------------------------------
 # Imports
 # -----------------------------------------------------------------------------
+from IPython import embed
 import logging
 
 import numpy as np
@@ -12,7 +13,7 @@ from spikedetekt2.processing import (bandpass_filter, apply_filter,
     get_threshold, connected_components, extract_waveform,
     compute_pcs, project_pcs, DoubleThreshold)
 from spikedetekt2.utils import (Probe, iterkeys, debug, info, warn, exception,
-    display_params, FileLogger, register, unregister)
+    display_params, FileLogger, register, unregister,plot_diagnostics_twothresholds)
 
 
 # -----------------------------------------------------------------------------
@@ -177,6 +178,11 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
             chunk_weak=chunk_threshold.weak, 
             probe_adjacency_list=probe.adjacency_list,
             chunk=chunk, **prm)
+        
+        #embed()
+        if prm['debug'] == True:
+            print 'debugging'
+            plot_diagnostics_twothresholds(threshold = threshold,probe = probe,components = components,chunk = chunk, chunk_detect= chunk_detect,chunk_threshold= chunk_threshold, chunk_fil=chunk_fil, chunk_raw=chunk_raw, **prm)
         
         # Now we extract the spike in each component.
         waveforms = extract_waveforms(chunk_detect=chunk_detect,

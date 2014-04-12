@@ -138,7 +138,8 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
         0, 1)
     
     # Compute the fractional peak.
-    power = prm.get('weight_power', 1.)
+    #power = prm.get('weight_power', 1.)
+    power = prm.get('weight_power')
     comp_normalized = np.clip(
         (comp - threshold_weak) / (threshold_strong - threshold_weak),
         0, 1)
