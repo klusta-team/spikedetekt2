@@ -11,8 +11,9 @@ from IPython import embed # For manual debugging
 def plot_diagnostics_twothresholds(threshold = None, probe = None,components = None,chunk = None,chunk_detect= None,chunk_threshold=None, chunk_fil=None, chunk_raw=None,**prm):
 
     multdetection_times = prm['observation_time_samples']
+    #s_start = chunk.keep_start
     s_start = chunk.s_start  # Absolute start of the chunk
-   
+    print 's_start ' , s_start
 
   
     #debug_fd = GlobalVariables['debug_fd']
@@ -27,7 +28,7 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
 
     
 
-    chunk_size_less= prm['chunk_size']-200
+    chunk_size_less= prm['chunk_size']-prm['chunk_overlap']
 #-Parameters['CHUNK_OVERLAP']
 #    print 'Parameters: \n', Parameters
    # probefilename = Parameters['PROBE_FILE']
@@ -47,12 +48,13 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
         if (interestpoint - chunk_size_less) <= s_start < (interestpoint):
             #print interestpoint_ms, ':\n'
             #debug_fd.write(str(interestpoint_ms)+':\n')
-            print interestpoint, ':\n'
+            print 'interestpoint ', interestpoint, ':\n'
             #debug_fd.write(str(interestpoint)+':\n')
              # sampmin = interestpoint - s_start - 3
             sampmin = np.amax([0,interestpoint - s_start - samples_backward])
             sampmax = sampmin + window_width 
-            print 'sampmin, sampmaz ',sampmin, sampmax
+            print 'sampmin, sampmax ',sampmin, sampmax
+            #embed()
 
             
             connected_comp_enum = np.zeros_like(chunk_fil)
@@ -61,6 +63,11 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
             for k,indlist in enumerate(components):
                 indtemparray = np.array(indlist.items)
                 #print k,':',indlist, '\n'
+                #print 'indlist.s_start', indlist.s_start
+                
+                #print indlist.keep_start 
+                #print indlist.keep_end 
+            
                # print '\n'
                # j = j+1
                # connected_comp_enum[indtemparray[:,0],indtemparray[:,1]] = j
@@ -69,9 +76,13 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
                # debug_fd.write(str(indlist)+'\n')
                # debug_fd.write('\n') 
                # debug_fd.flush()   
-                #embed()
-                if (set(indtemparray[:,0]).intersection(np.arange(sampmin,sampmax+1)) != set()):
-                    
+                
+                
+                if (set(indtemparray[:,0]).intersection(np.arange(int(sampmin),int(sampmax+1))) != set()):
+                    nut = set(indtemparray[:,0]).intersection(np.arange(int(sampmin),int(sampmax+1)))
+                    print nut
+                    print 'Am I even getting here'
+                    #embed()
                     print k,':',indlist, '\n'
                     print '\n'
                     j = j+1
@@ -96,14 +107,13 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
                                  **prm)
                     
                     
-                    
-                    s_peak = wv.s_min 
-                    sf_peak= wv.s_min 
-                    #+ wv.s_frac_part
-                    
-                    
-                    
-                    #embed()                                
+                 
+                    s_peak =  wv.sf_offset - wv.s_start
+                    sf_peak=  s_peak + wv.s_frac_part
+                    print 'wv.s_min', wv.s_min,'\n'
+                    print 'wv.s_start', wv.s_start,'\n'
+                    print 'wv.sf_offset', wv.sf_offset,'\n'
+                    print 'wv.s_frac_part',wv.s_frac_part,'\n'                            
                     debugnextbits.append((s_peak, sf_peak))
                     print 'debugnextbits =', debugnextbits
                     #debug_fd.write('debugnextbits ='+ str(debugnextbits)+'\n')
