@@ -60,7 +60,7 @@ def extract_waveforms(chunk_detect=None, threshold=None,
                 waveforms.append(w)
         except Exception as e:
             # Log any exception occurring during waveform extraction.
-            warn(str(e))
+            warn(e.message)
             
     # Remove skipped waveforms (in overlapping chunk sections).
     # waveforms = [w for w in waveforms if w is not None]

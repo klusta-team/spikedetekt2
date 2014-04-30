@@ -92,6 +92,9 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     
     assert len(component_items) > 0
     # Find the channel_group of the spike.
+    # Make sure the channel is in the probe, otherwise pass the waveform.
+    if component_items[0][1] not in probe.channel_to_group:
+        return None
     channel_group = probe.channel_to_group[component_items[0][1]]
 
     # Total number of channels across all channel groups.
