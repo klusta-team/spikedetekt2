@@ -16,7 +16,7 @@ DoubleThreshold = namedtuple('DoubleThreshold', ['strong', 'weak'])
 # -----------------------------------------------------------------------------
 # Thresholding
 # -----------------------------------------------------------------------------
-def get_threshold(raw_data, filter=None, **prm):
+def get_threshold(raw_data, filter=None, channels=slice(None), **prm):
     """Compute the threshold from the standard deviation of the filtered signal
     across many uniformly scattered excerpts of data.
     
@@ -24,7 +24,6 @@ def get_threshold(raw_data, filter=None, **prm):
     are returned.
     
     """
-    
     nexcerpts = prm.get('nexcerpts', None)
     excerpt_size = prm.get('excerpt_size', None)
     use_single_threshold = prm.get('use_single_threshold', True)
@@ -40,7 +39,7 @@ def get_threshold(raw_data, filter=None, **prm):
     # WARNING: this may use a lot of RAM.
     excerpts = np.vstack(
         # Filter each excerpt.
-        apply_filter(excerpt.data, filter=filter)
+        apply_filter(excerpt.data[:,channels], filter=filter)
             for excerpt in raw_data.excerpts(nexcerpts=nexcerpts, 
                                              excerpt_size=excerpt_size))
     # Get the median of all samples in all excerpts,

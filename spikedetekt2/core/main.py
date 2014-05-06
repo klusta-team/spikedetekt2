@@ -166,7 +166,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
     
     # Compute the strong threshold across excerpts uniformly scattered across the
     # whole recording.
-    threshold = get_threshold(raw_data, filter=filter, **prm)
+    threshold = get_threshold(raw_data, filter=filter, channels=probe.channels, **prm)
     debug("Threshold: " + str(threshold))
     
     # Loop through all chunks with overlap.

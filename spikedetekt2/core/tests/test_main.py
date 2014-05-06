@@ -7,6 +7,7 @@ import os
 import tempfile
 
 import numpy as np
+from nose import with_setup
 
 from kwiklib.dataio import (BaseRawDataReader, read_raw, create_files,
     open_files, close_files, add_recording, add_cluster_group, add_cluster,
@@ -76,6 +77,7 @@ def test_run_nospikes():
     with Experiment('myexperiment', dir=DIRPATH) as exp:
         assert len(exp.channel_groups[0].spikes) == 0
 
+@with_setup(setup,)
 def test_run_1():
     """Read from NumPy array file."""
     # Run the algorithm.
@@ -94,6 +96,7 @@ def test_run_1():
         logfile = exp.gen_filename('log')
         assert os.path.exists(logfile)
     
+@with_setup(setup,)
 def test_run_2():
     """Read from .dat file."""
     path = os.path.join(DIRPATH, 'mydatfile.dat')
@@ -106,7 +109,3 @@ def test_run_2():
     # Open the data files.
     with Experiment('myexperiment', dir=DIRPATH) as exp:
         print(len(exp.channel_groups[0].spikes))
-    
-    
-
-
