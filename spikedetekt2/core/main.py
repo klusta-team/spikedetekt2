@@ -64,7 +64,6 @@ def extract_waveforms(chunk_detect=None, threshold=None,
     
 def add_waveform(experiment, waveform, **prm):
     """Add a Waveform instance to an Experiment."""
-    
     experiment.channel_groups[waveform.channel_group].spikes.add(
         time_samples=waveform.s_offset, 
         time_fractional=waveform.s_frac_part,

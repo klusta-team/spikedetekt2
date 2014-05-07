@@ -106,10 +106,13 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     if component_items[0][1] not in probe.channel_to_group:
         return None
     channel_group = probe.channel_to_group[component_items[0][1]]
+    # List of channels in the current channel group.
+    channels = probe.channel_groups[channel_group].channels
 
     # Total number of channels across all channel groups.
     # chunk_extract = chunk_extract[:,probe.channels]
     nsamples, nchannels = chunk_extract.shape
+    # nchannels = len(channels)
     # assert nchannels == probe.nchannels
     
     # Get binary mask.
@@ -142,6 +145,7 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     masks_float = np.clip(  # shape: (nchannels,)
         (peaks_values - threshold_weak) / (threshold_strong - threshold_weak), 
         0, 1)
+    masks_float = masks_float[channels]  # keep shank channels
     
     # Compute the fractional peak.
     power = prm.get('weight_power', 1.)
@@ -156,7 +160,9 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     # Realign spike with respect to s_fracpeak.
     s_peak = int(s_fracpeak)
     # Get block of given size around peaksample.
-    wave = get_padded(chunk_fil, s_peak - s_before - 1, s_peak + s_after + 2)
+    wave = get_padded(chunk_fil[:,channels],  # keep shank channels
+                      s_peak - s_before - 1,
+                      s_peak + s_after + 2)
     
     # Perform interpolation around the fractional peak.
     old_s = np.arange(s_peak - s_before - 1, s_peak + s_after + 2)
@@ -169,15 +175,16 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     wave_aligned = f(new_s)
     
     # Get unfiltered spike.
-    wave_raw = get_padded(chunk_raw, s_peak - s_before,
-                                     s_peak + s_after)
-    
+    wave_raw = get_padded(chunk_raw[:,channels], # keep shank channels
+                          s_peak - s_before,
+                          s_peak + s_after)
+                          
     # Create the Waveform instance.
     waveform = Waveform(fil=wave_aligned, raw=wave_raw, masks=masks_float, 
                     s_min=s_min, s_start=s_start, s_fracpeak=s_fracpeak, 
                     channel_group=channel_group,
                     recording=recording)
-    
+                    
     # Only keep the waveforms that are within the chunk window.
     if keep_start <= waveform.sf_offset < keep_end:
         return waveform
