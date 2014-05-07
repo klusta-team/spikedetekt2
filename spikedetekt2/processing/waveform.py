@@ -80,7 +80,6 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     * chunk_weak: nsamples x nchannels binary array
     
     """
-    component_items = component.items
     s_start = component.s_start  # Absolute start of the chunk.
     keep_start = component.keep_start  # Absolute start of the kept chunk.
     keep_end = component.keep_end  # Absolute end of the kept chunk.
@@ -90,16 +89,9 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     s_before = prm['extract_s_before']
     s_after = prm['extract_s_after']
     
+    
+    component_items = component.items
     assert len(component_items) > 0
-    # Find the channel_group of the spike.
-    # Make sure the channel is in the probe, otherwise pass the waveform.
-    if component_items[0][1] not in probe.channel_to_group:
-        return None
-    channel_group = probe.channel_to_group[component_items[0][1]]
-
-    # Total number of channels across all channel groups.
-    nsamples, nchannels = chunk_extract.shape
-    assert nchannels == probe.nchannels
     
     # Get samples and channels in the component.
     if not isinstance(component_items, np.ndarray):
@@ -108,6 +100,17 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     # The samples here are relative to the start of the chunk.
     comp_s = component_items[:,0]  # shape: (component_size,)
     comp_ch = component_items[:,1]  # shape: (component_size,)
+    
+    # Find the channel_group of the spike.
+    # Make sure the channel is in the probe, otherwise pass the waveform.
+    if component_items[0][1] not in probe.channel_to_group:
+        return None
+    channel_group = probe.channel_to_group[component_items[0][1]]
+
+    # Total number of channels across all channel groups.
+    # chunk_extract = chunk_extract[:,probe.channels]
+    nsamples, nchannels = chunk_extract.shape
+    # assert nchannels == probe.nchannels
     
     # Get binary mask.
     masks_bin = np.zeros(nchannels, dtype=np.bool)  # shape: (nchannels,)

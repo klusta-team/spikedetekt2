@@ -47,20 +47,16 @@ def extract_waveforms(chunk_detect=None, threshold=None,
     # This is a list of Waveform instances.
     waveforms = []
     for component in components:
-        try:
-            w = extract_waveform(component,
-                                 chunk_extract=chunk_extract,
-                                 chunk_fil=chunk_fil,
-                                 chunk_raw=chunk_raw,
-                                 threshold_strong=threshold.strong,
-                                 threshold_weak=threshold.weak,
-                                 probe=probe,
-                                 **prm)
-            if w is not None:
-                waveforms.append(w)
-        except Exception as e:
-            # Log any exception occurring during waveform extraction.
-            warn(e.message)
+        w = extract_waveform(component,
+                             chunk_extract=chunk_extract,
+                             chunk_fil=chunk_fil,
+                             chunk_raw=chunk_raw,
+                             threshold_strong=threshold.strong,
+                             threshold_weak=threshold.weak,
+                             probe=probe,
+                             **prm)
+        if w is not None:
+            waveforms.append(w)
             
     # Remove skipped waveforms (in overlapping chunk sections).
     # waveforms = [w for w in waveforms if w is not None]
@@ -166,7 +162,8 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
     
     # Compute the strong threshold across excerpts uniformly scattered across the
     # whole recording.
-    threshold = get_threshold(raw_data, filter=filter, channels=probe.channels, **prm)
+    threshold = get_threshold(raw_data, filter=filter, 
+                              channels=probe.channels, **prm)
     debug("Threshold: " + str(threshold))
     
     # Loop through all chunks with overlap.
@@ -182,6 +179,12 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
         # Apply thresholds.
         chunk_detect, chunk_threshold = apply_threshold(chunk_fil, 
             threshold=threshold, **prm)
+        
+        # Remove dead channels.
+        dead = np.setdiff1d(np.arange(nchannels), probe.channels)
+        chunk_detect[:,dead] = 0
+        chunk_threshold.strong[:,dead] = 0
+        chunk_threshold.weak[:,dead] = 0
         
         # Find connected component (strong threshold). Return list of
         # Component instances.

@@ -42,6 +42,7 @@ def get_threshold(raw_data, filter=None, channels=slice(None), **prm):
         apply_filter(excerpt.data[:,channels], filter=filter)
             for excerpt in raw_data.excerpts(nexcerpts=nexcerpts, 
                                              excerpt_size=excerpt_size))
+                                             
     # Get the median of all samples in all excerpts,
     # on all channels...
     if use_single_threshold:
