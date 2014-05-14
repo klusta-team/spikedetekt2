@@ -19,7 +19,7 @@ from spikedetekt2.core.script import main
 DIRPATH = None
 prm_filename = 'myexperiment.prm'
 prb_filename = 'myprobe.prb'
-dat_filename = 'raw.dat'
+dat_filename = 'myexperiment.dat'
 name = 'myexperiment'
 
 sample_rate = 20000.
@@ -37,7 +37,7 @@ def setup():
     for start, end in excerpts(nsamples, nexcerpts=10, excerpt_size=10):
         raw_data[start:end] += np.random.randint(low=-10000, high=10000, 
                                                  size=(10, nchannels))
-    raw_data.tofile(dat_filename)
+    raw_data.tofile(op.join(DIRPATH, dat_filename))
 
     # Create PRM file.
     prm = get_params(**{
