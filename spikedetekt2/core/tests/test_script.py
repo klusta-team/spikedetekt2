@@ -84,4 +84,8 @@ def test_main_1():
         assert exp.channel_groups[0].spikes.features_masks.shape[0] == nspikes
         assert exp.channel_groups[0].spikes.waveforms_filtered.shape[0] == nspikes
         
+        fm = exp.channel_groups[0].spikes.features_masks
+        print fm[:,:,0].min(), fm[:,:,0].mean(), fm[:,:,0].max()
+        print fm[:,:,1].min(), fm[:,:,1].mean(), fm[:,:,1].max()
+        
         

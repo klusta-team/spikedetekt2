@@ -9,7 +9,7 @@ import numpy as np
 import tables as tb
 
 from kwiklib.dataio import (BaseRawDataReader, read_raw, excerpt_step,
-    to_contiguous)
+    to_contiguous, convert_dtype)
 from spikedetekt2.processing import (bandpass_filter, apply_filter, 
     get_threshold, connected_components, extract_waveform,
     compute_pcs, project_pcs, DoubleThreshold)
@@ -105,6 +105,9 @@ def save_features(experiment, **prm):
         # Project the waveforms on the PCs and compute the features.
         # WARNING: optimization: we could load and project waveforms by chunks.
         for i, waveform in enumerate(spikes.waveforms_filtered):
+            # Convert waveforms from int16 to float32 with scaling
+            # before computing PCA so as to avoid getting huge numbers.
+            waveform = convert_dtype(waveform, np.float32)
             features = project_pcs(waveform, pcs)
             spikes.features_masks[i,:,0] = features.ravel()
     
