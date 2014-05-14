@@ -9,7 +9,7 @@ import numpy as np
 import tempfile
 
 from kwiklib import (excerpts, get_params, pydict_to_python, get_filenames,
-    itervalues, create_trace)
+    itervalues, create_trace, Experiment)
 from spikedetekt2.core.script import main
 
 
@@ -78,11 +78,10 @@ def test_main_1():
     main(op.join(DIRPATH, prm_filename))
     
     # Open the data files.
-    # with Experiment(name, dir=DIRPATH) as exp:
-        # nspikes = len(exp.channel_groups[0].spikes)
-        # print(nspikes)
-        # assert exp.channel_groups[0].spikes.clusters.main.shape[0] == nspikes
-        # assert exp.channel_groups[0].spikes.features_masks.shape[0] == nspikes
-        # assert exp.channel_groups[0].spikes.waveforms_filtered.shape[0] == nspikes
+    with Experiment(name, dir=DIRPATH) as exp:
+        nspikes = len(exp.channel_groups[0].spikes)
+        assert exp.channel_groups[0].spikes.clusters.main.shape[0] == nspikes
+        assert exp.channel_groups[0].spikes.features_masks.shape[0] == nspikes
+        assert exp.channel_groups[0].spikes.waveforms_filtered.shape[0] == nspikes
         
         
