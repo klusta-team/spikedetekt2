@@ -9,7 +9,7 @@ import numpy as np
 import tempfile
 
 from kwiklib import (excerpts, get_params, pydict_to_python, get_filenames,
-    itervalues)
+    itervalues, create_trace)
 from spikedetekt2.core.script import main
 
 
@@ -33,9 +33,10 @@ def setup():
     DIRPATH = tempfile.mkdtemp()
     
     # Create DAT file.
-    raw_data = .1 * np.random.randn(nsamples, nchannels)
-    for start, end in excerpts(nsamples, nexcerpts=100, excerpt_size=10):
-        raw_data[start:end] *= 5
+    raw_data = create_trace(nsamples, nchannels)
+    for start, end in excerpts(nsamples, nexcerpts=10, excerpt_size=10):
+        raw_data[start:end] += np.random.randint(low=-10000, high=10000, 
+                                                 size=(10, nchannels))
     raw_data.tofile(dat_filename)
 
     # Create PRM file.
