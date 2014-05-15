@@ -48,7 +48,8 @@ def main(prm_filename):
     # Run SpikeDetekt.
     with Experiment(basename, dir=dir, mode='a') as exp:
         run(read_raw(data_path, nchannels=nchannels), 
-            experiment=exp, prm=prm, probe=Probe(prb))
+            experiment=exp, prm=prm, probe=Probe(prb),
+            save_raw=True)
 
 if __name__ == '__main__':
     main(sys.argv[1])

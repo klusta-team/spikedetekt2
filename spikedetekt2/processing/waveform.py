@@ -70,16 +70,9 @@ class Waveform(object):
 # Waveform extraction
 # -----------------------------------------------------------------------------
 def extract_waveform(component, chunk_fil=None, chunk_raw=None,
-                     chunk_extract=None,
+                     chunk_extract=None,  # =chunk_fil or its abs()
                      threshold_strong=None, threshold_weak=None, 
                      probe=None, **prm):
-    """
-    * component: list of (isample, ichannel) pairs.
-    * chunk_extract: nsamples x nchannels array
-    * chunk_strong: nsamples x nchannels binary array
-    * chunk_weak: nsamples x nchannels binary array
-    
-    """
     s_start = component.s_start  # Absolute start of the chunk.
     keep_start = component.keep_start  # Absolute start of the kept chunk.
     keep_end = component.keep_end  # Absolute end of the kept chunk.
