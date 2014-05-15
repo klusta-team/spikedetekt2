@@ -82,12 +82,12 @@ def test_run_1():
     """Read from NumPy array file."""
     # Run the algorithm.
     with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:
-        run(raw_data, experiment=exp, prm=prm, probe=Probe(prb))
+        run(raw_data, experiment=exp, prm=prm, probe=Probe(prb),
+            save_raw=True)
     
     # Open the data files.
     with Experiment('myexperiment', dir=DIRPATH) as exp:
         nspikes = len(exp.channel_groups[0].spikes)
-        print(nspikes)
         assert exp.channel_groups[0].spikes.clusters.main.shape[0] == nspikes
         assert exp.channel_groups[0].spikes.features_masks.shape[0] == nspikes
         assert exp.channel_groups[0].spikes.waveforms_filtered.shape[0] == nspikes
@@ -95,6 +95,10 @@ def test_run_1():
         # Assert the log file exists.
         logfile = exp.gen_filename('log')
         assert os.path.exists(logfile)
+        
+        assert exp.recordings[0].raw.shape == (nsamples, nchannels)
+        assert exp.recordings[0].high.shape == (nsamples, nchannels)
+        assert exp.recordings[0].low.shape == (nsamples, nchannels)
     
 @with_setup(setup,)
 def test_run_2():
@@ -108,4 +112,4 @@ def test_run_2():
     
     # Open the data files.
     with Experiment('myexperiment', dir=DIRPATH) as exp:
-        print(len(exp.channel_groups[0].spikes))
+        assert len(exp.channel_groups[0].spikes)

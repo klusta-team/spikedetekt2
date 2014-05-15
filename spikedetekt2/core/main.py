@@ -129,7 +129,7 @@ def close_file_logger(LOGGER_FILE):
 # -----------------------------------------------------------------------------
 # Main loop
 # -----------------------------------------------------------------------------
-def run(raw_data=None, experiment=None, prm=None, probe=None):
+def run(raw_data=None, experiment=None, prm=None, probe=None, save_raw=False):
     """This main function takes raw data (either as a RawReader, or a path
     to a filename, or an array) and executes the main algorithm (filtering, 
     spike detection, extraction...)."""
@@ -152,15 +152,19 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
     else:
         raw_data = read_raw(experiment)
     # TODO: read from existing KWD file
-    # TODO: when reading from .DAT file, convert into KWD at the same time
-    # TODO: add_recording in Experiment as we go through the DAT files
     
     # Log.
     info("Starting process on {0:s}".format(str(raw_data)))
     debug("Parameters: \n" + (display_params(prm)))
     
-    # Get the strong-pass filter.
+    # Get the bandpass filter.
     filter = bandpass_filter(**prm)
+    
+    # Get the LFP filter.
+    filter_low = bandpass_filter(sample_rate=prm['sample_rate'],
+                                 filter_butter_order=prm['filter_butter_order'],
+                                 filter_low=prm['filter_lfp_low'],
+                                 filter_high=prm['filter_lfp_high'])
     
     # Compute the strong threshold across excerpts uniformly scattered across the
     # whole recording.
@@ -177,6 +181,25 @@ def run(raw_data=None, experiment=None, prm=None, probe=None):
         # Filter the (full) chunk.
         chunk_raw = chunk.data_chunk_full  # shape: (nsamples, nchannels)
         chunk_fil = apply_filter(chunk_raw, filter=filter)
+        
+        # Add the data to the KWD files.
+        if save_raw:
+            # Compute LFP.
+            chunk_low = apply_filter(chunk_raw, filter=filter_low)
+            
+            # Save raw data.
+            experiment.recordings[chunk.recording].raw.append(convert_dtype(chunk.data_chunk_keep, np.int16))
+            
+            # Save high-pass filtered data: need to remove the overlapping
+            # sections.
+            i = chunk.keep_start - chunk.s_start
+            j = chunk.keep_end - chunk.s_start
+            chunk_fil_keep = chunk_fil[i:j,:]
+            chunk_low_keep = chunk_low[i:j,:]
+            experiment.recordings[chunk.recording].high.append(convert_dtype(chunk_fil_keep, np.int16))
+            
+            # Save LFP.
+            experiment.recordings[chunk.recording].low.append(convert_dtype(chunk_low_keep, np.int16))
         
         # Apply thresholds.
         chunk_detect, chunk_threshold = apply_threshold(chunk_fil, 
