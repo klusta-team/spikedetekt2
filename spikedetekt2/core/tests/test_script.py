@@ -10,7 +10,7 @@ import tempfile
 
 from kwiklib import (excerpts, get_params, pydict_to_python, get_filenames,
     itervalues, create_trace, Experiment)
-from spikedetekt2.core.script import main
+from spikedetekt2.core.script import run_spikedetekt
 
 
 # -----------------------------------------------------------------------------
@@ -42,6 +42,7 @@ def setup():
     # Create PRM file.
     prm = get_params(**{
         'raw_data_files': dat_filename,
+        'experiment_name': name,
         'nchannels': nchannels,
         'sample_rate': sample_rate,
         'detect_spikes': 'positive',
@@ -75,7 +76,7 @@ def teardown():
 # Main tests
 # -----------------------------------------------------------------------------
 def test_main_1():
-    main(op.join(DIRPATH, prm_filename))
+    run_spikedetekt(op.join(DIRPATH, prm_filename))
     
     # Open the data files.
     with Experiment(name, dir=DIRPATH) as exp:

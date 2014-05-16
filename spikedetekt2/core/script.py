@@ -49,7 +49,7 @@ def _load_files_info(prm_filename, dir=None):
     experiment_name = prm.get('experiment_name')
     
     return dict(prm=prm, prb=prb, experiment_name=experiment_name, nchannels=nchannels,
-                dat=dat)
+                dat=dat, dir=dir)
     
 
 # -----------------------------------------------------------------------------
@@ -61,6 +61,7 @@ def run_spikedetekt(prm_filename, dir=None):
     prm = info['prm']
     prb = info['prb']
     dat = info['dat']
+    dir = dir or info['dir']
     nchannels = info['nchannels']
     
     # Create files.
@@ -194,7 +195,7 @@ def run_all(prm_filename, dir=None):
     nchannels = info['nchannels']
     
     if not files_exist(experiment_name, dir=dir):
-        run_spikedetekt(experiment_name, dir=dir)
+        run_spikedetekt(prm_filename, dir=dir)
         run_klustakwik(experiment_name, dir=dir)
         
 if __name__ == '__main__':
