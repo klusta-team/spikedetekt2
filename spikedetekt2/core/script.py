@@ -19,13 +19,15 @@ from spikedetekt2.core import run
 
 
 # -----------------------------------------------------------------------------
-# SpikeDetekt
+# Utility functions
 # -----------------------------------------------------------------------------
-def run_spikedetekt(prm_filename):
-    
-    dir, filename = op.split(prm_filename)
+def _load_files_info(prm_filename, dir=None):
+    dir_, filename = op.split(prm_filename)
+    dir = dir or dir_
     basename, ext = op.splitext(filename)
-    assert ext == '.prm'
+    if ext == '':
+        ext = '.prm'
+    prm_filename = op.join(dir, basename + ext)
     assert op.exists(prm_filename)
     
     # Load PRM file.
@@ -40,16 +42,33 @@ def run_spikedetekt(prm_filename):
     prb = load_probe(prb_filename)
         
     # Find raw data source.
-    data_path = prm.get('raw_data_files')
-    if not op.exists(data_path):
-        data_path = op.join(dir, data_path)
+    dat = prm.get('raw_data_files')
+    if not op.exists(dat):
+        dat = op.join(dir, dat)
+        
+    experiment_name = prm.get('experiment_name')
+    
+    return dict(prm=prm, prb=prb, experiment_name=experiment_name, nchannels=nchannels,
+                dat=dat)
+    
+
+# -----------------------------------------------------------------------------
+# SpikeDetekt
+# -----------------------------------------------------------------------------
+def run_spikedetekt(prm_filename, dir=None):
+    info = _load_files_info(prm_filename, dir=dir)
+    experiment_name = info['experiment_name']
+    prm = info['prm']
+    prb = info['prb']
+    dat = info['dat']
+    nchannels = info['nchannels']
     
     # Create files.
-    create_files(basename, dir=dir, prm=prm, prb=prb, create_default_info=True)
+    create_files(experiment_name, dir=dir, prm=prm, prb=prb, create_default_info=True)
     
     # Run SpikeDetekt.
-    with Experiment(basename, dir=dir, mode='a') as exp:
-        run(read_raw(data_path, nchannels=nchannels), 
+    with Experiment(experiment_name, dir=dir, mode='a') as exp:
+        run(read_raw(dat, nchannels=nchannels), 
             experiment=exp, prm=prm, probe=Probe(prb),
             save_raw=True)
 
@@ -116,14 +135,21 @@ def save_old(exp, shank, dir=None):
         fmaskfile = os.path.join(dir, exp.name + '.fmask.' + str(shank))
         write_mask(fmasks, fmaskfile, fmt='%f')
     
-def run_klustakwik(filename, dir=None, **params):
+def run_klustakwik(filename, dir=None, **kwargs):
+    # Open the KWIK files in append mode so that we can write the clusters.
     with Experiment(filename, dir=dir, mode='a') as exp:
         name = exp.name
         shanks = exp.channel_groups.keys()
         
-        params.update(PARAMS_KK)
+        # Set the KlustaKwik parameters.
+        params = PARAMS_KK.copy()
+        for key in PARAMS_KK.keys():
+            # Update the PARAMS_KK keys if they are specified directly
+            # but ignore the kwargs keys that do not appear in PARAMS_KK.
+            params[key] = kwargs.get(key, params[key])
             
         # Switch to temporary directory.
+        start_dir = os.getcwd()
         tmpdir = tempfile.mkdtemp()
         os.chdir(tmpdir)
         
@@ -153,9 +179,24 @@ def run_klustakwik(filename, dir=None, **params):
                            spike_clusters=clu, overwrite=True)
         
         # Switch back to original dir.
-        os.chdir(dir)
+        os.chdir(start_dir)
         
 
+# -----------------------------------------------------------------------------
+# All-in-one script
+# -----------------------------------------------------------------------------
+def run_all(prm_filename, dir=None):
+    info = _load_files_info(prm_filename, dir=dir)
+    experiment_name = info['experiment_name']
+    prm = info['prm']
+    prb = info['prb']
+    dat = info['dat']
+    nchannels = info['nchannels']
+    
+    if not files_exist(experiment_name, dir=dir):
+        run_spikedetekt(experiment_name, dir=dir)
+        run_klustakwik(experiment_name, dir=dir)
+        
 if __name__ == '__main__':
-    run_spikedetekt(sys.argv[1])
+    run_all(sys.argv[1])
     
