@@ -55,7 +55,7 @@ def _load_files_info(prm_filename, dir=None):
 # -----------------------------------------------------------------------------
 # SpikeDetekt
 # -----------------------------------------------------------------------------
-def run_spikedetekt(prm_filename, dir=None):
+def run_spikedetekt(prm_filename, dir=None, debug=False):
     info = _load_files_info(prm_filename, dir=dir)
     experiment_name = info['experiment_name']
     prm = info['prm']
@@ -71,7 +71,7 @@ def run_spikedetekt(prm_filename, dir=None):
     with Experiment(experiment_name, dir=dir, mode='a') as exp:
         run(read_raw(dat, nchannels=nchannels), 
             experiment=exp, prm=prm, probe=Probe(prb),
-            save_raw=True)
+            save_raw=True, _debug=debug)
 
 
 # -----------------------------------------------------------------------------
@@ -186,7 +186,7 @@ def run_klustakwik(filename, dir=None, **kwargs):
 # -----------------------------------------------------------------------------
 # All-in-one script
 # -----------------------------------------------------------------------------
-def run_all(prm_filename, dir=None):
+def run_all(prm_filename, dir=None, debug=False):
     info = _load_files_info(prm_filename, dir=dir)
     experiment_name = info['experiment_name']
     prm = info['prm']
@@ -195,7 +195,7 @@ def run_all(prm_filename, dir=None):
     nchannels = info['nchannels']
     
     if not files_exist(experiment_name, dir=dir):
-        run_spikedetekt(prm_filename, dir=dir)
+        run_spikedetekt(prm_filename, dir=dir, debug=debug)
         run_klustakwik(experiment_name, dir=dir)
         
 if __name__ == '__main__':

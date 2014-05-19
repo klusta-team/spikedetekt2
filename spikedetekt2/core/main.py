@@ -130,7 +130,7 @@ def close_file_logger(LOGGER_FILE):
 # Main loop
 # -----------------------------------------------------------------------------
 def run(raw_data=None, experiment=None, prm=None, probe=None, 
-        save_raw=False, save_high=False, save_low=True):
+        save_raw=False, save_high=False, save_low=True, _debug=False):
     """This main function takes raw data (either as a RawReader, or a path
     to a filename, or an array) and executes the main algorithm (filtering, 
     spike detection, extraction...)."""
@@ -230,6 +230,10 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
         
         # We sort waveforms by increasing order of fractional time.
         [add_waveform(experiment, waveform) for waveform in sorted(waveforms)]
+        
+        # DEBUG: keep only the first shank.
+        if _debug:
+            break
         
     # Feature extraction.
     save_features(experiment, **prm)
