@@ -83,7 +83,7 @@ def test_run_1():
     # Run the algorithm.
     with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:
         run(raw_data, experiment=exp, prm=prm, probe=Probe(prb),
-            save_raw=True)
+            save_raw=True, save_high=True)
     
     # Open the data files.
     with Experiment('myexperiment', dir=DIRPATH) as exp:
