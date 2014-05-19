@@ -71,7 +71,7 @@ def run_spikedetekt(prm_filename, dir=None, debug=False):
     with Experiment(experiment_name, dir=dir, mode='a') as exp:
         run(read_raw(dat, nchannels=nchannels), 
             experiment=exp, prm=prm, probe=Probe(prb),
-            save_raw=True, _debug=debug)
+            _debug=debug)
 
 
 # -----------------------------------------------------------------------------

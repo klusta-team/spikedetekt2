@@ -34,6 +34,8 @@ prm = get_params(**{
     'nchannels': nchannels,
     'sample_rate': sample_rate,
     'detect_spikes': 'positive',
+    'save_high': True,
+    'save_raw': True,
 })
 prb = {0:
     {
@@ -82,8 +84,7 @@ def test_run_1():
     """Read from NumPy array file."""
     # Run the algorithm.
     with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:
-        run(raw_data, experiment=exp, prm=prm, probe=Probe(prb),
-            save_raw=True, save_high=True)
+        run(raw_data, experiment=exp, prm=prm, probe=Probe(prb),)
     
     # Open the data files.
     with Experiment('myexperiment', dir=DIRPATH) as exp:

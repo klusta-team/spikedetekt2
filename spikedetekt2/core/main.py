@@ -130,7 +130,7 @@ def close_file_logger(LOGGER_FILE):
 # Main loop
 # -----------------------------------------------------------------------------
 def run(raw_data=None, experiment=None, prm=None, probe=None, 
-        save_raw=False, save_high=False, save_low=True, _debug=False):
+        _debug=False):
     """This main function takes raw data (either as a RawReader, or a path
     to a filename, or an array) and executes the main algorithm (filtering, 
     spike detection, extraction...)."""
@@ -186,17 +186,17 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
         j = chunk.keep_end - chunk.s_start
             
         # Add the data to the KWD files.
-        if save_raw:
+        if prm.get('save_raw', False):
             # Save raw data.
             experiment.recordings[chunk.recording].raw.append(convert_dtype(chunk.data_chunk_keep, np.int16))
             
-        if save_high:
+        if prm.get('save_high', False):
             # Save high-pass filtered data: need to remove the overlapping
             # sections.
             chunk_fil_keep = chunk_fil[i:j,:]
             experiment.recordings[chunk.recording].high.append(convert_dtype(chunk_fil_keep, np.int16))
             
-        if save_low:
+        if prm.get('save_low', True):
             # Save LFP.
             chunk_low = apply_filter(chunk_raw, filter=filter_low)
             chunk_low_keep = chunk_low[i:j,:]
