@@ -199,6 +199,9 @@ def run_all(prm_filename, dir=None, debug=False):
     if not files_exist(experiment_name, dir=dir):
         run_spikedetekt(prm_filename, dir=dir, debug=debug)
         run_klustakwik(experiment_name, dir=dir)
+    else:
+        print(("The files already exist, delete them first "
+              "if you want to run the process again."))
         
 if __name__ == '__main__':
     run_all(sys.argv[1])
