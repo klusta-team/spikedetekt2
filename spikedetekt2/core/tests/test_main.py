@@ -99,7 +99,9 @@ def test_run_1():
         
         assert exp.recordings[0].raw.shape == (nsamples, nchannels)
         assert exp.recordings[0].high.shape == (nsamples, nchannels)
-        assert exp.recordings[0].low.shape == (nsamples, nchannels)
+        assert exp.recordings[0].low.shape[0] in range(nsamples // 16 - 2, 
+                                                       nsamples // 16 + 3)
+        assert exp.recordings[0].low.shape[1] == nchannels
     
 @with_setup(setup,)
 def test_run_2():

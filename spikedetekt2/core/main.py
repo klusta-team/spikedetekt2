@@ -10,7 +10,7 @@ import tables as tb
 
 from kwiklib.dataio import (BaseRawDataReader, read_raw, excerpt_step,
     to_contiguous, convert_dtype)
-from spikedetekt2.processing import (bandpass_filter, apply_filter, 
+from spikedetekt2.processing import (bandpass_filter, apply_filter, decimate,
     get_threshold, connected_components, extract_waveform,
     compute_pcs, project_pcs, DoubleThreshold)
 from kwiklib.utils import (Probe, iterkeys, debug, info, warn, exception,
@@ -160,12 +160,6 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
     # Get the bandpass filter.
     filter = bandpass_filter(**prm)
     
-    # Get the LFP filter.
-    filter_low = bandpass_filter(sample_rate=prm['sample_rate'],
-                                 filter_butter_order=prm['filter_butter_order'],
-                                 filter_low=prm['filter_lfp_low'],
-                                 filter_high=prm['filter_lfp_high'])
-    
     # Compute the strong threshold across excerpts uniformly scattered across the
     # whole recording.
     threshold = get_threshold(raw_data, filter=filter, 
@@ -198,8 +192,8 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
             
         if prm.get('save_low', True):
             # Save LFP.
-            chunk_low = apply_filter(chunk_raw, filter=filter_low)
-            chunk_low_keep = chunk_low[i:j,:]
+            chunk_low = decimate(chunk_raw)
+            chunk_low_keep = chunk_low[i//16:j//16,:]
             experiment.recordings[chunk.recording].low.append(convert_dtype(chunk_low_keep, np.int16))
         
         # Apply thresholds.
