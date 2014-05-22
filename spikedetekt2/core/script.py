@@ -151,7 +151,9 @@ def run_klustakwik(filename, dir=None, **kwargs):
             
         # Switch to temporary directory.
         start_dir = os.getcwd()
-        tmpdir = tempfile.mkdtemp()
+        tmpdir = os.path.join(start_dir, '_klustakwik')
+        if not os.path.exists(tmpdir):
+            os.mkdir(tmpdir)
         os.chdir(tmpdir)
         
         for shank in shanks:
