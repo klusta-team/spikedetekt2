@@ -6,7 +6,7 @@
 import numpy as np
 from scipy import signal
 from spikedetekt2.processing import (apply_filter, bandpass_filter,
-    get_whitening_matrix, whiten)
+    get_whitening_matrix, whiten, decimate)
 
 
 # -----------------------------------------------------------------------------
@@ -26,6 +26,10 @@ def test_apply_filter():
     # Check that the bandpass-filtered signal is weak.
     assert np.abs(x[int(2./low*rate):-int(2./low*rate)]).max() >= .9
     assert np.abs(x_filtered[int(2./low*rate):-int(2./low*rate)]).max() <= .1
+    
+def test_decimate():
+    x = np.random.randn(16000, 3)
+    y = decimate(x)
     
 def test_whitening():
     x = np.random.randn(10000, 2)

@@ -30,7 +30,21 @@ def apply_filter(x, filter=None):
         for i_ch in range(x.shape[1]):
             out_arr[:, i_ch] = signal.filtfilt(b, a, x[:, i_ch]) 
     return out_arr
-    #return signal.filtfilt(b, a, x, axis=0)
+    
+def decimate(x):
+    q = 16
+    n = 50
+    axis = 0
+    
+    b = signal.firwin(n + 1, 1. / q, window='hamming')
+    a = 1.
+
+    y = signal.lfilter(b, a, x, axis=axis)
+    
+    sl = [slice(None)] * y.ndim
+    sl[axis] = slice(n // 2, None, q)
+    
+    return y[sl]
 
 
 # -----------------------------------------------------------------------------
