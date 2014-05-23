@@ -16,6 +16,7 @@ Adapted and simplified from progressreporting.py in the Brian neural network
 simulator (http://briansimulator.org).
 '''
 import sys, time
+from kwiklib import info
 
 __all__ = ['ProgressReporter']
 
@@ -43,7 +44,7 @@ def make_text_report(elapsed, complete):
     s += time_rep(elapsed) + ' elapsed'
     if complete > .001:
         remtime = elapsed / complete - elapsed
-        s += ', ~' + time_rep(remtime) + ' remaining.'
+        s += ', ' + time_rep(remtime) + ' remaining for the current recording.'
     else:
         s += '.'
     return s
@@ -75,21 +76,22 @@ class ProgressReporter(object):
     '''
     def __init__(self, period=60.0):
         self.period = float(period)
-        self.start() # just in case the user forgets to call start()
+        self.start()
 
     def start(self):
         self.start_time = time.time()
-        self.next_report_time = self.start_time + self.period
+        self.next_report_time = self.start_time
 
     def finish(self):
         self.update(1)
 
     def update(self, complete, extrainfo=''):
         cur_time = time.time()
-        if cur_time > self.next_report_time or complete == 1.0 or complete == 1:
+        if (cur_time > self.next_report_time) or \
+                complete == 1.0 or complete == 1:
             self.next_report_time = cur_time + self.period
             elapsed = time.time() - self.start_time
             s = make_text_report(elapsed, complete)
             if extrainfo:
                 s += ' '+extrainfo
-            print s
+            info(s)

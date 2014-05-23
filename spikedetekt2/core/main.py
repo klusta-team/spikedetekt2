@@ -168,7 +168,8 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
     debug("Threshold: " + str(threshold))
     
     # Progress bar.
-    progress_bar = ProgressReporter()
+    progress_bar = ProgressReporter(period=30.)
+    nspikes = 0
     
     # Loop through all chunks with overlap.
     for chunk in raw_data.chunks(chunk_size=chunk_size, 
@@ -228,15 +229,14 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
             probe=probe, components=components, **prm)
         
         # Log number of spikes in the chunk.
-        # info("Found {0:d} spikes".format(len(waveforms)))
+        nspikes += len(waveforms)
         
         # We sort waveforms by increasing order of fractional time.
         [add_waveform(experiment, waveform) for waveform in sorted(waveforms)]
         
         # Update the progress bar.
-        progress_bar.update(float(s_end)/nsamples,
-            'Recording %d. %d spikes found' % \
-                (rec, len(waveforms)))
+        progress_bar.update(float(s_end) / nsamples,
+            '%d spikes found.' % (nspikes))
         
         # DEBUG: keep only the first shank.
         if _debug:
