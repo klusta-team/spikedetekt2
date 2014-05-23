@@ -43,8 +43,11 @@ def _load_files_info(prm_filename, dir=None):
         
     # Find raw data source.
     dat = prm.get('raw_data_files')
-    if not op.exists(dat):
-        dat = op.join(dir, dat)
+    if isinstance(dat, basestring):
+        dat = [dat]
+    for i in range(len(dat)):
+        if not op.exists(dat[i]):
+            dat[i] = op.join(dir, dat[i])
         
     experiment_name = prm.get('experiment_name')
     

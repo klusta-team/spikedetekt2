@@ -135,7 +135,6 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
     """This main function takes raw data (either as a RawReader, or a path
     to a filename, or an array) and executes the main algorithm (filtering, 
     spike detection, extraction...)."""
-    
     assert experiment is not None, ("An Experiment instance needs to be "
         "provided in order to write the output.")
     
@@ -165,6 +164,8 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
     # whole recording.
     threshold = get_threshold(raw_data, filter=filter, 
                               channels=probe.channels, **prm)
+    assert not np.isnan(threshold.weak)
+    assert not np.isnan(threshold.strong)
     debug("Threshold: " + str(threshold))
     
     # Progress bar.
@@ -179,6 +180,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
         
         nsamples = chunk.nsamples
         rec = chunk.recording
+        nrecs = chunk.nrecordings
         s_end = chunk.s_end
                                  
         # Filter the (full) chunk.
@@ -235,7 +237,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
         [add_waveform(experiment, waveform) for waveform in sorted(waveforms)]
         
         # Update the progress bar.
-        progress_bar.update(float(s_end) / nsamples,
+        progress_bar.update(rec/float(nrecs) + (float(s_end) / (nsamples*nrecs)),
             '%d spikes found.' % (nspikes))
         
         # DEBUG: keep only the first shank.

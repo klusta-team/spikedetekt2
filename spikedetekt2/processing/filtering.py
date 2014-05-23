@@ -22,6 +22,8 @@ def bandpass_filter(**prm):
                          'pass')
 
 def apply_filter(x, filter=None):
+    if x.shape[0] == 0:
+        return x
     b, a = filter
     try:
         out_arr = signal.filtfilt(b, a, x, axis=0)
