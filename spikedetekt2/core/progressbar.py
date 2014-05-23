@@ -44,7 +44,7 @@ def make_text_report(elapsed, complete):
     s += time_rep(elapsed) + ' elapsed'
     if complete > .001:
         remtime = elapsed / complete - elapsed
-        s += ', ' + time_rep(remtime) + ' remaining for the current recording.'
+        s += ', ' + time_rep(remtime) + ' remaining.'
     else:
         s += '.'
     return s
