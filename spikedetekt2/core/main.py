@@ -8,6 +8,7 @@ import logging
 import numpy as np
 import tables as tb
 
+from .progressbar import ProgressReporter
 from kwiklib.dataio import (BaseRawDataReader, read_raw, excerpt_step,
     to_contiguous, convert_dtype)
 from spikedetekt2.processing import (bandpass_filter, apply_filter, decimate,
@@ -166,11 +167,18 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
                               channels=probe.channels, **prm)
     debug("Threshold: " + str(threshold))
     
+    # Progress bar.
+    progress_bar = ProgressReporter()
+    
     # Loop through all chunks with overlap.
     for chunk in raw_data.chunks(chunk_size=chunk_size, 
                                  chunk_overlap=chunk_overlap,):
         # Log.
-        info("Processing chunk {0:s}...".format(chunk))
+        debug("Processing chunk {0:s}...".format(chunk))
+        
+        nsamples = chunk.nsamples
+        rec = chunk.recording
+        s_end = chunk.s_end
                                  
         # Filter the (full) chunk.
         chunk_raw = chunk.data_chunk_full  # shape: (nsamples, nchannels)
@@ -220,10 +228,15 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
             probe=probe, components=components, **prm)
         
         # Log number of spikes in the chunk.
-        info("Found {0:d} spikes".format(len(waveforms)))
+        # info("Found {0:d} spikes".format(len(waveforms)))
         
         # We sort waveforms by increasing order of fractional time.
         [add_waveform(experiment, waveform) for waveform in sorted(waveforms)]
+        
+        # Update the progress bar.
+        progress_bar.update(float(s_end)/nsamples,
+            'Recording %d. %d spikes found' % \
+                (rec, len(waveforms)))
         
         # DEBUG: keep only the first shank.
         if _debug:
@@ -233,4 +246,5 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
     save_features(experiment, **prm)
     
     close_file_logger(LOGGER_FILE)
+    progress_bar.finish()
     

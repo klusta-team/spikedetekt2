@@ -37,5 +37,5 @@ log.register(LOGGER)
 sys.excepthook = log.handle_exception
 
 # Set the logging level.
-log.set_level(logging.DEBUG)
+log.set_level(logging.INFO)
 
