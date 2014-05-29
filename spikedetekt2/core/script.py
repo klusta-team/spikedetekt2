@@ -206,6 +206,9 @@ def run_all(prm_filename, dir=None, debug=False):
         print(("The files already exist, delete them first "
               "if you want to run the process again."))
         
+def main():
+    debug = 'debug' in sys.argv
+    run_all(sys.argv[1], debug=debug)
+        
 if __name__ == '__main__':
-    run_all(sys.argv[1])
-    
+    main()
