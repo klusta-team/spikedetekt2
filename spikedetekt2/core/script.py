@@ -150,7 +150,7 @@ def run_klustakwik(filename, dir=None, **kwargs):
         for key in PARAMS_KK.keys():
             # Update the PARAMS_KK keys if they are specified directly
             # but ignore the kwargs keys that do not appear in PARAMS_KK.
-            params[key] = kwargs.get(key, params[key])
+            params[key] = kwargs.get(key.lower(), params[key])
             
         # Switch to temporary directory.
         start_dir = os.getcwd()
@@ -169,7 +169,7 @@ def run_klustakwik(filename, dir=None, **kwargs):
                 name=name,
                 shank=shank,
                 params=' '.join(['-{key} {val}'.format(key=key, val=str(val))
-                                    for key, val in PARAMS_KK.iteritems()]),
+                                    for key, val in params.iteritems()]),
             )
             
             # Run KlustaKwik.
@@ -201,7 +201,7 @@ def run_all(prm_filename, dir=None, debug=False):
     
     if not files_exist(experiment_name, dir=dir):
         run_spikedetekt(prm_filename, dir=dir, debug=debug)
-        run_klustakwik(experiment_name, dir=dir)
+        run_klustakwik(experiment_name, dir=dir, **prm)
     else:
         print(("The files already exist, delete them first "
               "if you want to run the process again."))
