@@ -10,7 +10,7 @@ import tables as tb
 
 from .progressbar import ProgressReporter
 from kwiklib.dataio import (BaseRawDataReader, read_raw, excerpt_step,
-    to_contiguous, convert_dtype)
+    to_contiguous, convert_dtype, KwdRawDataReader)
 from spikedetekt2.processing import (bandpass_filter, apply_filter, decimate,
     get_threshold, connected_components, extract_waveform,
     compute_pcs, project_pcs, DoubleThreshold)
@@ -192,8 +192,11 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
             
         # Add the data to the KWD files.
         if prm.get('save_raw', False):
-            # Save raw data.
-            experiment.recordings[chunk.recording].raw.append(convert_dtype(chunk.data_chunk_keep, np.int16))
+            # Do not append the raw data to the .kwd file if we're already reading
+            # from the .kwd file.
+            if not isinstance(raw_data, KwdRawDataReader):
+                # Save raw data.
+                experiment.recordings[chunk.recording].raw.append(convert_dtype(chunk.data_chunk_keep, np.int16))
             
         if prm.get('save_high', False):
             # Save high-pass filtered data: need to remove the overlapping

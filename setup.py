@@ -14,7 +14,7 @@ setup(
               ],
     entry_points={
           'console_scripts':
-              ['spikedetekt2 = spikedetekt2.core.script:main',
+              ['spikedetekt = spikedetekt2.core.script:main',
                ]},
     url='http://klusta-team.github.io',
     license='LICENSE.txt',

@@ -8,13 +8,14 @@ import os
 import sys
 import os.path as op
 import tempfile
+import argparse
 
 import numpy as np
 import tables as tb
 
 from kwiklib import (Experiment, get_params, load_probe, create_files, 
     read_raw, Probe, convert_dtype, read_clusters,
-    files_exist, add_clustering)
+    files_exist, add_clustering, delete_files)
 from spikedetekt2.core import run
 
 
@@ -42,17 +43,19 @@ def _load_files_info(prm_filename, dir=None):
     prb = load_probe(prb_filename)
         
     # Find raw data source.
-    dat = prm.get('raw_data_files')
-    if isinstance(dat, basestring):
-        dat = [dat]
-    for i in range(len(dat)):
-        if not op.exists(dat[i]):
-            dat[i] = op.join(dir, dat[i])
+    data = prm.get('raw_data_files')
+    if isinstance(data, basestring):
+        if data.endswith('.dat'):
+            data = [data]
+    if isinstance(data, list):
+        for i in range(len(data)):
+            if not op.exists(data[i]):
+                data[i] = op.join(dir, data[i])
         
     experiment_name = prm.get('experiment_name')
     
     return dict(prm=prm, prb=prb, experiment_name=experiment_name, nchannels=nchannels,
-                dat=dat, dir=dir)
+                data=data, dir=dir)
     
 
 # -----------------------------------------------------------------------------
@@ -63,16 +66,21 @@ def run_spikedetekt(prm_filename, dir=None, debug=False):
     experiment_name = info['experiment_name']
     prm = info['prm']
     prb = info['prb']
-    dat = info['dat']
+    data = info['data']
     dir = dir or info['dir']
     nchannels = info['nchannels']
     
+    # Make sure spikedetekt does not run if the .kwik file already exists
+    # (i.e. prevent running it twice on the same data)
+    assert not files_exist(experiment_name, dir=dir, types=['kwik']), "The .kwik file already exists, please use the --overwrite option."
+    
     # Create files.
-    create_files(experiment_name, dir=dir, prm=prm, prb=prb, create_default_info=True)
+    create_files(experiment_name, dir=dir, prm=prm, prb=prb, 
+                 create_default_info=True, overwrite=False)
     
     # Run SpikeDetekt.
     with Experiment(experiment_name, dir=dir, mode='a') as exp:
-        run(read_raw(dat, nchannels=nchannels), 
+        run(read_raw(data, nchannels=nchannels), 
             experiment=exp, prm=prm, probe=Probe(prb),
             _debug=debug)
 
@@ -81,25 +89,25 @@ def run_spikedetekt(prm_filename, dir=None, debug=False):
 # KlustaKwik
 # -----------------------------------------------------------------------------
 PARAMS_KK = dict(
-    MaskStarts=1500,
-    #MinClusters=1500 
-    #MaxClusters=1500
-    MaxPossibleClusters= 1501,
-    FullStepEvery= 10,
-    MaxIter=10000,
-    RandomSeed= 654,
-    Debug=0,
-    SplitFirst=20 ,
-    SplitEvery=100 ,
-    PenaltyK=1,
-    PenaltyKLogN=0,
-    Subset=1,
-    PriorPoint=1,
-    SaveSorted=0,
-    SaveCovarianceMeans=0,
-    UseMaskedInitialConditions=1 ,
-    AssignToFirstClosestMask=1,
-    UseDistributional=1,
+    MaskStarts = 100,
+    #MinClusters = 100 ,
+    #MaxClusters = 110,
+    MaxPossibleClusters =  500,
+    FullStepEvery = 10,
+    MaxIter = 10000,
+    RandomSeed =  654,
+    Debug = 0,
+    SplitFirst = 20 ,
+    SplitEvery = 100 ,
+    PenaltyK = 0,
+    PenaltyKLogN = 1,
+    Subset = 1,
+    PriorPoint = 1,
+    SaveSorted = 0,
+    SaveCovarianceMeans = 0,
+    UseMaskedInitialConditions = 1,
+    AssignToFirstClosestMask = 1,
+    UseDistributional = 1,
 )
 
 def write_mask(mask, filename, fmt="%f"):
@@ -191,24 +199,37 @@ def run_klustakwik(filename, dir=None, **kwargs):
 # -----------------------------------------------------------------------------
 # All-in-one script
 # -----------------------------------------------------------------------------
-def run_all(prm_filename, dir=None, debug=False):
+def run_all(prm_filename, dir=None, debug=False, overwrite=False):
     info = _load_files_info(prm_filename, dir=dir)
     experiment_name = info['experiment_name']
     prm = info['prm']
     prb = info['prb']
-    dat = info['dat']
+    data = info['data']
     nchannels = info['nchannels']
     
-    if not files_exist(experiment_name, dir=dir):
-        run_spikedetekt(prm_filename, dir=dir, debug=debug)
-        run_klustakwik(experiment_name, dir=dir, **prm)
-    else:
-        print(("The files already exist, delete them first "
-              "if you want to run the process again."))
+    if files_exist(experiment_name, dir=dir):
+        if overwrite:
+            delete_files(experiment_name, dir=dir, types=('kwik', 'kwx', 'high.kwd', 'low.kwd'))
+        else:
+            print(("The files already exist, delete them first "
+                  "if you want to run the process again, or user the "
+                  "--overwrite option."))
+    
+    run_spikedetekt(prm_filename, dir=dir, debug=debug)
+    run_klustakwik(experiment_name, dir=dir, **prm)
         
 def main():
-    debug = 'debug' in sys.argv
-    run_all(sys.argv[1], debug=debug)
+    parser = argparse.ArgumentParser(description='Run spikedetekt and klustakwik.')
+    parser.add_argument('prm_file',
+                       help='.prm filename')
+    parser.add_argument('--debug', action='store_true', default=False,
+                       help='run the first few seconds of the data for debug purposes')
+    parser.add_argument('--overwrite', action='store_true', default=False,
+                       help='overwrite the KWIK files is they already exist')
+
+    args = parser.parse_args()
+    
+    run_all(args.prm_file, debug=args.debug, overwrite=args.overwrite)
         
 if __name__ == '__main__':
     main()
