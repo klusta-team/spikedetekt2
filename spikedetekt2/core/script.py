@@ -15,7 +15,7 @@ import tables as tb
 
 from kwiklib import (Experiment, get_params, load_probe, create_files, 
     read_raw, Probe, convert_dtype, read_clusters,
-    files_exist, add_clustering, delete_files)
+    files_exist, add_clustering, delete_files, exception)
 from spikedetekt2.core import run
 
 
@@ -55,8 +55,35 @@ def _load_files_info(prm_filename, dir=None):
     experiment_name = prm.get('experiment_name')
     
     return dict(prm=prm, prb=prb, experiment_name=experiment_name, nchannels=nchannels,
-                data=data, dir=dir)
+                data=data, dir=dir)    
     
+def is_exe(fpath):
+    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+def which(program):
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+    
+def print_path():
+    print '\n'.join(os.environ["PATH"].split(os.pathsep))
+    
+def check_path():
+    prog = 'klustakwik'
+    if not (which(prog) or which(prog + '.exe')):
+        print("Error: '{0:s}' is not in your system PATH".format(prog))
+        return False
+    return True
+
 
 # -----------------------------------------------------------------------------
 # SpikeDetekt
@@ -199,7 +226,13 @@ def run_klustakwik(filename, dir=None, **kwargs):
 # -----------------------------------------------------------------------------
 # All-in-one script
 # -----------------------------------------------------------------------------
-def run_all(prm_filename, dir=None, debug=False, overwrite=False):
+def run_all(prm_filename, dir=None, debug=False, overwrite=False, 
+            runsd=True, runkk=True):
+            
+    if not os.path.exists(prm_filename):
+        exception("The PRM file {0:s} doesn't exist.".format(prm_filename))
+        return
+            
     info = _load_files_info(prm_filename, dir=dir)
     experiment_name = info['experiment_name']
     prm = info['prm']
@@ -215,21 +248,38 @@ def run_all(prm_filename, dir=None, debug=False, overwrite=False):
                   "if you want to run the process again, or user the "
                   "--overwrite option."))
     
-    run_spikedetekt(prm_filename, dir=dir, debug=debug)
-    run_klustakwik(experiment_name, dir=dir, **prm)
+    if runsd:
+        run_spikedetekt(prm_filename, dir=dir, debug=debug)
+    if runkk:
+        run_klustakwik(experiment_name, dir=dir, **prm)
         
 def main():
-    parser = argparse.ArgumentParser(description='Run spikedetekt and klustakwik.')
+    
+    if not check_path():
+        return
+    
+    parser = argparse.ArgumentParser(description='Run spikedetekt and/or klustakwik.')
     parser.add_argument('prm_file',
                        help='.prm filename')
     parser.add_argument('--debug', action='store_true', default=False,
                        help='run the first few seconds of the data for debug purposes')
     parser.add_argument('--overwrite', action='store_true', default=False,
                        help='overwrite the KWIK files is they already exist')
+                       
+    parser.add_argument('--detect-only', action='store_true', default=False,
+                       help='run only spikedetekt')
+    parser.add_argument('--cluster-only', action='store_true', default=False,
+                       help='run only klustakwik (after spikedetekt has run)')
 
     args = parser.parse_args()
+    runsd, runkk = True, True
+    if args.detect_only:
+        runkk = False
+    if args.cluster_only:
+        runsd = False
     
-    run_all(args.prm_file, debug=args.debug, overwrite=args.overwrite)
+    run_all(args.prm_file, debug=args.debug, overwrite=args.overwrite,
+            runsd=runsd, runkk=runkk)
         
 if __name__ == '__main__':
     main()
