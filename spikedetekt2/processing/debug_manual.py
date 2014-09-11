@@ -206,7 +206,7 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
             
             fig1.savefig('Debug_SD2floodfillchunk_%s_samples.pdf'%(interestpoint))
             
-            if prm['save_graph_data']
+            if prm['save_graph_data']:
                 tosave = [waveslist,debugnextbits,interestpoint,chunk_threshold, wv,chunk_fil,chunk_raw,connected_comp_enum,sampmin,sampmax,prm]
                 with open('savegraphdata_%s.p'%(interestpoint),'wb') as f:
                     pickle.dump(tosave,f)
