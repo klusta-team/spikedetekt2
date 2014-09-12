@@ -164,8 +164,8 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
     # whole recording.
     threshold = get_threshold(raw_data, filter=filter, 
                               channels=probe.channels, **prm)
-    assert not np.isnan(threshold.weak)
-    assert not np.isnan(threshold.strong)
+    assert not np.isnan(threshold.weak).any()
+    assert not np.isnan(threshold.strong).any()
     debug("Threshold: " + str(threshold))
     
     # Progress bar.

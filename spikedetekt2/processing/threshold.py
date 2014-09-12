@@ -33,7 +33,9 @@ def get_threshold(raw_data, filter=None, channels=slice(None), **prm):
         (threshold_strong_std_factor, threshold_weak_std_factor))
     
     if isinstance(threshold_std_factor, tuple):
-        threshold_std_factor = np.array(threshold_std_factor)
+        # Fix bug with use_single_threshold=False: ensure that 
+        # threshold_std_factor has 2 dimensions (threshold_weak_strong, channel)
+        threshold_std_factor = np.array(threshold_std_factor)[:,None]
     
     # We compute the standard deviation of the signal across the excerpts.
     # WARNING: this may use a lot of RAM.
