@@ -1,10 +1,14 @@
 import numpy as np
+#import kwiklib
+from spikedetekt2.processing import extract_waveform
+import matplotlib
+matplotlib.use("svg")
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import matplotlib.gridspec as gridspec
 import pickle 
 from matplotlib.backends.backend_pdf import PdfPages
-from spikedetekt2.processing import extract_waveform
+
 
 #from IPython import embed # For manual debugging
 
@@ -124,6 +128,7 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
                     #embed()
             total_height = 4
             total_width = 4
+            print 'Yo, I got to line 129 of debug_manual.py'
             gs = gridspec.GridSpec(total_height,total_width)
             fig1 = plt.figure()
             #filtchunk_normalised = np.maximum((filteredchunk - ThresholdWeak) / (ThresholdStrong - ThresholdWeak),0)
@@ -201,10 +206,10 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
            
             
             
-            #plt.show()
+            plt.show()
             #embed()
             
-            fig1.savefig('Debug_SD2floodfillchunk_%s_samples.pdf'%(interestpoint))
+            fig1.savefig('Debug_SD2floodfillchunk_%s_samples'%(interestpoint))
             
             if prm['save_graph_data']:
                 tosave = [waveslist,debugnextbits,interestpoint,chunk_threshold, wv,chunk_fil,chunk_raw,connected_comp_enum,sampmin,sampmax,prm]

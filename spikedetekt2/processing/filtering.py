@@ -25,6 +25,7 @@ def apply_filter(x, filter=None):
     if x.shape[0] == 0:
         return x
     b, a = filter
+    print b, a, x
     try:
         out_arr = signal.filtfilt(b, a, x, axis=0)
     except TypeError:   
