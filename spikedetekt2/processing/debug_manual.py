@@ -2,7 +2,8 @@ import numpy as np
 #import kwiklib
 from spikedetekt2.processing import extract_waveform
 import matplotlib
-matplotlib.use("svg")
+#matplotlib.use("svg")
+matplotlib.use("pdf")
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import matplotlib.gridspec as gridspec
