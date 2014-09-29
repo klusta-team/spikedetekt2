@@ -17,6 +17,7 @@ from spikedetekt2.processing import (bandpass_filter, apply_filter, decimate,
 from kwiklib.utils import (Probe, iterkeys, debug, info, warn, exception,
     display_params, FileLogger, register, unregister)
 
+#from IPython import embed 
 
 # -----------------------------------------------------------------------------
 # Processing
