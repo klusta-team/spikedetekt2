@@ -17,7 +17,7 @@ from spikedetekt2.processing import (bandpass_filter, apply_filter, decimate,
 from kwiklib.utils import (Probe, iterkeys, debug, info, warn, exception,
     display_params, FileLogger, register, unregister)
 
-#from IPython import embed 
+from IPython import embed 
 
 # -----------------------------------------------------------------------------
 # Processing
@@ -238,7 +238,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
         waveforms = extract_waveforms(chunk_detect=chunk_detect,
             threshold=threshold, chunk_fil=chunk_fil, chunk_raw=chunk_raw, 
             probe=probe, components=components, **prm)
-        
+        #embed()
         # Log number of spikes in the chunk.
         nspikes += len(waveforms)
         
