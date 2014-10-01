@@ -129,7 +129,7 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
                     #embed()
             total_height = 4
             total_width = 4
-            print 'Yo, I got to line 129 of debug_manual.py'
+            #print 'Yo, I got to line 129 of debug_manual.py'
             gs = gridspec.GridSpec(total_height,total_width)
             fig1 = plt.figure()
             #filtchunk_normalised = np.maximum((filteredchunk - ThresholdWeak) / (ThresholdStrong - ThresholdWeak),0)

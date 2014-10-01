@@ -11,7 +11,7 @@ import tables as tb
 from .progressbar import ProgressReporter
 from kwiklib.dataio import (BaseRawDataReader, read_raw, excerpt_step,
     to_contiguous, convert_dtype, KwdRawDataReader)
-from spikedetekt2.processing import (bandpass_filter, apply_filter, decimate,
+from spikedetekt2.processing import (bandpass_filter, apply_filter,get_noise_cov, decimate,
     get_threshold, connected_components, extract_waveform,
     compute_pcs, project_pcs, DoubleThreshold,plot_diagnostics_twothresholds)
 from kwiklib.utils import (Probe, iterkeys, debug, info, warn, exception,
@@ -242,6 +242,29 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
         # Log number of spikes in the chunk.
         nspikes += len(waveforms)
         
+        noisecov = get_noise_cov(chunk_fil,components)
+        
+        #chunksize = chunk_fil.shape[0] # 20000
+        #chunk_binary = np.zeros_like(chunk_fil)
+        #for k,indlist in enumerate(components):
+	    #indtemparray = np.array(indlist.items)
+            #chunk_binary[indtemparray[:,0],indtemparray[:,1]] = 1#all the samples that are not in a spike component are 0, rest 1
+            
+        #chunk_binary_not = np.logical_not(chunk_binary) #all the samples that are not in a spike component are 1, rest 0
+        #chunk_fil_nospikes = np.multiply(chunk_fil, chunk_binary_not) # samples are zero in the spike component
+        #cov_nospikes_naive = np.cov(chunk_fil_nospikes, rowvar = 0, ddof = 0)# ddof gives normalization, N-ddof
+        #nospikesmean = chunk_fil_nospikes.mean(axis = 0)
+        
+        #contributing_pairs = np.einsum('ij, ik->ijk',chunk_binary_not,chunk_binary_not)
+        #normaliz = np.sum(contributing_pairs, axis = 0) #Normalization factor for each pair jk 
+        
+        #chunk_binary_mean = np.einsum('mn,n->mn',chunk_binary,nospikesmean)
+        #chunk_filnospikes_plus_mean = chunk_fil_nospikes + chunk_binary_mean
+        
+        #cov_nospikes_almost = np.cov(chunk_filnospikes_plus_mean, rowvar = 0, ddof = chunksize-1)
+        #noisecov = np.divide(cov_nospikes_almost, normaliz)
+
+        embed()
         # We sort waveforms by increasing order of fractional time.
         [add_waveform(experiment, waveform) for waveform in sorted(waveforms)]
         
