@@ -248,7 +248,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
             print 'debugging'
             plot_diagnostics_twothresholds(threshold = threshold,probe = probe,components = components,chunk = chunk, chunk_detect= chunk_detect,chunk_threshold= chunk_threshold, chunk_fil=chunk_fil, chunk_white = chunk_whitened_fildata, chunk_raw=chunk_raw, **prm)
         
-        embed()
+        #embed()
         # We sort waveforms by increasing order of fractional time.
         [add_waveform(experiment, waveform) for waveform in sorted(waveforms)]
         
