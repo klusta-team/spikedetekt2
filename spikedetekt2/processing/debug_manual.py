@@ -14,7 +14,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 #from IPython import embed # For manual debugging
 
 
-def plot_diagnostics_twothresholds(threshold = None, probe = None,components = None,chunk = None,chunk_detect= None,chunk_threshold=None, chunk_fil=None, chunk_raw=None,**prm):
+def plot_diagnostics_twothresholds(threshold = None, probe = None,components = None,chunk = None,chunk_detect= None,chunk_threshold=None, chunk_fil=None, chunk_white = None, chunk_raw=None,**prm):
 
     multdetection_times = prm['observation_time_samples']
     #s_start = chunk.keep_start
@@ -127,7 +127,7 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
                     #debug_fd.write('debugnextbits ='+ str(debugnextbits)+'\n')
                     #debug_fd.flush()  
                     #embed()
-            total_height = 4
+            total_height = 5
             total_width = 4
             #print 'Yo, I got to line 129 of debug_manual.py'
             gs = gridspec.GridSpec(total_height,total_width)
@@ -158,10 +158,15 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
             #filaxis.set_xlabel('Samples')
             filaxis.set_ylabel('Channels')
             
-            
+            #whiteaxis = fig1.add_subplot(4,1,2)
+            whiteaxis = fig1.add_subplot(gs[2,0:total_width])
+            whiteaxis.set_title('WhitenedChunks',fontsize=10)
+            imwhite = whiteaxis.imshow(np.transpose(chunk_white[sampmin:sampmax,:]),interpolation="nearest",aspect="auto")
+            #filaxis.set_xlabel('Samples')
+            whiteaxis.set_ylabel('Channels')
            
             
-            compaxis = fig1.add_subplot(gs[2,0:total_width])
+            compaxis = fig1.add_subplot(gs[3,0:total_width])
             #compaxis = fig1.add_subplot(4,1,3)
             #faxis.set_title('BinChunks',fontsize=10)
             imcomp = compaxis.imshow(np.transpose(chunk_threshold.weak[sampmin:sampmax,:].astype(int)+chunk_threshold.strong[sampmin:sampmax,:].astype(int)),interpolation="nearest",aspect="auto")
@@ -171,7 +176,7 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
                 compaxis.axvline(spiketimedebug[1]-sampmin,color = 'w') #plot a vertical line for s_fpeak
                 print spiketimedebug[1]-sampmin
             
-            conaxis = fig1.add_subplot(gs[3,0:total_width])
+            conaxis = fig1.add_subplot(gs[4,0:total_width])
             #conaxis = fig1.add_subplot(4,1,4)
             #conaxis.set_title('Connected Components',fontsize=10)
             imcon = conaxis.imshow(np.transpose(connected_comp_enum[sampmin:sampmax,:]),interpolation="nearest",aspect="auto");#plt.colorbar(imcon);

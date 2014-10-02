@@ -4,9 +4,11 @@
 # Imports
 # -----------------------------------------------------------------------------
 import numpy as np
+#from numpy.core.numeric import newaxis
 from scipy import signal
 from kwiklib.utils.six.moves import range
 
+from IPython import embed 
 
 # -----------------------------------------------------------------------------
 # Signal processing functions
@@ -76,6 +78,30 @@ def decimate(x):
                 #pairs.append((lst[i],lst[j]))
     #return pairs      
 
+def cov_with_specified_meanvector(m,mean=None,bias=0,ddof=None):
+    #Compute the covariance matrix - user specified mean vector
+    if ddof is not None and ddof != int(ddof):
+        raise ValueError("ddof must be integer")
+      
+    X = np.array(m, ndmin=2, dtype=float)
+    axis = 1
+    tup = (np.newaxis, slice(None))
+    if mean is not None:
+        X -= mean
+    else:
+        X -= X.mean(axis=1-axis)[tup]
+       
+    if ddof is None:
+	if bias == 0:
+	    ddof = 1
+	else:
+	    ddof = 0
+	    
+    N = X.shape[0]
+    fact = float(N - ddof)
+    return (np.dot(X.T, X.conj()) / fact).squeeze()
+    
+
 def get_noise_cov(chunk_fil,components):
     chunksize = chunk_fil.shape[0] # 20000
     chunk_binary = np.zeros_like(chunk_fil)
@@ -95,13 +121,14 @@ def get_noise_cov(chunk_fil,components):
     chunk_filnospikes_plus_mean = chunk_fil_nospikes + chunk_binary_mean
     
     ##get covariance matrix of the filtered data, where the spikes have been replaced with the noise mean
-    cov_nospikes_almost = np.cov(chunk_filnospikes_plus_mean, rowvar = 0, ddof = chunksize-1)# ddof gives normalization, N-ddof
+    #cov_nospikes_almost = np.cov(chunk_filnospikes_plus_mean, rowvar = 0, ddof = chunksize-1)# ddof gives normalization, N-ddof
+    cov_nospikes_almost = cov_with_specified_meanvector(chunk_filnospikes_plus_mean,mean = nospikesmean,ddof = chunksize-1)
     ##required normalization
     noisecov = np.divide(cov_nospikes_almost, normaliz)
     
     return noisecov
   
-#def cov_with_specified_meanvector(m,
+#
 #In [47]: chunk_binary[936,:]
 #Out[47]: 
 #array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,
@@ -116,14 +143,25 @@ def get_noise_cov(chunk_fil,components):
 
 
 
-def get_whitening_matrix(x):
-    C = np.cov(x, rowvar=0)
-    # TODO
+def get_whitening_matrix(chunk_fil,components,epsilon_fudge=1E-18):
+    noisecov = get_noise_cov(chunk_fil,components)
+    d, V = np.linalg.eigh(noisecov)
+    D = np.diag(1. / np.sqrt(d+epsilon_fudge))
+    Whitening = np.dot(D, V.T)
+    print np.dot(np.dot(Whitening,noisecov),Whitening.T) # sanity check
+    
+    return Whitening, noisecov
+    
 
-def whiten(x, matrix=None):
-    if matrix is None:
-        matrix = get_whitening_matrix(x)
-    # TODO
+def whiten(X, whiteningmatrix):
+    #if whiteningmatrix is None:
+    #    whiteningmatrix = get_whitening_matrix(X)
+    #embed()
+    X_whitened = np.dot(X,whiteningmatrix)
+
+    #X_whitened = np.dot(whiteningmatrix,X)   
+    return X_whitened
+    
     
     
 
