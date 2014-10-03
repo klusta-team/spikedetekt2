@@ -128,6 +128,7 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
                     #debug_fd.flush()  
                     #embed()
             total_height = 5
+            half_width = 3
             total_width = 4
             #print 'Yo, I got to line 129 of debug_manual.py'
             gs = gridspec.GridSpec(total_height,total_width)
@@ -142,44 +143,49 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
             plt.subplots_adjust(hspace = 0.5)
             #plt.subplots_adjust(hspace = 0.25,left= 0.12, bottom = 0.10, right = 0.90, top = 0.90, wspace = 0.2)
             
-            dataxis = fig1.add_subplot(gs[0,0:total_width])
+            dataxis = fig1.add_subplot(gs[0,0:half_width])
             #dataxis = fig1.add_subplot(4,1,1)
             dataxis.set_title('DatChunks',fontsize=10)
             imdat = dataxis.imshow(np.transpose(chunk_raw[sampmin:sampmax,:]),interpolation="nearest",aspect="auto")
+            plt.colorbar(imdat)
             dataxis.set_xlabel('Samples')
             dataxis.set_ylabel('Channels')
 
             
            
             #filaxis = fig1.add_subplot(4,1,2)
-            filaxis = fig1.add_subplot(gs[1,0:total_width])
+            filaxis = fig1.add_subplot(gs[1,0:half_width])
             filaxis.set_title('FilteredChunks',fontsize=10)
             imfil = filaxis.imshow(np.transpose(chunk_fil[sampmin:sampmax,:]),interpolation="nearest",aspect="auto")
             #filaxis.set_xlabel('Samples')
+            plt.colorbar(imfil)
             filaxis.set_ylabel('Channels')
             
             #whiteaxis = fig1.add_subplot(4,1,2)
-            whiteaxis = fig1.add_subplot(gs[2,0:total_width])
+            whiteaxis = fig1.add_subplot(gs[2,0:half_width])
             whiteaxis.set_title('WhitenedChunks',fontsize=10)
             imwhite = whiteaxis.imshow(np.transpose(chunk_white[sampmin:sampmax,:]),interpolation="nearest",aspect="auto")
             #filaxis.set_xlabel('Samples')
+            plt.colorbar(imwhite)
             whiteaxis.set_ylabel('Channels')
            
             
-            compaxis = fig1.add_subplot(gs[3,0:total_width])
+            compaxis = fig1.add_subplot(gs[3,0:half_width])
             #compaxis = fig1.add_subplot(4,1,3)
             #faxis.set_title('BinChunks',fontsize=10)
             imcomp = compaxis.imshow(np.transpose(chunk_threshold.weak[sampmin:sampmax,:].astype(int)+chunk_threshold.strong[sampmin:sampmax,:].astype(int)),interpolation="nearest",aspect="auto")
             #compaxis.set_xlabel('Samples')
+            plt.colorbar(imcomp)
             compaxis.set_ylabel('Channels')
             for spiketimedebug in debugnextbits:
                 compaxis.axvline(spiketimedebug[1]-sampmin,color = 'w') #plot a vertical line for s_fpeak
                 print spiketimedebug[1]-sampmin
             
-            conaxis = fig1.add_subplot(gs[4,0:total_width])
+            conaxis = fig1.add_subplot(gs[4,0:half_width])
             #conaxis = fig1.add_subplot(4,1,4)
             #conaxis.set_title('Connected Components',fontsize=10)
             imcon = conaxis.imshow(np.transpose(connected_comp_enum[sampmin:sampmax,:]),interpolation="nearest",aspect="auto");#plt.colorbar(imcon);
+            plt.colorbar(imcon)
             conaxis.set_xlabel('Samples')
             conaxis.set_ylabel('Channels')
             for spiketimedebug in debugnextbits:
@@ -190,7 +196,7 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
             #offset = 2*np.amax(chunk_raw[sampmin:sampmax,:])
             #gain = 1
             ##rawdataxis = fig1.add_subplot(6,1,5)
-            #rawdataxis = fig1.add_subplot(gs[4:7,0:total_width])
+            #rawdataxis = fig1.add_subplot(gs[5:8,0:total_width])
             #rawdataxis.set_title('Raw data',fontsize=10)
             #rawdataxis.hold(True)
             #for i in np.arange(prm['nchannels']):
@@ -198,18 +204,28 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
             #for spiketimedebug in debugnextbits:
                 #rawdataxis.axvline(spiketimedebug[1]-sampmin,color = 'k') #plot a vertical line for s_fpeak
             
-            ##offsetfil = 2*np.amax(np.absolute(chunk_fil[sampmin:sampmax,:]))
-            #offsetfil = 2*np.amax(chunk_fil[sampmin:sampmax,:])
-            #gain_fil = 1
-            ##fildataxis = fig1.add_subplot(6,1,6)
-            #fildataxis = fig1.add_subplot(gs[8:11,0:total_width])
-            #fildataxis.set_title('Filtered data',fontsize=10)
-            #fildataxis.hold(True)
-            #for i in np.arange(prm['nchannels']):
-                #fildataxis.plot(gain_fil*chunk_fil[sampmin:sampmax,i]+(prm['nchannels']-i)*offsetfil)
-            #for spiketimedebug in debugnextbits:
-                #fildataxis.axvline(spiketimedebug[1]-sampmin,color = 'k') #plot a vertical line for s_fpeak    
+            offsetfil = 2*np.amax(np.absolute(chunk_fil[sampmin:sampmax,:]))
+            offsetfil = 2*np.amax(chunk_fil[sampmin:sampmax,:])
+            gain_fil = 1
+            #fildataxis = fig1.add_subplot(6,1,6)
+            fildataxis = fig1.add_subplot(gs[0:3,half_width:total_width])
+            fildataxis.set_title('Filtered data',fontsize=10)
+            fildataxis.hold(True)
+            for i in np.arange(prm['nchannels']):
+                fildataxis.plot(gain_fil*chunk_fil[sampmin:sampmax,i]+(prm['nchannels']-i)*offsetfil)
+            for spiketimedebug in debugnextbits:
+                fildataxis.axvline(spiketimedebug[1]-sampmin,color = 'k') #plot a vertical line for s_fpeak    
            
+            offsetwhite = 2*np.amax(chunk_white[sampmin:sampmax,:])
+            gain_white = 1
+            #fildataxis = fig1.add_subplot(6,1,6)
+            whitedataxis = fig1.add_subplot(gs[3:5,half_width:total_width])
+            whitedataxis.set_title('Whitened data',fontsize=10)
+            whitedataxis.hold(True)
+            for i in np.arange(prm['nchannels']):
+                whitedataxis.plot(gain_white*chunk_white[sampmin:sampmax,i]+(prm['nchannels']-i)*offsetwhite)
+            for spiketimedebug in debugnextbits:
+                whitedataxis.axvline(spiketimedebug[1]-sampmin,color = 'k') #plot a vertical line for s_fpeak  
             
             
             plt.show()

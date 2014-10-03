@@ -18,6 +18,11 @@ from kwiklib.utils import (Probe, iterkeys, debug, info, warn, exception,
     display_params, FileLogger, register, unregister)
 
 from IPython import embed 
+import matplotlib
+matplotlib.use("pdf")
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import matplotlib.gridspec as gridspec
 
 # -----------------------------------------------------------------------------
 # Processing
@@ -242,6 +247,23 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
         #noisecov = get_noise_cov(chunk_fil,components)
         whiteningmat, noisecov = get_whitening_matrix(chunk_fil,components)
         chunk_whitened_fildata = whiten(chunk_fil, whiteningmat)
+        whitened_cov = np.cov(chunk_whitened_fildata, rowvar =0)
+        
+        
+        total_height = 2
+	total_width = 2
+	#print 'Yo, I got to line 129 of debug_manual.py'
+	gs = gridspec.GridSpec(total_height,total_width)
+        fig2 = plt.figure()
+        noiseaxis = fig2.add_subplot(gs[0,0:total_width])
+        imnoise = noiseaxis.imshow(noisecov,interpolation="nearest",aspect="auto")
+        plt.colorbar(imnoise)
+        whitenedcovaxis = fig2.add_subplot(gs[1,0:total_width])
+        imwhitecov = whitenedcovaxis.imshow(whitened_cov,interpolation="nearest",aspect="auto")
+        plt.colorbar(imwhitecov)
+        fig2.savefig('covs_%d.pdf' %(nspikes))
+        embed()
+        #embed()
         
         #If using debug module
         if prm['debug'] == True:

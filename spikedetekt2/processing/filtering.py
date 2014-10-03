@@ -149,7 +149,7 @@ def get_whitening_matrix(chunk_fil,components,epsilon_fudge=1E-18):
     D = np.diag(1. / np.sqrt(d+epsilon_fudge))
     Whitening = np.dot(D, V.T)
     print np.dot(np.dot(Whitening,noisecov),Whitening.T) # sanity check
-    
+    embed()
     return Whitening, noisecov
     
 
@@ -157,7 +157,7 @@ def whiten(X, whiteningmatrix):
     #if whiteningmatrix is None:
     #    whiteningmatrix = get_whitening_matrix(X)
     #embed()
-    X_whitened = np.dot(X,whiteningmatrix)
+    X_whitened = np.dot(X,whiteningmatrix.T)
 
     #X_whitened = np.dot(whiteningmatrix,X)   
     return X_whitened
