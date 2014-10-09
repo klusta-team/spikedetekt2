@@ -207,13 +207,13 @@ def run_klustakwik(filename, dir=None, **kwargs):
                                     for key, val in params.iteritems()]),
             )
             
+            # Save a file with the KlustaKwik run script so user can manually re-run it if it aborts (or edit)
+            scriptfile = open('runklustakwik_{shank}.sh', "w")
+            scriptfile.write(cmd)
+            scriptfile.close()        
+    
             # Run KlustaKwik.
             os.system(cmd)
-            
-            # Save a file with the KlustaKwik run script so user can manually re-run it if it aborts (or edit)
-            scriptfile = open('runklustakwik_{shank}', "w")
-            scriptfile.write(cmd)
-            scriptfile.close()
             
             # Read back the clusters.
             clu = read_clusters(name + '.clu.' + str(shank))
