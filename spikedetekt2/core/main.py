@@ -11,7 +11,7 @@ import tables as tb
 from .progressbar import ProgressReporter
 from kwiklib.dataio import (BaseRawDataReader, read_raw, excerpt_step,
     to_contiguous, convert_dtype, KwdRawDataReader)
-from spikedetekt2.processing import (bandpass_filter, apply_filter,get_noise_cov,get_whitening_matrix,whiten, decimate,
+from spikedetekt2.processing import (bandpass_filter, apply_filter,get_noise_cov,get_whitening_matrix,get_whitening_matrix_cholesky,get_whitening_matrix_scipy,whiten, decimate,
     get_threshold, connected_components, extract_waveform,
     compute_pcs, project_pcs, DoubleThreshold,plot_diagnostics_twothresholds)
 from kwiklib.utils import (Probe, iterkeys, debug, info, warn, exception,
@@ -80,7 +80,7 @@ def add_waveform(experiment, waveform, **prm):
         masks=waveform.masks,
     )
     
-def save_features(experiment, **prm):
+def save_features(experiment, whiteningmat, **prm):
     """Compute the features from the waveforms and save them in the experiment
     dataset."""
     nwaveforms_max = prm['pca_nwaveforms_max']
@@ -115,7 +115,13 @@ def save_features(experiment, **prm):
             # Convert waveforms from int16 to float32 with scaling
             # before computing PCA so as to avoid getting huge numbers.
             waveform = convert_dtype(waveform, np.float32)
-            features = project_pcs(waveform, pcs)
+            prefeatures = project_pcs(waveform, pcs)
+            if prm['whiten']:
+                features = np.dot( whiteningmat,prefeatures)
+            else:
+	        features = prefeatures
+            #embed()
+            # featur
             spikes.features_masks[i,:,0] = features.ravel()
     
     
@@ -179,9 +185,11 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
     nspikes = 0
     
     # Loop through all chunks with overlap.
-    for chunk in raw_data.chunks(chunk_size=chunk_size, 
-                                 chunk_overlap=chunk_overlap,):
+    for chunknum, chunk in enumerate(raw_data.chunks(chunk_size=chunk_size, 
+                                 chunk_overlap=chunk_overlap,)):
         # Log.
+        print 'chunknum is ', chunknum
+        # embed()
         debug("Processing chunk {0:s}...".format(chunk))
         
         nsamples = chunk.nsamples
@@ -244,32 +252,70 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
         # Log number of spikes in the chunk.
         nspikes += len(waveforms)
         
-        #noisecov = get_noise_cov(chunk_fil,components)
-        whiteningmat, noisecov = get_whitening_matrix(chunk_fil,components)
-        chunk_whitened_fildata = whiten(chunk_fil, whiteningmat)
-        whitened_cov = np.cov(chunk_whitened_fildata, rowvar =0)
-        
-        
-        total_height = 2
+        ##noisecov = get_noise_cov(chunk_fil,components)
+        #if chunknum ==0: 
+	regu = 0
+	regcove = 0.1
+	#whiteningmat, noisecov = get_whitening_matrix(chunk_fil,components,epsilon_fudge=1)
+	#whiteningmat, noisecov = get_whitening_matrix_cholesky(chunk_fil,components,reg = regu, regcov = regcove)
+	whiteningmat, noisecov = get_whitening_matrix_scipy(chunk_fil,components)
+	chunk_whitened_fildata = whiten(chunk_fil, whiteningmat)
+	whitened_cov = np.cov(chunk_whitened_fildata, rowvar =0)
+    
+	##noisecov = get_noise_cov(chunk_fil,components)
+	#whiteningmat_raw, noisecov_raw = get_whitening_matrix(chunk_raw,components,epsilon_fudge=1)
+	#whiteningmat_raw, noisecov_raw = get_whitening_matrix_cholesky(chunk_raw,components,reg = regu, regcov = regcove)
+	whiteningmat_raw, noisecov_raw = get_whitening_matrix_scipy(chunk_raw,components)
+	chunk_whitened_rawdata = whiten(chunk_raw, whiteningmat_raw)
+	whitened_cov_raw = np.cov(chunk_whitened_rawdata, rowvar =0)
+    
+    
+	total_height = 3
 	total_width = 2
 	#print 'Yo, I got to line 129 of debug_manual.py'
 	gs = gridspec.GridSpec(total_height,total_width)
-        fig2 = plt.figure()
-        noiseaxis = fig2.add_subplot(gs[0,0:total_width])
-        imnoise = noiseaxis.imshow(noisecov,interpolation="nearest",aspect="auto")
-        plt.colorbar(imnoise)
-        whitenedcovaxis = fig2.add_subplot(gs[1,0:total_width])
-        imwhitecov = whitenedcovaxis.imshow(whitened_cov,interpolation="nearest",aspect="auto")
-        plt.colorbar(imwhitecov)
-        fig2.savefig('covs_%d.pdf' %(nspikes))
-        embed()
+	fig2 = plt.figure()
+	noiseaxis = fig2.add_subplot(gs[0,0:total_width])
+	noiseaxis.set_title('Noise covariance matrix',fontsize=10)
+	imnoise = noiseaxis.imshow(noisecov,interpolation="nearest",aspect="auto")
+	plt.colorbar(imnoise)
+	whitenedcovaxis = fig2.add_subplot(gs[1,0:total_width])
+	whitenedcovaxis.set_title('Whitened covariance matrix',fontsize=10)
+	imwhitecov = whitenedcovaxis.imshow(whitened_cov,interpolation="nearest",aspect="auto")
+	plt.colorbar(imwhitecov)
+	whiteningmataxis = fig2.add_subplot(gs[2,0:total_width])
+	whiteningmataxis.set_title('Whitening matrix',fontsize=10)
+	imwhitenmat = whiteningmataxis.imshow(whiteningmat,interpolation="nearest",aspect="auto")
+	plt.colorbar(imwhitenmat)
+	fig2.savefig('covs_%d_scipy.pdf' %(nspikes))
+	#fig2.savefig('covs_%d_reg_%d_regcov_%d.pdf' %(nspikes,regu,regcove))
+	
+	gs = gridspec.GridSpec(total_height,total_width)
+	fig3 = plt.figure()
+	noiseaxis = fig3.add_subplot(gs[0,0:total_width])
+	noiseaxis.set_title('Raw Noise covariance matrix',fontsize=10)
+	imnoise = noiseaxis.imshow(noisecov_raw,interpolation="nearest",aspect="auto")
+	plt.colorbar(imnoise)
+	whitenedcovaxis = fig3.add_subplot(gs[1,0:total_width])
+	whitenedcovaxis.set_title('Raw Whitened covariance matrix',fontsize=10)
+	imwhitecov = whitenedcovaxis.imshow(whitened_cov_raw,interpolation="nearest",aspect="auto")
+	plt.colorbar(imwhitecov)
+	whiteningmataxis = fig3.add_subplot(gs[2,0:total_width])
+	whiteningmataxis.set_title('Raw Whitening matrix',fontsize=10)
+	imwhitenmat = whiteningmataxis.imshow(whiteningmat_raw,interpolation="nearest",aspect="auto")
+	plt.colorbar(imwhitenmat)
+	fig3.savefig('rawcovs_%d_scipy.pdf' %(nspikes))
+        #fig3.savefig('rawcovs_%d_reg_%d_regcov_%d.pdf' %(nspikes,regu,regcove))
         #embed()
-        
+        #embed()
+        # embed()
         #If using debug module
         if prm['debug'] == True:
             print 'debugging'
-            plot_diagnostics_twothresholds(threshold = threshold,probe = probe,components = components,chunk = chunk, chunk_detect= chunk_detect,chunk_threshold= chunk_threshold, chunk_fil=chunk_fil, chunk_white = chunk_whitened_fildata, chunk_raw=chunk_raw, **prm)
+            plot_diagnostics_twothresholds(threshold = threshold,probe = probe,components = components,chunk = chunk, chunk_detect= chunk_detect,chunk_threshold= chunk_threshold, chunk_fil=chunk_fil, chunk_white = chunk_whitened_fildata,chunk_white_raw = chunk_whitened_rawdata, chunk_raw=chunk_raw, reg = regu, regcov = regcove, **prm)
         
+        if chunknum ==0: 
+	    globalwhiteningmat = whiteningmat
         #embed()
         # We sort waveforms by increasing order of fractional time.
         [add_waveform(experiment, waveform) for waveform in sorted(waveforms)]
@@ -283,7 +329,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
             break
         
     # Feature extraction.
-    save_features(experiment, **prm)
+    save_features(experiment, globalwhiteningmat, **prm)
     
     close_file_logger(LOGGER_FILE)
     progress_bar.finish()

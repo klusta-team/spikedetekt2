@@ -3,7 +3,7 @@ import numpy as np
 from spikedetekt2.processing import extract_waveform
 import matplotlib
 #matplotlib.use("svg")
-matplotlib.use("pdf")
+#matplotlib.use("pdf")
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import matplotlib.gridspec as gridspec
@@ -11,10 +11,10 @@ import pickle
 from matplotlib.backends.backend_pdf import PdfPages
 
 
-#from IPython import embed # For manual debugging
+from IPython import embed # For manual debugging
 
 
-def plot_diagnostics_twothresholds(threshold = None, probe = None,components = None,chunk = None,chunk_detect= None,chunk_threshold=None, chunk_fil=None, chunk_white = None, chunk_raw=None,**prm):
+def plot_diagnostics_twothresholds(threshold = None, probe = None,components = None,chunk = None,chunk_detect= None,chunk_threshold=None, chunk_fil=None, chunk_white = None,chunk_white_raw = None, chunk_raw=None,reg = 0,regcov = 0,**prm):
 
     multdetection_times = prm['observation_time_samples']
     #s_start = chunk.keep_start
@@ -127,7 +127,7 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
                     #debug_fd.write('debugnextbits ='+ str(debugnextbits)+'\n')
                     #debug_fd.flush()  
                     #embed()
-            total_height = 5
+            total_height = 6
             half_width = 3
             total_width = 4
             #print 'Yo, I got to line 129 of debug_manual.py'
@@ -161,6 +161,8 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
             plt.colorbar(imfil)
             filaxis.set_ylabel('Channels')
             
+            
+            
             #whiteaxis = fig1.add_subplot(4,1,2)
             whiteaxis = fig1.add_subplot(gs[2,0:half_width])
             whiteaxis.set_title('WhitenedChunks',fontsize=10)
@@ -168,9 +170,17 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
             #filaxis.set_xlabel('Samples')
             plt.colorbar(imwhite)
             whiteaxis.set_ylabel('Channels')
+            
+            #whiteaxis = fig1.add_subplot(4,1,2)
+            rawwhiteaxis = fig1.add_subplot(gs[3,0:half_width])
+            rawwhiteaxis.set_title('Raw WhitenedChunks',fontsize=10)
+            imwhiteraw = rawwhiteaxis.imshow(np.transpose(chunk_white_raw[sampmin:sampmax,:]),interpolation="nearest",aspect="auto")
+            #filaxis.set_xlabel('Samples')
+            plt.colorbar(imwhiteraw)
+            rawwhiteaxis.set_ylabel('Channels')
            
             
-            compaxis = fig1.add_subplot(gs[3,0:half_width])
+            compaxis = fig1.add_subplot(gs[4,0:half_width])
             #compaxis = fig1.add_subplot(4,1,3)
             #faxis.set_title('BinChunks',fontsize=10)
             imcomp = compaxis.imshow(np.transpose(chunk_threshold.weak[sampmin:sampmax,:].astype(int)+chunk_threshold.strong[sampmin:sampmax,:].astype(int)),interpolation="nearest",aspect="auto")
@@ -181,7 +191,7 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
                 compaxis.axvline(spiketimedebug[1]-sampmin,color = 'w') #plot a vertical line for s_fpeak
                 print spiketimedebug[1]-sampmin
             
-            conaxis = fig1.add_subplot(gs[4,0:half_width])
+            conaxis = fig1.add_subplot(gs[5,0:half_width])
             #conaxis = fig1.add_subplot(4,1,4)
             #conaxis.set_title('Connected Components',fontsize=10)
             imcon = conaxis.imshow(np.transpose(connected_comp_enum[sampmin:sampmax,:]),interpolation="nearest",aspect="auto");#plt.colorbar(imcon);
@@ -215,23 +225,39 @@ def plot_diagnostics_twothresholds(threshold = None, probe = None,components = N
                 fildataxis.plot(gain_fil*chunk_fil[sampmin:sampmax,i]+(prm['nchannels']-i)*offsetfil)
             for spiketimedebug in debugnextbits:
                 fildataxis.axvline(spiketimedebug[1]-sampmin,color = 'k') #plot a vertical line for s_fpeak    
+
+            filwhite = True
            
-            offsetwhite = 2*np.amax(chunk_white[sampmin:sampmax,:])
-            gain_white = 1
-            #fildataxis = fig1.add_subplot(6,1,6)
-            whitedataxis = fig1.add_subplot(gs[3:5,half_width:total_width])
-            whitedataxis.set_title('Whitened data',fontsize=10)
-            whitedataxis.hold(True)
-            for i in np.arange(prm['nchannels']):
-                whitedataxis.plot(gain_white*chunk_white[sampmin:sampmax,i]+(prm['nchannels']-i)*offsetwhite)
-            for spiketimedebug in debugnextbits:
-                whitedataxis.axvline(spiketimedebug[1]-sampmin,color = 'k') #plot a vertical line for s_fpeak  
+            if filwhite: 
+		offsetwhite = 2*np.amax(chunk_white[sampmin:sampmax,:])
+		gain_white = 1
+		#fildataxis = fig1.add_subplot(6,1,6)
+		whitedataxis = fig1.add_subplot(gs[3:6,half_width:total_width])
+		whitedataxis.set_title('Whitened data',fontsize=10)
+		whitedataxis.hold(True)
+		for i in np.arange(prm['nchannels']):
+		    whitedataxis.plot(gain_white*chunk_white[sampmin:sampmax,i]+(prm['nchannels']-i)*offsetwhite)
+		for spiketimedebug in debugnextbits:
+		    whitedataxis.axvline(spiketimedebug[1]-sampmin,color = 'k') #plot a vertical line for s_fpeak  
+            else:
+		offsetwhite = 2*np.amax(chunk_white_raw[sampmin:sampmax,:])
+		gain_white = 5
+		#fildataxis = fig1.add_subplot(6,1,6)
+		whitedataxis = fig1.add_subplot(gs[3:6,half_width:total_width])
+		whitedataxis.set_title('Whitened data',fontsize=10)
+		whitedataxis.hold(True)
+		for i in np.arange(prm['nchannels']):
+		    whitedataxis.plot(gain_white*chunk_white_raw[sampmin:sampmax,i]+(prm['nchannels']-i)*offsetwhite)
+		for spiketimedebug in debugnextbits:
+		    whitedataxis.axvline(spiketimedebug[1]-sampmin,color = 'k') #plot a vertical line for s_fpeak  
             
-            
-            plt.show()
+            #plt.show()
             #embed()
             
-            fig1.savefig('Debug_SD2floodfillchunk_%s_samples'%(interestpoint))
+            if filwhite: 
+                fig1.savefig('Debug_SD2floodfillchunk_%s_%d_%d_samples'%(interestpoint,reg,regcov))
+            else:
+	        fig1.savefig('Raw_Debug_SD2floodfillchunk_%s_%d_%d_samples'%(interestpoint,reg,regcov))
             
             if prm['save_graph_data']:
                 tosave = [waveslist,debugnextbits,interestpoint,chunk_threshold, waveslist,chunk_fil,chunk_raw,connected_comp_enum,sampmin,sampmax,prm]

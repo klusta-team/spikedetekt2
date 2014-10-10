@@ -5,6 +5,7 @@
 # -----------------------------------------------------------------------------
 import numpy as np
 #from numpy.core.numeric import newaxis
+import scipy
 from scipy import signal
 from kwiklib.utils.six.moves import range
 
@@ -141,17 +142,43 @@ def get_noise_cov(chunk_fil,components):
    #....: )
 #Out[55]: [(10, 11), (10, 12), (10, 13), (11, 12), (11, 13), (12, 13)]
 
-
-
-def get_whitening_matrix(chunk_fil,components,epsilon_fudge=1E-18):
-    noisecov = get_noise_cov(chunk_fil,components)
-    d, V = np.linalg.eigh(noisecov)
-    D = np.diag(1. / np.sqrt(d+epsilon_fudge))
-    Whitening = np.dot(D, V.T)
+def get_whitening_matrix_cholesky(chunk_fil,components, reg = 0,regcov=0):
+    noisecov = get_noise_cov(chunk_fil,components) + regcov*np.identity(chunk_fil.shape[1])
+    C = np.linalg.cholesky(noisecov)+ reg*np.identity(noisecov.shape[0])
+    #C = np.linalg.cholesky(noisecov)
+    #+ reg*np.identity(noisecov.shape[0])
+    #np.dot(noisecov, V[:,j].T) ==V[:,j]*d[j] for j = 1 to 32
+    #D = np.diag(1. / np.sqrt(d+epsilon_fudge))
+    #Whitening = np.dot(D, V.T)
+    Whitening = np.linalg.inv(C)
     print np.dot(np.dot(Whitening,noisecov),Whitening.T) # sanity check
     embed()
     return Whitening, noisecov
-    
+
+
+def get_whitening_matrix(chunk_fil,components,epsilon_fudge=1E-18, reg = 0):
+    noisecov = get_noise_cov(chunk_fil,components)
+    #+ reg*np.identity(noisecov.shape[0])
+    d, V = np.linalg.eigh(noisecov)
+    #np.dot(noisecov, V[:,j].T) ==V[:,j]*d[j] for j = 1 to 32
+    D = np.diag(1. / np.sqrt(d+epsilon_fudge))
+    Whitening = np.dot(D, V.T)
+    #Whitening = np.dot(D, V)
+    print np.dot(np.dot(Whitening,noisecov),Whitening.T) # sanity check
+    #embed()
+    return Whitening, noisecov
+
+def get_whitening_matrix_scipy(chunk_fil,components,epsilon_fudge=1E-18, reg = 0):
+    noisecov = get_noise_cov(chunk_fil,components)
+    #+ reg*np.identity(noisecov.shape[0])
+    #d, V = np.linalg.eigh(noisecov)
+    #np.dot(noisecov, V[:,j].T) ==V[:,j]*d[j] for j = 1 to 32
+    #D = np.diag(1. / np.sqrt(d+epsilon_fudge))
+    Whitening = scipy.linalg.fractional_matrix_power(noisecov, -0.5)
+    #Whitening = np.dot(D, V)
+    print np.dot(np.dot(Whitening,noisecov),Whitening.T) # sanity check
+    #embed()
+    return Whitening, noisecov   
 
 def whiten(X, whiteningmatrix):
     #if whiteningmatrix is None:
