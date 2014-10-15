@@ -282,7 +282,10 @@ def main():
                        help='run only SpikeDetekt')
     parser.add_argument('--cluster-only', action='store_true', default=False,
                        help='run only KlustaKwik (after SpikeDetekt has run)')
-    parser.add_argument('--version', action='version', version='Klusta-Suite version {0:s}'.format(spikedetekt2.__version__))
+    parser.add_argument('--convert-only', action='store_true', default=False,
+                       help='only convert raw data to Kwik format, no spike detection')
+    parser.add_argument('--version', action='version', version='Klusta-Suite version {0:s}'.format(spikedetekt2.__version__))        
+
 
     args = parser.parse_args()
     
@@ -291,6 +294,9 @@ def main():
         runkk = False
     if args.cluster_only:
         runsd = False
+    if args.convert_only:
+        runsd = False
+        runkk = False
     
     run_all(args.prm_file, debug=args.debug, overwrite=args.overwrite,
             runsd=runsd, runkk=runkk)
