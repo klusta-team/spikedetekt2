@@ -147,8 +147,8 @@ def close_file_logger(LOGGER_FILE):
 # -----------------------------------------------------------------------------
 # Main loop
 # -----------------------------------------------------------------------------
-def run(raw_data=None, experiment=None, prm=None, probe=None,
-        _debug=False):
+def run(raw_data=None, experiment=None, prm=None, probe=None, 
+        _debug=False, convert_only=False):
     """This main function takes raw data (either as a RawReader, or a path
     to a filename, or an array) and executes the main algorithm (filtering,
     spike detection, extraction...)."""
@@ -171,23 +171,29 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
         raw_data = read_raw(experiment)
 
     # Log.
-    info("Starting SpikeDetekt version {1:s} on {0:s}".format((str(raw_data)), spikedetekt2.__version__))
+    if convert_only:
+        info("Starting file conversion only (only one chunk's spike detection) of SpikeDetekt version {1:s} on {0:s}".format((str(raw_data)), spikedetekt2.__version__))
+        first_chunk_detected = False # horrible hack - detects spikes on one chunk only so KV doesn't complain
+    else:
+        info("Starting SpikeDetekt version {1:s} on {0:s}".format((str(raw_data)), spikedetekt2.__version__))
     debug("Parameters: \n" + (display_params(prm)))
 
     # Get the bandpass filter.
     filter = bandpass_filter(**prm)
+    
+    if not (convert_only and first_chunk_detected):
+        info("Running spike detection on a single chunk of spikes only, so as to have some information")
+        # Compute the strong threshold across excerpts uniformly scattered across the
+        # whole recording.
+        threshold = get_threshold(raw_data, filter=filter, 
+                                  channels=probe.channels, **prm)
+        assert not np.isnan(threshold.weak).any()
+        assert not np.isnan(threshold.strong).any()
+        debug("Threshold: " + str(threshold))
 
-    # Compute the strong threshold across excerpts uniformly scattered across the
-    # whole recording.
-    threshold = get_threshold(raw_data, filter=filter,
-                              channels=probe.channels, **prm)
-    assert not np.isnan(threshold.weak).any()
-    assert not np.isnan(threshold.strong).any()
-    debug("Threshold: " + str(threshold))
-
-    # Debug module.
-    diagnostics_script_path = prm.get('diagnostics_script_path', None)
-
+        # Debug module.
+        diagnostics_script_path = prm.get('diagnostics_script_path', None)
+    
     # Progress bar.
     progress_bar = ProgressReporter(period=30.)
     nspikes = 0
@@ -229,41 +235,44 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
             chunk_low = decimate(chunk_raw)
             chunk_low_keep = chunk_low[i//16:j//16,:]
             experiment.recordings[chunk.recording].low.append(convert_dtype(chunk_low_keep, np.int16))
+        
+        if not (convert_only and first_chunk_detected):
+            # Apply thresholds.
+            chunk_detect, chunk_threshold = apply_threshold(chunk_fil, 
+                threshold=threshold, **prm)
+        
+            # Remove dead channels.
+            dead = np.setdiff1d(np.arange(nchannels), probe.channels)
+            chunk_detect[:,dead] = 0
+            chunk_threshold.strong[:,dead] = 0
+            chunk_threshold.weak[:,dead] = 0
+        
+            # Find connected component (strong threshold). Return list of
+            # Component instances.
+            components = connected_components(
+                chunk_strong=chunk_threshold.strong, 
+                chunk_weak=chunk_threshold.weak, 
+                probe_adjacency_list=probe.adjacency_list,
+                chunk=chunk, **prm)
+        
+            # Now we extract the spike in each component.
+            waveforms = extract_waveforms(chunk_detect=chunk_detect,
+                threshold=threshold, chunk_fil=chunk_fil, chunk_raw=chunk_raw, 
+                probe=probe, components=components, **prm)
 
-        # Apply thresholds.
-        chunk_detect, chunk_threshold = apply_threshold(chunk_fil,
-            threshold=threshold, **prm)
-
-        # Remove dead channels.
-        dead = np.setdiff1d(np.arange(nchannels), probe.channels)
-        chunk_detect[:,dead] = 0
-        chunk_threshold.strong[:,dead] = 0
-        chunk_threshold.weak[:,dead] = 0
-
-        # Find connected component (strong threshold). Return list of
-        # Component instances.
-        components = connected_components(
-            chunk_strong=chunk_threshold.strong,
-            chunk_weak=chunk_threshold.weak,
-            probe_adjacency_list=probe.adjacency_list,
-            chunk=chunk, **prm)
-
-        # Now we extract the spike in each component.
-        waveforms = extract_waveforms(chunk_detect=chunk_detect,
-            threshold=threshold, chunk_fil=chunk_fil, chunk_raw=chunk_raw,
-            probe=probe, components=components, **prm)
-
-        # DEBUG module.
-        # Execute the debug script.
-        if diagnostics_script_path:
-            execfile(diagnostics_script_path)
-
-        # Log number of spikes in the chunk.
-        nspikes += len(waveforms)
-
-        # We sort waveforms by increasing order of fractional time.
-        [add_waveform(experiment, waveform) for waveform in sorted(waveforms)]
-
+            # DEBUG module.
+            # Execute the debug script.
+            if diagnostics_script_path:
+                execfile(diagnostics_script_path)
+        
+            # Log number of spikes in the chunk.
+            nspikes += len(waveforms)
+        
+            # We sort waveforms by increasing order of fractional time.
+            [add_waveform(experiment, waveform) for waveform in sorted(waveforms)]
+            
+            first_chunk_detected = True
+        
         # Update the progress bar.
         progress_bar.update(rec/float(nrecs) + (float(s_end) / (nsamples*nrecs)),
             '%d spikes found.' % (nspikes))
