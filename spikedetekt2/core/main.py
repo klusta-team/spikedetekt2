@@ -172,7 +172,8 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
 
     # Log.
     if convert_only:
-        info("Starting file conversion only (only one chunk's spike detection) of SpikeDetekt version {1:s} on {0:s}".format((str(raw_data)), spikedetekt2.__version__))
+        info("Starting file conversion only. Klusta version {1:s}, on {0:s}".format((str(raw_data)), spikedetekt2.__version__))
+        info("Running spike detection on a single chunk of spikes only, so as to have some information")
         first_chunk_detected = False # horrible hack - detects spikes on one chunk only so KV doesn't complain
     else:
         info("Starting SpikeDetekt version {1:s} on {0:s}".format((str(raw_data)), spikedetekt2.__version__))
@@ -182,7 +183,6 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
     filter = bandpass_filter(**prm)
     
     if not (convert_only and first_chunk_detected):
-        info("Running spike detection on a single chunk of spikes only, so as to have some information")
         # Compute the strong threshold across excerpts uniformly scattered across the
         # whole recording.
         threshold = get_threshold(raw_data, filter=filter, 
