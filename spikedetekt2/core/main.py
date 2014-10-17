@@ -80,11 +80,15 @@ def add_waveform(experiment, waveform, **prm):
         masks=waveform.masks,
     )
     
-def save_features(experiment, whiteningmat, **prm):
+def save_features(experiment, whiteningmat, dead, **prm):
     """Compute the features from the waveforms and save them in the experiment
     dataset."""
     nwaveforms_max = prm['pca_nwaveforms_max']
     npcs = prm['nfeatures_per_channel']
+    allchans = np.arange(whiteningmat.shape[0])
+    needed_chans = np.setdiff1d(allchans, dead)
+    once = whiteningmat[needed_chans, :]
+    whiten_neededmat = once[:,needed_chans]
     
     for chgrp in iterkeys(experiment.channel_groups):
         spikes = experiment.channel_groups[chgrp].spikes
@@ -100,7 +104,7 @@ def save_features(experiment, whiteningmat, **prm):
         else:
             warn(("The features array has not been converted to a contiguous "
                   "array."))
-        
+        #embed()
         # Skip the channel group if there are no spikes.
         if nspikes == 0:
             continue
@@ -116,10 +120,12 @@ def save_features(experiment, whiteningmat, **prm):
             # before computing PCA so as to avoid getting huge numbers.
             waveform = convert_dtype(waveform, np.float32)
             prefeatures = project_pcs(waveform, pcs)
+            #embed()
             if prm['whiten']:
-                features = np.dot( whiteningmat,prefeatures)
+               features = np.dot(whiten_neededmat,prefeatures)
             else:
-	        features = prefeatures
+	       features = prefeatures
+	    #features = prefeatures
             #embed()
             # featur
             spikes.features_masks[i,:,0] = features.ravel()
@@ -253,6 +259,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
         nspikes += len(waveforms)
         
         ##noisecov = get_noise_cov(chunk_fil,components)
+        # only take the 
         if chunknum ==0: 
 	    regu = 0
 	    regcove = 0.1
@@ -277,15 +284,15 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
 	    fig2 = plt.figure()
 	    noiseaxis = fig2.add_subplot(gs[0,0:total_width])
 	    noiseaxis.set_title('Noise covariance matrix',fontsize=10)
-	    imnoise = noiseaxis.imshow(noisecov,interpolation="nearest",aspect="auto")
+	    imnoise = noiseaxis.imshow(noisecov[probe.channels,:][:,probe.channels],interpolation="nearest",aspect="auto")
 	    plt.colorbar(imnoise)
 	    whitenedcovaxis = fig2.add_subplot(gs[1,0:total_width])
 	    whitenedcovaxis.set_title('Whitened covariance matrix',fontsize=10)
-	    imwhitecov = whitenedcovaxis.imshow(whitened_cov,interpolation="nearest",aspect="auto")
+	    imwhitecov = whitenedcovaxis.imshow(whitened_cov[probe.channels,:][:,probe.channels],interpolation="nearest",aspect="auto")
 	    plt.colorbar(imwhitecov)
 	    whiteningmataxis = fig2.add_subplot(gs[2,0:total_width])
 	    whiteningmataxis.set_title('Whitening matrix',fontsize=10)
-	    imwhitenmat = whiteningmataxis.imshow(whiteningmat,interpolation="nearest",aspect="auto")
+	    imwhitenmat = whiteningmataxis.imshow(whiteningmat[probe.channels,:][:,probe.channels],interpolation="nearest",aspect="auto")
 	    plt.colorbar(imwhitenmat)
 	    fig2.savefig('covs_%d_scipy.pdf' %(nspikes))
 	    #fig2.savefig('covs_%d_reg_%d_regcov_%d.pdf' %(nspikes,regu,regcove))
@@ -294,15 +301,15 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
 	    fig3 = plt.figure()
 	    noiseaxis = fig3.add_subplot(gs[0,0:total_width])
 	    noiseaxis.set_title('Raw Noise covariance matrix',fontsize=10)
-	    imnoise = noiseaxis.imshow(noisecov_raw,interpolation="nearest",aspect="auto")
+	    imnoise = noiseaxis.imshow(noisecov_raw[probe.channels,:][:,probe.channels],interpolation="nearest",aspect="auto")
 	    plt.colorbar(imnoise)
 	    whitenedcovaxis = fig3.add_subplot(gs[1,0:total_width])
 	    whitenedcovaxis.set_title('Raw Whitened covariance matrix',fontsize=10)
-	    imwhitecov = whitenedcovaxis.imshow(whitened_cov_raw,interpolation="nearest",aspect="auto")
+	    imwhitecov = whitenedcovaxis.imshow(whitened_cov_raw[probe.channels,:][:,probe.channels],interpolation="nearest",aspect="auto")
 	    plt.colorbar(imwhitecov)
 	    whiteningmataxis = fig3.add_subplot(gs[2,0:total_width])
 	    whiteningmataxis.set_title('Raw Whitening matrix',fontsize=10)
-	    imwhitenmat = whiteningmataxis.imshow(whiteningmat_raw,interpolation="nearest",aspect="auto")
+	    imwhitenmat = whiteningmataxis.imshow(whiteningmat_raw[probe.channels,:][:,probe.channels],interpolation="nearest",aspect="auto")
 	    plt.colorbar(imwhitenmat)
 	    fig3.savefig('rawcovs_%d_scipy.pdf' %(nspikes))
         #fig3.savefig('rawcovs_%d_reg_%d_regcov_%d.pdf' %(nspikes,regu,regcove))
@@ -329,7 +336,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
             break
         
     # Feature extraction.
-    save_features(experiment, globalwhiteningmat, **prm)
+    save_features(experiment, globalwhiteningmat, dead, **prm)
     
     close_file_logger(LOGGER_FILE)
     progress_bar.finish()
