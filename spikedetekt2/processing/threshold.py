@@ -41,7 +41,7 @@ def get_threshold(raw_data, filter=None, channels=slice(None), **prm):
     # WARNING: this may use a lot of RAM.
     excerpts = np.vstack(
         # Filter each excerpt.
-        apply_filter(excerpt.data[:,channels], filter=filter)
+        apply_filter(excerpt.data[:,:], filter=filter)
             for excerpt in raw_data.excerpts(nexcerpts=nexcerpts, 
                                              excerpt_size=excerpt_size))
     
