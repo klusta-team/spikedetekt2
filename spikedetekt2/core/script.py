@@ -107,7 +107,7 @@ def run_spikedetekt(prm_filename, dir=None, debug=False):
     
     # Run SpikeDetekt.
     with Experiment(experiment_name, dir=dir, mode='a') as exp:
-        run(read_raw(data, nchannels=nchannels), 
+        run(read_raw(exp._files['raw.kwd'], nchannels=nchannels), 
             experiment=exp, prm=prm, probe=Probe(prb),
             _debug=debug)
 
