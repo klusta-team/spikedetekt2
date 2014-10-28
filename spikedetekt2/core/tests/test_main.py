@@ -7,6 +7,7 @@ import os
 import tempfile
 
 import numpy as np
+import tables as tb
 from nose import with_setup
 
 from kwiklib.dataio import (BaseRawDataReader, read_raw, create_files,
@@ -93,6 +94,9 @@ def test_run_1():
         assert exp.channel_groups[0].spikes.features_masks.shape[0] == nspikes
         assert exp.channel_groups[0].spikes.waveforms_filtered.shape[0] == nspikes
         
+        assert isinstance(exp.channel_groups[0]._node.pca_waveforms,
+            tb.Array)
+
         # Assert the log file exists.
         logfile = exp.gen_filename('log')
         assert os.path.exists(logfile)

@@ -79,6 +79,7 @@ def save_features(experiment, **prm):
     dataset."""
     nwaveforms_max = prm['pca_nwaveforms_max']
     npcs = prm['nfeatures_per_channel']
+    kwik = experiment._files['kwik']
     
     for chgrp in iterkeys(experiment.channel_groups):
         spikes = experiment.channel_groups[chgrp].spikes
@@ -103,6 +104,11 @@ def save_features(experiment, **prm):
         waveforms_subset = spikes.waveforms_filtered[::step]
         # Compute the PCs.
         pcs = compute_pcs(waveforms_subset, npcs=npcs)
+
+        # Add PCs to the KWIK file
+        kwik.createArray(experiment.channel_groups[chgrp]._node, 'pca_waveforms',
+            pcs)
+
         # Project the waveforms on the PCs and compute the features.
         # WARNING: optimization: we could load and project waveforms by chunks.
         for i, waveform in enumerate(spikes.waveforms_filtered):
