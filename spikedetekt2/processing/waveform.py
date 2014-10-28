@@ -153,9 +153,10 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     # Realign spike with respect to s_fracpeak.
     s_peak = int(s_fracpeak)
     # Get block of given size around peaksample.
-    wave = get_padded(chunk_fil[:,channels],  # keep shank channels
+    wave = get_padded(chunk_fil,
                       s_peak - s_before - 1,
                       s_peak + s_after + 2)
+    wave = wave[:,channels] # keep shank channels
     
     # Perform interpolation around the fractional peak.
     old_s = np.arange(s_peak - s_before - 1, s_peak + s_after + 2)
@@ -168,9 +169,10 @@ def extract_waveform(component, chunk_fil=None, chunk_raw=None,
     wave_aligned = f(new_s)
     
     # Get unfiltered spike.
-    wave_raw = get_padded(chunk_raw[:,channels], # keep shank channels
+    wave_raw = get_padded(chunk_raw,
                           s_peak - s_before,
                           s_peak + s_after)
+    wave_raw = wave_raw[:,channels] # keep shank channels
                           
     # Create the Waveform instance.
     waveform = Waveform(fil=wave_aligned, raw=wave_raw, masks=masks_float, 
