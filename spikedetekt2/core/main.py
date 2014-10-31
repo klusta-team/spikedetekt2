@@ -17,7 +17,7 @@ from spikedetekt2.processing import (bandpass_filter, apply_filter, decimate,
 from kwiklib.utils import (Probe, iterkeys, debug, info, warn, exception,
     display_params, FileLogger, register, unregister)
 
-
+from IPython import embed 
 # -----------------------------------------------------------------------------
 # Processing
 # -----------------------------------------------------------------------------
@@ -249,7 +249,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
         
     # Feature extraction.
     save_features(experiment, **prm)
-    
+    embed()
     close_file_logger(LOGGER_FILE)
     progress_bar.finish()
     

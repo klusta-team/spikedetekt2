@@ -6,7 +6,7 @@
 from itertools import izip
 
 import numpy as np
-
+from IPython import embed 
 
 # -----------------------------------------------------------------------------
 # Component class
@@ -166,6 +166,7 @@ def connected_components(chunk_weak=None, chunk_strong=None,
             
     # only return the values, because we don't actually need the labels
     comps = [comp_inds[key] for key in comp_inds.keys() if key in strong_nodes]
+   # embed()
     if return_objects:
         return [Component(comp, chunk=chunk)
                     for comp in comps]
