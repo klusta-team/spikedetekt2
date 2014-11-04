@@ -13,11 +13,10 @@ from kwiklib.dataio import (BaseRawDataReader, read_raw, excerpt_step,
     to_contiguous, convert_dtype, KwdRawDataReader, ExperimentRawDataReader)
 from spikedetekt2.processing import (bandpass_filter, apply_filter, decimate,
     get_threshold, connected_components, extract_waveform,
-    compute_pcs, project_pcs, DoubleThreshold,plot_diagnostics_twothresholds)
+    compute_pcs, project_pcs, DoubleThreshold)
 from kwiklib.utils import (Probe, iterkeys, debug, info, warn, exception,
     display_params, FileLogger, register, unregister)
 
-from IPython import embed
 
 # -----------------------------------------------------------------------------
 # Processing
@@ -245,16 +244,11 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
             probe_adjacency_list=probe.adjacency_list,
             chunk=chunk, **prm)
 
-        #If using debug module
-        if prm['debug'] == True:
-            print 'debugging'
-            plot_diagnostics_twothresholds(threshold = threshold,probe = probe,components = components,chunk = chunk, chunk_detect= chunk_detect,chunk_threshold= chunk_threshold, chunk_fil=chunk_fil, chunk_raw=chunk_raw, **prm)
-
         # Now we extract the spike in each component.
         waveforms = extract_waveforms(chunk_detect=chunk_detect,
             threshold=threshold, chunk_fil=chunk_fil, chunk_raw=chunk_raw,
             probe=probe, components=components, **prm)
-        #embed()
+
         # Log number of spikes in the chunk.
         nspikes += len(waveforms)
 
