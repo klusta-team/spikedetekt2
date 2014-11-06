@@ -111,7 +111,7 @@ def save_features(experiment, **prm):
         else:
             # We take the masks in order to compute the PCs only on
             # the unmasked spikes, for each channel.
-            masks = spikes.features_masks[:,::npcs,1]  # (nspikes, nchannels)
+            masks = spikes.features_masks[::step,::npcs,1]  # (nspikes, nchannels)
             # Compute the PCs.
             pcs = compute_pcs(waveforms_subset, npcs=npcs, masks=masks)
 
