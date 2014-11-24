@@ -6,7 +6,7 @@
 import numpy as np
 
 from spikedetekt2.processing import extract_waveform, Component
-from spikedetekt2.utils import Probe
+from kwiklib.utils import Probe
 
 
 # -----------------------------------------------------------------------------
@@ -14,8 +14,8 @@ from spikedetekt2.utils import Probe
 # -----------------------------------------------------------------------------
 n = 5
 probe_adjacency_list = [(i, i+1) for i in range(n-1)]
-PROBE = Probe({'channel_groups': [{'channels': range(n),
-                                   'graph': probe_adjacency_list}]})
+PROBE = Probe({0: {'channels': range(n),
+                   'graph': probe_adjacency_list}})
 
 
 # -----------------------------------------------------------------------------

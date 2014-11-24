@@ -5,11 +5,11 @@ import os
 import sys
 import logging
 
-import spikedetekt2.utils.logger as log
-from utils import *
+from kwiklib.utils import logger as log
+from kwiklib.utils import *
 from processing import *
 from core import *
-from dataio import *
+from kwiklib.dataio import *
 
 
 # -----------------------------------------------------------------------------
@@ -37,5 +37,5 @@ log.register(LOGGER)
 sys.excepthook = log.handle_exception
 
 # Set the logging level.
-log.set_level(logging.DEBUG)
+log.set_level(logging.INFO)
 
