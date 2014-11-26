@@ -119,25 +119,38 @@ def run_spikedetekt(prm_filename, dir=None, debug=False):
 # KlustaKwik
 # -----------------------------------------------------------------------------
 PARAMS_KK = dict(
-    MaskStarts = 100,
-    #MinClusters = 100 ,
-    #MaxClusters = 110,
-    MaxPossibleClusters =  500,
-    FullStepEvery = 10,
-    MaxIter = 10000,
-    RandomSeed =  654,
-    Debug = 0,
-    SplitFirst = 20 ,
-    SplitEvery = 100 ,
-    PenaltyK = 0,
-    PenaltyKLogN = 1,
+    DropLastNFeatures = 0,
+    UseDistributional = 1,
+    MaskStarts = 500,
+    MinClusters = 100,
+    MaxClusters = 110,
+    MaxPossibleClusters = 1000,
+    nStarts = 1,
+    SplitEvery = 40,
+    SplitFirst = 20,
+    PenaltyK = 0.,
+    PenaltyKLogN = 1.,
     Subset = 1,
+    FullStepEvery = 20,
+    MaxIter = 10000,
+    RandomSeed = 1,
+    Debug = 0,
+    SplitInfo = 1,
+    Verbose = 1,
+    DistDump = 0,
+    DistThresh = 6.907755,
+    ChangedThresh = 0.05,
+    Log = 1,
+    Screen = 1,
     PriorPoint = 1,
     SaveSorted = 0,
     SaveCovarianceMeans = 0,
-    UseMaskedInitialConditions = 1,
-    AssignToFirstClosestMask = 1,
-    UseDistributional = 1,
+    UseMaskedInitialConditions = 0,
+    AssignToFirstClosestMask = 0,
+    RamLimitGB = 0.,
+    AlwaysSplitBimodal = 0,
+    PointsForClusterMask = 0.,
+    MinMaskOverlap = 0.,
 )
 
 def write_mask(mask, filename, fmt="%f"):
@@ -211,7 +224,8 @@ def run_klustakwik(filename, dir=None, **kwargs):
             )
             
             # Save a file with the KlustaKwik run script so user can manually re-run it if it aborts (or edit)
-            scriptfile = open('runklustakwik_{shank}.sh', "w")
+            scriptfilename = "runklustakwik_" + str(shank) + ".sh"
+            scriptfile = open(scriptfilename, "w")
             scriptfile.write(cmd)
             scriptfile.close()        
     
@@ -253,7 +267,7 @@ def run_all(prm_filename, dir=None, debug=False, overwrite=False,
             delete_files(experiment_name, dir=dir, types=('kwik', 'kwx', 'high.kwd', 'low.kwd'))
         else:
             print(("The files already exist, delete them first "
-                  "if you want to run the process again, or user the "
+                  "if you want to run the process again, or use the "
                   "--overwrite option."))
     
     if runsd:
