@@ -184,6 +184,9 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
     assert not np.isnan(threshold.strong).any()
     debug("Threshold: " + str(threshold))
 
+    # Debug module.
+    diagnostics_script_path = prm.get('diagnostics_script_path', None)
+
     # Progress bar.
     progress_bar = ProgressReporter(period=30.)
     nspikes = 0
@@ -248,6 +251,11 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
         waveforms = extract_waveforms(chunk_detect=chunk_detect,
             threshold=threshold, chunk_fil=chunk_fil, chunk_raw=chunk_raw,
             probe=probe, components=components, **prm)
+
+        # DEBUG module.
+        # Execute the debug script.
+        if diagnostics_script_path:
+            execfile(diagnostics_script_path)
 
         # Log number of spikes in the chunk.
         nspikes += len(waveforms)
