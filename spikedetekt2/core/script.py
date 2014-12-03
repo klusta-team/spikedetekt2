@@ -151,6 +151,7 @@ PARAMS_KK = dict(
     AlwaysSplitBimodal = 0,
     PointsForClusterMask = 0.,
     MinMaskOverlap = 0.,
+    SaveTempCluEveryIter = 0,
 )
 
 def write_mask(mask, filename, fmt="%f"):
