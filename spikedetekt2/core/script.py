@@ -164,7 +164,6 @@ def run_klustakwik(filename, dir=None, **kwargs):
         # Set the KlustaKwik parameters.
         params = dict()
         for key, value in kwargs.iteritems():
-            print key
             if key[:3] == 'kk_':
                 params[key[3:]] = value
             
