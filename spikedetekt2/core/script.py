@@ -118,42 +118,6 @@ def run_spikedetekt(prm_filename, dir=None, debug=False):
 # -----------------------------------------------------------------------------
 # KlustaKwik
 # -----------------------------------------------------------------------------
-PARAMS_KK = dict(
-    DropLastNFeatures = 0,
-    UseDistributional = 1,
-    MaskStarts = 500,
-    MinClusters = 100,
-    MaxClusters = 110,
-    MaxPossibleClusters = 1000,
-    nStarts = 1,
-    SplitEvery = 40,
-    SplitFirst = 20,
-    PenaltyK = 0.,
-    PenaltyKLogN = 1.,
-    Subset = 1,
-    FullStepEvery = 20,
-    MaxIter = 10000,
-    RandomSeed = 1,
-    Debug = 0,
-    SplitInfo = 1,
-    Verbose = 1,
-    DistDump = 0,
-    DistThresh = 6.907755,
-    ChangedThresh = 0.05,
-    Log = 1,
-    Screen = 1,
-    PriorPoint = 1,
-    SaveSorted = 0,
-    SaveCovarianceMeans = 0,
-    UseMaskedInitialConditions = 0,
-    AssignToFirstClosestMask = 0,
-    RamLimitGB = 0.,
-    AlwaysSplitBimodal = 0,
-    PointsForClusterMask = 0.,
-    MinMaskOverlap = 0.,
-    SaveTempCluEveryIter = 0,
-)
-
 def write_mask(mask, filename, fmt="%f"):
     with open(filename, 'w') as fd:
         fd.write(str(mask.shape[1])+'\n') # number of features
@@ -198,11 +162,10 @@ def run_klustakwik(filename, dir=None, **kwargs):
         shanks = exp.channel_groups.keys()
         
         # Set the KlustaKwik parameters.
-        params = PARAMS_KK.copy()
-        for key in PARAMS_KK.keys():
-            # Update the PARAMS_KK keys if they are specified directly
-            # but ignore the kwargs keys that do not appear in PARAMS_KK.
-            params[key] = kwargs.get(key.lower(), params[key])
+        params = dict()
+        for key, value in kwargs.iteritems():
+            if key[:3] == 'kk_':
+                params[key[3:]] = value
             
         # Switch to temporary directory.
         start_dir = os.getcwd()
@@ -212,8 +175,7 @@ def run_klustakwik(filename, dir=None, **kwargs):
         os.chdir(tmpdir)
         
         for shank in shanks:
-            # chg = exp.channel_groups[shank]
-            
+            # chg = exp.channel_groups[shank]   
             save_old(exp, shank, dir=tmpdir)
             
             # Generate the command for running klustakwik.
