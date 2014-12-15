@@ -240,7 +240,7 @@ def run_all(prm_filename, dir=None, debug=False, overwrite=False,
             delete_files(experiment_name, dir=dir, types=('kwik', 'kwx', 'high.kwd', 'low.kwd'))
         else:
             print(("\nERROR: A .kwik file already exists. To overwrite, call klusta with the --overwrite option,\n"
-                   "which will delete existing .kwik, .kwx, .high.kwd, and .low.kwd files, or delete them manually first."))
+                   "which will overwrite existing .kwik, .kwx, .high.kwd, and .low.kwd files, or delete them manually first."))
             return False
     
     if runsd:
@@ -253,18 +253,18 @@ def main():
     if not check_path():
         return
     
-    parser = argparse.ArgumentParser(description='Run spikedetekt and/or klustakwik.')
+    parser = argparse.ArgumentParser(description='Run SpikeDetekt and/or KlustaKwik.')
     parser.add_argument('prm_file',
                        help='.prm filename')
     parser.add_argument('--debug', action='store_true', default=False,
                        help='run the first few seconds of the data for debug purposes')
     parser.add_argument('--overwrite', action='store_true', default=False,
-                       help='overwrite the KWIK files is they already exist')
+                       help='overwrite the KWIK files if they already exist')
                        
     parser.add_argument('--detect-only', action='store_true', default=False,
-                       help='run only spikedetekt')
+                       help='run only SpikeDetekt')
     parser.add_argument('--cluster-only', action='store_true', default=False,
-                       help='run only klustakwik (after spikedetekt has run)')
+                       help='run only KlustaKwik (after SpikeDetekt has run)')
 
     args = parser.parse_args()
     runsd, runkk = True, True
