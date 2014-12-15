@@ -187,8 +187,8 @@ def run_klustakwik(filename, dir=None, **kwargs):
             )
             
             # Save a file with the KlustaKwik run script so user can manually re-run it if it aborts (or edit)
-            scriptfilename = "runklustakwik_" + str(shank) + ".sh"
-            scriptfile = open(scriptfilename, "w")
+            script_filename = "runklustakwik_" + str(shank) + ".sh"
+            scriptfile = open(script_filename, "w")
             scriptfile.write(cmd)
             scriptfile.close()        
     
@@ -196,7 +196,17 @@ def run_klustakwik(filename, dir=None, **kwargs):
             os.system(cmd)
             
             # Read back the clusters.
-            clu = read_clusters(name + '.clu.' + str(shank))
+            clu_filename = name + '.clu.' + str(shank)
+            
+            if not os.path.exists(clu_filename):
+                print "\nERROR: Couldn't open the KlustaKwik output file {0}".format(clu_filename)
+                print ("This is probably due to KlustaKwik not completing successfully. Please check for messages above.\n"
+                "You can re-run KlustaKwik by calling klusta with the --cluster-only option. Please verify the\n"
+                "printed parameters carefully, and if necessary re-run with the default KlustaKwik parameters.\n"
+                "Common causes include running out of RAM or not prefixing the PRM file KlustaKwik parameters by KK_.")
+                return
+            
+            clu = read_clusters(clu_filename)
             
             # Put the clusters in the kwik file.
             add_clustering(exp._files, channel_group_id=str(shank), name='original',
