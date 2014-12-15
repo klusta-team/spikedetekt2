@@ -204,7 +204,7 @@ def run_klustakwik(filename, dir=None, **kwargs):
                 "You can re-run KlustaKwik by calling klusta with the --cluster-only option. Please verify the\n"
                 "printed parameters carefully, and if necessary re-run with the default KlustaKwik parameters.\n"
                 "Common causes include running out of RAM or not prefixing the PRM file KlustaKwik parameters by KK_.")
-                return
+                return False
             
             clu = read_clusters(clu_filename)
             
@@ -235,13 +235,13 @@ def run_all(prm_filename, dir=None, debug=False, overwrite=False,
     data = info['data']
     nchannels = info['nchannels']
     
-    if files_exist(experiment_name, dir=dir):
+    if files_exist(experiment_name, dir=dir) & runsd == True:
         if overwrite:
             delete_files(experiment_name, dir=dir, types=('kwik', 'kwx', 'high.kwd', 'low.kwd'))
         else:
-            print(("The files already exist, delete them first "
-                  "if you want to run the process again, or use the "
-                  "--overwrite option."))
+            print(("\nERROR: A .kwik file already exists. To overwrite, call klusta with the --overwrite option,\n"
+                   "which will delete existing .kwik, .kwx, .high.kwd, and .low.kwd files, or delete them manually first."))
+            return False
     
     if runsd:
         run_spikedetekt(prm_filename, dir=dir, debug=debug)
