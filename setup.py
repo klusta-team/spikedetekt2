@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='spikedetekt2',
-    version='0.2.0dev',
+    version='0.3.0rc2',
     author='Klusta-Team',
     author_email='rossant@github',
     packages=[
@@ -18,6 +18,6 @@ setup(
                ]},
     url='http://klusta-team.github.io',
     license='LICENSE.txt',
-    description='Spikedetekt2, part of the KlustaSuite',
+    description='SpikeDetekt2, part of the KlustaSuite',
     # long_description=open('README.md').read(),
 )

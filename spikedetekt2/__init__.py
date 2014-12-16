@@ -15,13 +15,13 @@ from kwiklib.dataio import *
 # -----------------------------------------------------------------------------
 # Module constants
 # -----------------------------------------------------------------------------
-__version__ = '0.3.0dev'
+__version__ = '0.3.0.rc2'
 
 APPNAME = 'spikedetekt'
 
-ABOUT = """Spikedetekt detekt spikes.
+ABOUT = """Automated spike detection for multichannel electrophysiological data.
 
-This software was developed by Cyrille Rossant, Shabnam Kadir, Dan Goodman, Kenneth Harris in the Cortical Processing Laboratory at UCL (http://www.ucl.ac.uk/cortexlab)."""
+This software was developed by Cyrille Rossant, Shabnam Kadir, Max Hunter, Dan Goodman and Kenneth Harris in the Cortical Processing Laboratory at UCL (http://www.ucl.ac.uk/cortexlab)."""
 
 
 # -----------------------------------------------------------------------------

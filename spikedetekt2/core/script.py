@@ -9,6 +9,7 @@ import sys
 import os.path as op
 import tempfile
 import argparse
+import spikedetekt2
 
 import numpy as np
 import tables as tb
@@ -275,8 +276,10 @@ def main():
                        help='run only SpikeDetekt')
     parser.add_argument('--cluster-only', action='store_true', default=False,
                        help='run only KlustaKwik (after SpikeDetekt has run)')
+    parser.add_argument('--version', action='version', version='Klusta-Suite version {0:s}'.format(spikedetekt2.__version__))
 
     args = parser.parse_args()
+    
     runsd, runkk = True, True
     if args.detect_only:
         runkk = False

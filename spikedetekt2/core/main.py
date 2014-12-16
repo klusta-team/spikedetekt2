@@ -3,6 +3,7 @@
 # -----------------------------------------------------------------------------
 # Imports
 # -----------------------------------------------------------------------------
+import spikedetekt2
 import logging
 
 import numpy as np
@@ -170,7 +171,7 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
         raw_data = read_raw(experiment)
 
     # Log.
-    info("Starting process on {0:s}".format(str(raw_data)))
+    info("Starting SpikeDetekt version {1:s} on {0:s}".format((str(raw_data)), spikedetekt2.__version__))
     debug("Parameters: \n" + (display_params(prm)))
 
     # Get the bandpass filter.
