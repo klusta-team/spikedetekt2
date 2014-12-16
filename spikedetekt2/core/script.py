@@ -166,6 +166,16 @@ def run_klustakwik(filename, dir=None, **kwargs):
         for key, value in kwargs.iteritems():
             if key[:3] == 'kk_':
                 params[key[3:]] = value
+                
+        # Check for conditions which will cause KK to fail.
+        if not (params.get('maskstarts', 500) <= params.get('maxpossibleclusters', 1000)):
+            print "\nERROR: Condition not met: MaskStarts <= MaxPossibleClusters."
+            return False
+            
+        if (((params.get('maskstarts', 500) == 0) or (params.get('usedistributional', 1) == 0)) and not
+            (params.get('minclusters', 100) <= params.get('maxclusters',110) <= params.get('maxpossibleclusters', 1000))):
+            print "\nERROR: Condition not met: MinClusters <= MaxClusters <= MaxPossibleClusters."
+            return False
             
         # Switch to temporary directory.
         start_dir = os.getcwd()
@@ -190,7 +200,7 @@ def run_klustakwik(filename, dir=None, **kwargs):
             script_filename = "runklustakwik_" + str(shank) + ".sh"
             scriptfile = open(script_filename, "w")
             scriptfile.write(cmd)
-            scriptfile.close()        
+            scriptfile.close()
     
             # Run KlustaKwik.
             os.system(cmd)
