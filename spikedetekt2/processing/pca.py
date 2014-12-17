@@ -37,7 +37,7 @@ def compute_pcs(x, npcs=None, masks=None):
         assert masks.shape[0] == x.shape[0]  # number of spikes
         # Only select those rows in x that are *unmasked* (mask>0).
         x = np.compress(masks>0, x, axis=0)
-    if len(x) == 0:
+    if len(x) <= 1:
         return np.zeros((npcs, x.shape[-1]), dtype=np.float32)
     # Take the covariance matrix.
     cov_ss = np.cov(x.astype(np.float64), rowvar=0)
