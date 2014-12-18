@@ -165,6 +165,12 @@ def run_klustakwik(filename, dir=None, **kwargs):
         # Set the KlustaKwik parameters.
         params = dict()
         for key, value in kwargs.iteritems():
+            if key == 'maskstarts' or key == 'maxpossibleclusters':
+                print ("\nERROR: All PRM KlustaKwik parameters must now be prefixed by KK_ or they will be ignored."
+                "\nSee https://github.com/klusta-team/example/blob/master/params.prm for an example."
+                "\nPlease update or comment out the parameters to use the defaults, then re-run with klusta --cluster-only.")
+                return False
+                
             if key[:3] == 'kk_':
                 params[key[3:]] = value
                 
