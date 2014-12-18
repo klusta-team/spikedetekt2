@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='spikedetekt2',
-    version='0.3.0rc2',
+    version='0.3.0.rc2',
     author='Klusta-Team',
     author_email='rossant@github',
     packages=[
