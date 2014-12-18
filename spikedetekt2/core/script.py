@@ -9,6 +9,7 @@ import sys
 import os.path as op
 import tempfile
 import argparse
+import spikedetekt2
 
 import numpy as np
 import tables as tb
@@ -164,8 +165,24 @@ def run_klustakwik(filename, dir=None, **kwargs):
         # Set the KlustaKwik parameters.
         params = dict()
         for key, value in kwargs.iteritems():
+            if key == 'maskstarts' or key == 'maxpossibleclusters':
+                print ("\nERROR: All PRM KlustaKwik parameters must now be prefixed by KK_ or they will be ignored."
+                "\nSee https://github.com/klusta-team/example/blob/master/params.prm for an example."
+                "\nPlease update or comment out the parameters to use the defaults, then re-run with klusta --cluster-only.")
+                return False
+                
             if key[:3] == 'kk_':
                 params[key[3:]] = value
+                
+        # Check for conditions which will cause KK to fail.
+        if not (params.get('maskstarts', 500) <= params.get('maxpossibleclusters', 1000)):
+            print "\nERROR: Condition not met: MaskStarts <= MaxPossibleClusters."
+            return False
+            
+        if (((params.get('maskstarts', 500) == 0) or (params.get('usedistributional', 1) == 0)) and not
+            (params.get('minclusters', 100) <= params.get('maxclusters',110) <= params.get('maxpossibleclusters', 1000))):
+            print "\nERROR: Condition not met: MinClusters <= MaxClusters <= MaxPossibleClusters."
+            return False
             
         # Switch to temporary directory.
         start_dir = os.getcwd()
@@ -187,16 +204,26 @@ def run_klustakwik(filename, dir=None, **kwargs):
             )
             
             # Save a file with the KlustaKwik run script so user can manually re-run it if it aborts (or edit)
-            scriptfilename = "runklustakwik_" + str(shank) + ".sh"
-            scriptfile = open(scriptfilename, "w")
+            script_filename = "runklustakwik_" + str(shank) + ".sh"
+            scriptfile = open(script_filename, "w")
             scriptfile.write(cmd)
-            scriptfile.close()        
+            scriptfile.close()
     
             # Run KlustaKwik.
             os.system(cmd)
             
             # Read back the clusters.
-            clu = read_clusters(name + '.clu.' + str(shank))
+            clu_filename = name + '.clu.' + str(shank)
+            
+            if not os.path.exists(clu_filename):
+                print "\nERROR: Couldn't open the KlustaKwik output file {0}".format(clu_filename)
+                print ("This is probably due to KlustaKwik not completing successfully. Please check for messages above.\n"
+                "You can re-run KlustaKwik by calling klusta with the --cluster-only option. Please verify the\n"
+                "printed parameters carefully, and if necessary re-run with the default KlustaKwik parameters.\n"
+                "Common causes include running out of RAM or not prefixing the PRM file KlustaKwik parameters by KK_.")
+                return False
+            
+            clu = read_clusters(clu_filename)
             
             # Put the clusters in the kwik file.
             add_clustering(exp._files, channel_group_id=str(shank), name='original',
@@ -225,13 +252,13 @@ def run_all(prm_filename, dir=None, debug=False, overwrite=False,
     data = info['data']
     nchannels = info['nchannels']
     
-    if files_exist(experiment_name, dir=dir):
+    if files_exist(experiment_name, dir=dir) & runsd == True:
         if overwrite:
             delete_files(experiment_name, dir=dir, types=('kwik', 'kwx', 'high.kwd', 'low.kwd'))
         else:
-            print(("The files already exist, delete them first "
-                  "if you want to run the process again, or use the "
-                  "--overwrite option."))
+            print(("\nERROR: A .kwik file already exists. To overwrite, call klusta with the --overwrite option,\n"
+                   "which will overwrite existing .kwik, .kwx, .high.kwd, and .low.kwd files, or delete them manually first."))
+            return False
     
     if runsd:
         run_spikedetekt(prm_filename, dir=dir, debug=debug)
@@ -243,20 +270,22 @@ def main():
     if not check_path():
         return
     
-    parser = argparse.ArgumentParser(description='Run spikedetekt and/or klustakwik.')
+    parser = argparse.ArgumentParser(description='Run SpikeDetekt and/or KlustaKwik.')
     parser.add_argument('prm_file',
                        help='.prm filename')
     parser.add_argument('--debug', action='store_true', default=False,
                        help='run the first few seconds of the data for debug purposes')
     parser.add_argument('--overwrite', action='store_true', default=False,
-                       help='overwrite the KWIK files is they already exist')
+                       help='overwrite the KWIK files if they already exist')
                        
     parser.add_argument('--detect-only', action='store_true', default=False,
-                       help='run only spikedetekt')
+                       help='run only SpikeDetekt')
     parser.add_argument('--cluster-only', action='store_true', default=False,
-                       help='run only klustakwik (after spikedetekt has run)')
+                       help='run only KlustaKwik (after SpikeDetekt has run)')
+    parser.add_argument('--version', action='version', version='Klusta-Suite version {0:s}'.format(spikedetekt2.__version__))
 
     args = parser.parse_args()
+    
     runsd, runkk = True, True
     if args.detect_only:
         runkk = False
