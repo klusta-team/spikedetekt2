@@ -33,7 +33,7 @@ def compute_pcs(x, npcs=None, masks=None):
 
     # Compute regularization cov matrix.
     if masks is not None:
-        unmasked = mask > 0
+        unmasked = masks > 0
         # The last dimension is now time. The second dimension is channel.
         x_swapped = np.swapaxes(x, 1, 2)
         # This is the list of all unmasked spikes on all channels.
