@@ -74,8 +74,15 @@ def compute_pcs(x, npcs=None, masks=None):
             pcs_list.append(pcs[:npcs,...])
         else:
             pcs_list.append(pcs)
-    # Return the concatenation of the PCs on all channels, along the 3d axis.
-    return np.dstack(pcs_list)
+    # Return the concatenation of the PCs on all channels, along the 3d axis,
+    # except if there is only one element in the 3d axis. In this case
+    # we convert to a 2D array.
+    pcs = np.dstack(pcs_list)
+    assert pcs.ndim == 3
+    if pcs.shape[2] == 1:
+        pcs = pcs[:, :, 0]
+        assert pcs.ndim == 2
+    return pcs
 
 def project_pcs(x, pcs):
     """Project data points onto principal components.
