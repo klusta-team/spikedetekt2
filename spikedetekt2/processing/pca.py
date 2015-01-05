@@ -15,40 +15,67 @@ def compute_pcs(x, npcs=None, masks=None):
     """Compute the PCs of an array x, where each row is an observation.
     x can be a 2D or 3D array. In the latter case, the PCs are computed
     and concatenated iteratively along the last axis."""
-    # If x is a 3D array, compute the PCs by iterating over the last axis.
-    if x.ndim == 3:
-        if masks is None:
-            return np.dstack([compute_pcs(x[..., i], npcs=npcs, masks=None)
-                              for i in range(x.shape[-1])])
-        else:
-            # We pass the masks to compute_pcs for each row of the 3D array.
-            assert isinstance(masks, np.ndarray)
-            assert masks.ndim == 2
-            assert masks.shape[0] == x.shape[0]  # number of spikes
-            assert masks.shape[1] == x.shape[-1]  # number of channels
-            return np.dstack([compute_pcs(x[..., i], npcs=npcs,
-                                          masks=masks[..., i])
-                              for i in range(x.shape[-1])])
-    # Now, we assume x is a 2D array.
-    assert x.ndim == 2
-    # Check the masks.
+
+    # Ensure x is a 3D array.
+    if x.ndim == 2:
+        x = x[..., None]
+    assert x.ndim == 3
+    # Ensure double precision
+    x = x.astype(np.float64)
+
+    nspikes, nsamples, nchannels = x.shape
+
     if masks is not None:
-        assert masks.ndim == 1
+        assert isinstance(masks, np.ndarray)
+        assert masks.ndim == 2
         assert masks.shape[0] == x.shape[0]  # number of spikes
-        # Only select those rows in x that are *unmasked* (mask>0).
-        x = np.compress(masks>0, x, axis=0)
-    if len(x) <= 1:
-        return np.zeros((npcs, x.shape[-1]), dtype=np.float32)
-    # Take the covariance matrix.
-    cov_ss = np.cov(x.astype(np.float64), rowvar=0)
-    # Compute the eigenelements.
-    vals, vecs = np.linalg.eigh(cov_ss)
-    pcs = vecs.T.astype(np.float32)[np.argsort(vals)[::-1]]
-    # Take the first npcs components.
-    if npcs is not None:
-        return pcs[:npcs,...]
+        assert masks.shape[1] == x.shape[2]  # number of channels
+
+    # Compute regularization cov matrix.
+    if masks is not None:
+        unmasked = mask > 0
+        # The last dimension is now time. The second dimension is channel.
+        x_swapped = np.swapaxes(x, 1, 2)
+        # This is the list of all unmasked spikes on all channels.
+        # shape: (n_unmasked_spikes, nsamples)
+        unmasked_all = x_swapped[unmasked, :]
+        # Let's compute the regularization cov matrix of this beast.
+        # shape: (nsamples, nsamples)
+        cov_reg = np.cov(unmasked_all, rowvar=0)
     else:
-        return pcs
+        cov_reg = np.eye(nsamples)
+    assert cov_reg.shape == (nsamples, nsamples)
+
+    pcs_list = []
+    # Loop over channels
+    for channel in range(nchannels):
+        x_channel = x[:, :, channel]
+        # Compute cov matrix for the channel
+        if masks is not None:
+            # Unmasked waveforms on that channel
+            # shape: (n_unmasked, nsamples)
+            x_channel = np.compress(masks[:, channel] > 0,
+                                           x_channel, axis=0)
+        assert x_channel.ndim == 2
+        # Don't compute the cov matrix if there are no unmasked spikes
+        # on that channel.
+        alpha = 1. / nspikes
+        if x_channel.shape[0] == 0:
+            cov = alpha * cov_reg
+        else:
+            cov_channel = np.cov(x_channel, rowvar=0)
+            assert cov_channel.shape == (nsamples, nsamples)
+            cov = cov_reg + alpha * cov_channel
+        # Compute the eigenelements
+        vals, vecs = np.linalg.eigh(cov)
+        pcs = vecs.T.astype(np.float32)[np.argsort(vals)[::-1]]
+        # Take the first npcs components.
+        if npcs is not None:
+            pcs_list.append(pcs[:npcs,...])
+        else:
+            pcs_list.append(pcs)
+    # Return the concatenation of the PCs on all channels, along the 3d axis.
+    return np.dstack(pcs_list)
 
 def project_pcs(x, pcs):
     """Project data points onto principal components.
