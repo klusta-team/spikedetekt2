@@ -42,6 +42,12 @@ def test_get_threshold_1():
                               threshold_std_factor=(2., 4.),
                               use_single_threshold=False)
 
+    threshold3 = get_threshold(raw_data, filter=filter, 
+                              nexcerpts=nexcerpts,
+                              excerpt_size=excerpt_size,
+                              threshold_std_factor=np.array([[2.5, 2., 2., 2.3, 1.2], [4.5, 3.2, 1., 2.3, 3.4]]),
+                              use_single_threshold=False)
+
     # assert np.abs(np.array(threshold) - 4.5) < .5
     
     
