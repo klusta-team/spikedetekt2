@@ -65,7 +65,7 @@ def compute_pcs(x, npcs=None, masks=None):
         else:
             cov_channel = np.cov(x_channel, rowvar=0)
             assert cov_channel.shape == (nsamples, nsamples)
-            cov = cov_reg + alpha * cov_channel
+            cov = alpha * cov_reg + cov_channel
         # Compute the eigenelements
         vals, vecs = np.linalg.eigh(cov)
         pcs = vecs.T.astype(np.float32)[np.argsort(vals)[::-1]]
