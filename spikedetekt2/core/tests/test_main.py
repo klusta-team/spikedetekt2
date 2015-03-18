@@ -22,7 +22,7 @@ from kwiklib.utils import itervalues, get_params, Probe, create_trace
 # -----------------------------------------------------------------------------
 DIRPATH = tempfile.mkdtemp()
 
-sample_rate = 20000.
+sample_rate = 2000.
 duration = 1.
 nchannels = 8
 nsamples = int(sample_rate * duration)
@@ -132,3 +132,14 @@ def test_run_canonical_pcs():
 
     with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:
         run(raw_data, experiment=exp, prm=prm_canonical, probe=Probe(prb),)
+
+@with_setup(setup,)
+def test_diagnostics():
+    _diag = []
+    def f(prm=None, **kwargs):
+        _diag.append(prm)
+    prm['diagnostics_function'] = f
+    with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:
+        run(np.zeros((nsamples, nchannels)),
+            experiment=exp, prm=prm, probe=Probe(prb))
+        assert _diag
