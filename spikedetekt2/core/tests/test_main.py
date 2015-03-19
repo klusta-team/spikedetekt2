@@ -4,7 +4,9 @@
 # Imports
 # -----------------------------------------------------------------------------
 import os
+import os.path as op
 import tempfile
+import shutil
 
 import numpy as np
 import tables as tb
@@ -135,11 +137,20 @@ def test_run_canonical_pcs():
 
 @with_setup(setup,)
 def test_diagnostics():
-    _diag = []
-    def f(prm=None, **kwargs):
-        _diag.append(prm)
-    prm['diagnostics_function'] = f
+
+    dir = tempfile.mkdtemp()
+
+    path = op.join(dir, 'diagnostics.py')
+    with open(path, 'w') as f:
+        f.write(
+        'def diagnostics(prm=None, **kwargs):\n'
+        '   print(prm)\n'
+        '\n')
+
+    prm['diagnostics_path'] = path
+
     with Experiment('myexperiment', dir=DIRPATH, mode='a') as exp:
         run(np.zeros((nsamples, nchannels)),
             experiment=exp, prm=prm, probe=Probe(prb))
-        assert _diag
+
+    shutil.rmtree(dir)

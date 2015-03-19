@@ -5,6 +5,8 @@
 # -----------------------------------------------------------------------------
 import spikedetekt2
 import logging
+import imp
+import os.path as op
 
 import numpy as np
 import tables as tb
@@ -17,6 +19,12 @@ from spikedetekt2.processing import (bandpass_filter, apply_filter, decimate,
     compute_pcs, project_pcs, DoubleThreshold)
 from kwiklib.utils import (Probe, iterkeys, debug, info, warn, exception,
     display_params, FileLogger, register, unregister)
+
+
+def _import_module(path):
+    module_name = op.basename(path)
+    module_name = op.splitext(module_name)[0]
+    return imp.load_source(module_name, path)
 
 
 # -----------------------------------------------------------------------------
@@ -192,7 +200,16 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
         debug("Threshold: " + str(threshold))
 
         # Debug module.
-        diagnostics_function = prm.get('diagnostics_function', None)
+        diagnostics_path = prm.get('diagnostics_path', None)
+        if diagnostics_path:
+            diagnostics_mod = _import_module(diagnostics_path)
+            if not hasattr(diagnostics_mod, 'diagnostics'):
+                raise ValueError("The diagnostics module must implement a "
+                                 "'diagnostics()' function.")
+            diagnostics_fun = diagnostics_mod.diagnostics
+        else:
+            diagnostics_fun = None
+
 
     # Progress bar.
     progress_bar = ProgressReporter(period=30.)
@@ -262,9 +279,9 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
 
             # DEBUG module.
             # Execute the debug script.
-            if diagnostics_function:
+            if diagnostics_fun:
                 try:
-                    diagnostics_function(**locals())
+                    diagnostics_fun(**locals())
                 except Exception as e:
                     warn("The diagnostics module failed: " + e.message)
 
