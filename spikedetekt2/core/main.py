@@ -5,6 +5,8 @@
 # -----------------------------------------------------------------------------
 import spikedetekt2
 import logging
+import imp
+import os.path as op
 
 import numpy as np
 import tables as tb
@@ -17,6 +19,12 @@ from spikedetekt2.processing import (bandpass_filter, apply_filter, decimate,
     compute_pcs, project_pcs, DoubleThreshold)
 from kwiklib.utils import (Probe, iterkeys, debug, info, warn, exception,
     display_params, FileLogger, register, unregister)
+
+
+def _import_module(path):
+    module_name = op.basename(path)
+    module_name = op.splitext(module_name)[0]
+    return imp.load_source(module_name, path)
 
 
 # -----------------------------------------------------------------------------
@@ -147,7 +155,7 @@ def close_file_logger(LOGGER_FILE):
 # -----------------------------------------------------------------------------
 # Main loop
 # -----------------------------------------------------------------------------
-def run(raw_data=None, experiment=None, prm=None, probe=None, 
+def run(raw_data=None, experiment=None, prm=None, probe=None,
         _debug=False, convert_only=False):
     """This main function takes raw data (either as a RawReader, or a path
     to a filename, or an array) and executes the main algorithm (filtering,
@@ -181,19 +189,28 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
 
     # Get the bandpass filter.
     filter = bandpass_filter(**prm)
-    
+
     if not (convert_only and first_chunk_detected):
         # Compute the strong threshold across excerpts uniformly scattered across the
         # whole recording.
-        threshold = get_threshold(raw_data, filter=filter, 
+        threshold = get_threshold(raw_data, filter=filter,
                                   channels=probe.channels, **prm)
         assert not np.isnan(threshold.weak).any()
         assert not np.isnan(threshold.strong).any()
         debug("Threshold: " + str(threshold))
 
         # Debug module.
-        diagnostics_script_path = prm.get('diagnostics_script_path', None)
-    
+        diagnostics_path = prm.get('diagnostics_path', None)
+        if diagnostics_path:
+            diagnostics_mod = _import_module(diagnostics_path)
+            if not hasattr(diagnostics_mod, 'diagnostics'):
+                raise ValueError("The diagnostics module must implement a "
+                                 "'diagnostics()' function.")
+            diagnostics_fun = diagnostics_mod.diagnostics
+        else:
+            diagnostics_fun = None
+
+
     # Progress bar.
     progress_bar = ProgressReporter(period=30.)
     nspikes = 0
@@ -235,44 +252,47 @@ def run(raw_data=None, experiment=None, prm=None, probe=None,
             chunk_low = decimate(chunk_raw)
             chunk_low_keep = chunk_low[i//16:j//16,:]
             experiment.recordings[chunk.recording].low.append(convert_dtype(chunk_low_keep, np.int16))
-        
+
         if not (convert_only and first_chunk_detected):
             # Apply thresholds.
-            chunk_detect, chunk_threshold = apply_threshold(chunk_fil, 
+            chunk_detect, chunk_threshold = apply_threshold(chunk_fil,
                 threshold=threshold, **prm)
-        
+
             # Remove dead channels.
             dead = np.setdiff1d(np.arange(nchannels), probe.channels)
             chunk_detect[:,dead] = 0
             chunk_threshold.strong[:,dead] = 0
             chunk_threshold.weak[:,dead] = 0
-        
+
             # Find connected component (strong threshold). Return list of
             # Component instances.
             components = connected_components(
-                chunk_strong=chunk_threshold.strong, 
-                chunk_weak=chunk_threshold.weak, 
+                chunk_strong=chunk_threshold.strong,
+                chunk_weak=chunk_threshold.weak,
                 probe_adjacency_list=probe.adjacency_list,
                 chunk=chunk, **prm)
-        
+
             # Now we extract the spike in each component.
             waveforms = extract_waveforms(chunk_detect=chunk_detect,
-                threshold=threshold, chunk_fil=chunk_fil, chunk_raw=chunk_raw, 
+                threshold=threshold, chunk_fil=chunk_fil, chunk_raw=chunk_raw,
                 probe=probe, components=components, **prm)
 
             # DEBUG module.
             # Execute the debug script.
-            if diagnostics_script_path:
-                execfile(diagnostics_script_path)
-        
+            if diagnostics_fun:
+                try:
+                    diagnostics_fun(**locals())
+                except Exception as e:
+                    warn("The diagnostics module failed: " + e.message)
+
             # Log number of spikes in the chunk.
             nspikes += len(waveforms)
-        
+
             # We sort waveforms by increasing order of fractional time.
             [add_waveform(experiment, waveform) for waveform in sorted(waveforms)]
-            
+
             first_chunk_detected = True
-        
+
         # Update the progress bar.
         progress_bar.update(rec/float(nrecs) + (float(s_end) / (nsamples*nrecs)),
             '%d spikes found.' % (nspikes))
